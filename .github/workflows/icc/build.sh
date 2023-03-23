@@ -2,6 +2,10 @@
 
 set -eu
 
-CC=icc CXX=icx cmake ${GDAL_SOURCE_DIR:=..} -DCMAKE_BUILD_TYPE=Release -DUSE_CCACHE=ON
+cmake ${GDAL_SOURCE_DIR:=..} \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_COMPILER=icc \
+    -DCMAKE_CXX_COMPILER=icx \
+    -DUSE_CCACHE=ON
 make -j$(nproc)
 
