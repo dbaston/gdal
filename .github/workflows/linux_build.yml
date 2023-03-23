@@ -130,9 +130,11 @@ jobs:
       - name: Pull build environment
         shell: bash
         run: |
+          export CONTAINER_NAME_FULL="${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME}"
           docker pull ${CONTAINER_REGISTRY}/osgeo/${CONTAINER_NAME} || true
           docker pull ${CONTAINER_REGISTRY}/osgeo/${CACHE_CONTAINER_NAME} || true
-          docker pull ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME} || true
+          docker pull ${CONTAINER_NAME_FULL} || true
+          echo "CONTAINER_NAME_FULL=${CONTAINER_NAME_FULL}" >>${GITHUB_ENV}
 
       - name: Prepare build context
         run: |
@@ -146,8 +148,8 @@ jobs:
           docker build \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             --cache-from ${CONTAINER_REGISTRY}/osgeo/${CONTAINER_NAME} \
-            --cache-from ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER}/${CONTAINER_NAME} \
-            -t ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME} \
+            --cache-from ${CONTAINER_NAME_FULL} \
+            -t ${CONTAINER_NAME_FULL} \
             -f .github/workflows/${{ matrix.container }}/Dockerfile.ci \
             docker-build-context
 
@@ -157,8 +159,7 @@ jobs:
         env:
           DOCKER_BUILDKIT: 1
         run: |
-          docker push \
-            ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME}
+          docker push ${CONTAINER_NAME_FULL}
 
       # Get the architecture so we can use it as part of the cache key,
       # but only if we are going to use avx2 in the build. If we are not,
@@ -191,7 +192,7 @@ jobs:
         run: |
           docker run --rm \
             -v ${{ github.workspace }}/.ccache:/root/.ccache \
-            ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME} \
+            ${CONTAINER_NAME_FULL} \
             sh -c "ccache -M 1G && ccache -sp && ccache -z"
 
         # FIXME the default BUILD_CMD here isn't working...we get an error
@@ -210,14 +211,14 @@ jobs:
             -v $(pwd):/${GDAL_SOURCE_DIR}:rw \
             -v ${{ github.workspace }}/.ccache:/root/.ccache:rw \
             --workdir ${GDAL_SOURCE_DIR}/build-${{ matrix.id }} \
-            ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME} \
+            ${CONTAINER_NAME_FULL} \
             ${BUILD_CMD}
 
       - name: Summarize ccache
         run: |
           docker run --rm \
             -v ${{ github.workspace }}/.ccache:/root/.ccache \
-            ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME} \
+            ${CONTAINER_NAME_FULL} \
             ccache -s
 
       - name: Save build cache
@@ -253,5 +254,5 @@ jobs:
             --rm \
             -v $(pwd):${GDAL_SOURCE_DIR} \
             --workdir ${GDAL_SOURCE_DIR}/build-${{ matrix.id }} \
-            ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME} \
+            ${CONTAINER_NAME_FULL} \
             ${TEST_CMD}
