@@ -106,6 +106,12 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        # bash is needed to use ${CONTAINER_REGISTRY_USER,,}, which forces the
+        # username to lower-case as required by docker.
+        shell: bash
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -122,10 +128,11 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
 
       - name: Pull build environment
+        shell: bash
         run: |
           docker pull ${CONTAINER_REGISTRY}/osgeo/${CONTAINER_NAME} || true
           docker pull ${CONTAINER_REGISTRY}/osgeo/${CACHE_CONTAINER_NAME} || true
-          docker pull ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER}/${CONTAINER_NAME} || true
+          docker pull ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME} || true
 
       - name: Prepare build context
         run: |
@@ -140,7 +147,7 @@ jobs:
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             --cache-from ${CONTAINER_REGISTRY}/osgeo/${CONTAINER_NAME} \
             --cache-from ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER}/${CONTAINER_NAME} \
-            -t ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER}/${CONTAINER_NAME} \
+            -t ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME} \
             -f .github/workflows/${{ matrix.container }}/Dockerfile.ci \
             docker-build-context
 
@@ -151,7 +158,7 @@ jobs:
           DOCKER_BUILDKIT: 1
         run: |
           docker push \
-            ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER}/${CONTAINER_NAME}
+            ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME}
 
       # Get the architecture so we can use it as part of the cache key,
       # but only if we are going to use avx2 in the build. If we are not,
@@ -184,7 +191,7 @@ jobs:
         run: |
           docker run --rm \
             -v ${{ github.workspace }}/.ccache:/root/.ccache \
-            ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER}/${CONTAINER_NAME} \
+            ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME} \
             sh -c "ccache -M 1G && ccache -sp && ccache -z"
 
         # FIXME the default BUILD_CMD here isn't working...we get an error
@@ -203,14 +210,14 @@ jobs:
             -v $(pwd):/${GDAL_SOURCE_DIR}:rw \
             -v ${{ github.workspace }}/.ccache:/root/.ccache:rw \
             --workdir ${GDAL_SOURCE_DIR}/build-${{ matrix.id }} \
-            ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER}/${CONTAINER_NAME} \
+            ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME} \
             ${BUILD_CMD}
 
       - name: Summarize ccache
         run: |
           docker run --rm \
             -v ${{ github.workspace }}/.ccache:/root/.ccache \
-            ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER}/${CONTAINER_NAME} \
+            ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME} \
             ccache -s
 
       - name: Save build cache
@@ -246,5 +253,5 @@ jobs:
             --rm \
             -v $(pwd):${GDAL_SOURCE_DIR} \
             --workdir ${GDAL_SOURCE_DIR}/build-${{ matrix.id }} \
-            ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER}/${CONTAINER_NAME} \
+            ${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME} \
             ${TEST_CMD}
