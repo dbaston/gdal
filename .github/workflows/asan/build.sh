@@ -24,5 +24,5 @@ cmake ${GDAL_SOURCE_DIR:=..} \
     -DGDAL_USE_GEOTIFF_INTERNAL=ON \
     -DGDAL_USE_TIFF_INTERNAL=ON \
     -DFileGDB_ROOT=/usr/local/FileGDB_API
-make -j$NPROC VERBOSE=1
+make -j$NPROC
 
