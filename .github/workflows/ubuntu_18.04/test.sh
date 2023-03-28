@@ -11,7 +11,6 @@ make quicktest
 
 # Run ogr_fgdb test in isolation due to likely conflict with libxml2
 (cd autotest/ogr && $PYTEST ogr_fgdb.py)
-rm autotest/ogr/ogr_fgdb.py
 
 IP=host.docker.internal
 
@@ -34,7 +33,9 @@ AZURE_STORAGE_CONNECTION_STRING=${AZURITE_STORAGE_CONNECTION_STRING} python3 -c 
 
 (cd autotest/ogr && OGR_MSSQL_CONNECTION_STRING="MSSQL:server=$IP;database=TestDB;driver=ODBC Driver 17 for SQL Server;UID=SA;PWD=DummyPassw0rd" $PYTEST ogr_mssqlspatial.py)
 
-# Fails with ERROR 1: OGDI DataSource Open Failed: Could not find the dynamic library "vrf"
-rm autotest/ogr/ogr_ogdi.py
-
-(cd autotest && $PYTEST)
+# ogr_ogdi.py Fails with ERROR 1: OGDI DataSource Open Failed: Could not find the dynamic library "vrf"
+# ogr_fgdb.py was already run above
+(cd autotest && $PYTEST \
+    --ignore=ogr_ogdi.py \
+    --ignore=ogr_fgdb.py \
+)
