@@ -457,6 +457,10 @@ primary_domain = "cpp"
 source_file_root = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
 source_file_url_template = "https://github.com/OSGeo/gdal/blob/master/{}"
 
+# -- GDAL Config option listing ------------------------------------------
+options_since_ignore_before = "3.0"
+options_global_config_doc = "user/configoptions"
+
 # -- Redirects --------------------------------------------------
 
 enable_redirects = False
