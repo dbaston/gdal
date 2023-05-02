@@ -401,7 +401,7 @@ General options
     process is generally limited to 1024.
 
 .. config:: GDAL_SWATH_SIZE
-   :default: 10000000 (10 MB)
+   :default: 1/4 of the maximum block cache size (GDAL_CACHEMAX)
 
     Used by gcore/rasterio.cpp
 
@@ -547,18 +547,6 @@ Persistent Auxiliary Metadata (PAM) options
 PROJ options
 ^^^^^^^^^^^^
 
-.. config:: PROJSO
-
-    Used by ogr/ogrct.cpp
-
-    The name of the PROJ.4 DLL or shared library to try and load at runtime. For
-    example "/home/bob/libproj.so". If not set, OGR will try to load:
-
-        libproj.so on Linux/Unix platforms
-        proj.dll on Windows platforms
-        libproj.dylib on MacOSX platforms
-        libproj-0.dll on MinGW32 builds
-        cygproj-0.dll on Cygwin builds
 
 .. config:: CENTER_LONG
 
@@ -571,7 +559,7 @@ PROJ options
     datasets or when transforming from/to polar projections, which causes
     coordinates discontinuities. See http://trac.osgeo.org/gdal/ticket/2305.
 
-    The background is that proj.4 does not guarantee that converting from src_srs to
+    The background is that PROJ does not guarantee that converting from src_srs to
     dst_srs and then from dst_srs to src_srs will yield to the initial coordinates.
     This can cause to errors in the computation of the target bounding box of
     gdalwarp, or to visual artifacts.
@@ -582,7 +570,7 @@ PROJ options
     setting CHECK_WITH_INVERT_PROJ=TRUE that forces ogrct.cpp to check the
     consistency of each requested projection result with the invert projection.
 
-    If set to NO, gdalwarp will behave like GDAL/OGR < 1.7.0
+    If set to NO, gdalwarp wil not attempt to use the invert projection.
 
 .. config:: THRESHOLD
    :since: 1.7.0
@@ -613,7 +601,7 @@ Other global options
 
     Used by OGR_G_CreateFromGML() (for gml:Arc and gml:Circle) and
     OGRGeometryFactory::approximateArcAngles() to stroke arc to linestrings.
-    Defaults to 4 (degrees). Added in GDAL/OGR 1.8.0
+    Defaults to 4 (degrees).
 
     The largest step in degrees along the arc.
 
