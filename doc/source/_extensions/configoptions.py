@@ -50,11 +50,7 @@ class BaseConfigOption(SphinxDirective):
         while len(b_parts) < len(a_parts):
             b_parts.append(0)
 
-        for i in range(len(a_parts)):
-            if a_parts[i] < b_parts[i]:
-                return False
-
-        return True
+        return a_parts >= b_parts
 
     def run(self):
         option_name = self.arguments[0]
