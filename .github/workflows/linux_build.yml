@@ -30,8 +30,8 @@ jobs:
       CONTAINER_REGISTRY: ${{ vars.gdal_container_registry || 'ghcr.io' }}
       CONTAINER_REGISTRY_USER: ${{ vars.gdal_container_registry_user || github.repository_owner }}
       CONTAINER_NAME: gdal-deps
-      CONTAINER_TAG: ${{ github.base_ref || github.ref_name }}
-      CACHE_CONTAINER_TAG: gdal-deps:${{ matrix.container }}-master
+      CONTAINER_TAG: ${{ matrix.container }}-${{ github.base_ref || github.ref_name }}
+      CACHE_CONTAINER_TAG: ${{ matrix.container }}-master
       GDAL_SOURCE_DIR: /gdal # Directory to which workspace (source root) will be mounted inside container
 
     permissions:
