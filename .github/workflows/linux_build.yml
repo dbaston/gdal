@@ -116,7 +116,7 @@ jobs:
     steps:
       - name: Set variables
         run: |
-          CONTAINER_TAG_CLEAN=$(echo ${CONTAINER_TAG} | tr -d -c "[:alnum:].")
+          CONTAINER_TAG_CLEAN=$(echo ${CONTAINER_TAG} | tr -d -c "[:alnum:].-")
           echo "CONTAINER_TAG_CLEAN=${CONTAINER_TAG_CLEAN}"
           echo "CONTAINER_TAG_CLEAN=${CONTAINER_TAG_CLEAN}" >> ${GITHUB_ENV}
           echo "CONTAINER_NAME_FULL=${CONTAINER_REGISTRY}/${CONTAINER_REGISTRY_USER,,}/${CONTAINER_NAME}:${CONTAINER_TAG_CLEAN}"  >>${GITHUB_ENV}
