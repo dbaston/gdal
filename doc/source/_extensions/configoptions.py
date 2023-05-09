@@ -1,29 +1,62 @@
 from docutils import nodes
+from docutils.parsers.rst import Directive
+from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 
 
-def config_ref(pattern):
+def option_key(option_type, option_name):
+    return f"{option_type}-{option_name}"
 
-    if pattern == "global_config":
-        global_doc = True
-    else:
-        global_doc = False
 
-    opt_type = pattern.replace("global_", "")
+class config_reference(nodes.General, nodes.Element):
+    """
+    Placeholder class marking a reference to a config option, to be resolved later.
+    """
 
+    def __init__(self, option_type, option_name, doc):
+        super(nodes.General, self).__init__()
+        self.option_type = option_type
+        self.option_name = option_name
+        self.doc = doc
+
+
+class config_index(nodes.General, nodes.Element):
+    """
+    Placeholder class marking the location of a config option index, to be created later.
+    """
+
+    pass
+
+
+def config_ref(opt_type):
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
-        app = inliner.document.settings.env.app
+        env = inliner.document.settings.env
 
-        # FIXME this clearly won't work for non-HTML builders.
-        # omit the links in these cases? or figure out something fancy (https://github.com/sphinx-doc/sphinx/issues/10448) ?
-        if global_doc:
-            document = app.config.options_global_config_doc + ".html"
-        else:
-            document = ""
+        # TODO handle ambiguous options, like if two drivers
+        # have open options with the same name, and we want
+        # to be able to specify which one we mean.
+        option = text
 
-        ref_node = nodes.reference(
-            rawtext, text, refuri=f"{document}#{opt_type}-{text.lower()}", **options
-        )
+        # Record the document from which this reference was
+        # used. This lets us build a reverse index showing
+        # where each configuration option is used.
+        if not hasattr(env, "gdal_option_refs"):
+            env.gdal_option_refs = {}
+
+        ref_key = option_key(opt_type, option)
+
+        if ref_key not in env.gdal_option_refs:
+            env.gdal_option_refs[ref_key] = []
+
+        env.gdal_option_refs[ref_key].append({"document": env.docname})
+
+        # Emit a placeholder node that describes the config
+        # option we're trying to reference. After all files
+        # have been parsed and we've discovered where each
+        # option is defined, we can go back and replace the
+        # placeholder nodes with actual references.
+        ref_node = config_reference(opt_type, option, env.docname)
+
         return [ref_node], []
 
     return role
@@ -61,14 +94,22 @@ class BaseConfigOption(SphinxDirective):
         target_id = f"{self.opt_type}-{option_name.lower()}"
         target_node = nodes.target("", "", ids=[target_id])
 
-        self.env.app.env.domaindata["std"]["labels"][target_id] = (
-            self.env.docname,
-            target_id,
-            option_name,
-        )
-        self.env.app.env.domaindata["std"]["anonlabels"][target_id] = (
-            self.env.docname,
-            target_id,
+        if not hasattr(self.env, "gdal_options"):
+            self.env.gdal_options = []
+
+        # Record information about this option and where it was
+        # defined in our environment, so we can process cross
+        # references later.
+        self.env.gdal_options.append(
+            {
+                "key": option_key(self.opt_type, option_name),
+                "option_name": option_name,
+                "option_type": self.opt_type,
+                "docname": self.env.docname,
+                "lineno": self.lineno,
+                "target": target_node,
+                "target_id": target_id,
+            }
         )
 
         para = nodes.paragraph()
@@ -139,15 +180,171 @@ def decl_configoption(pattern):
     return role
 
 
+def purge_option_defs(app, env, docname):
+    if not hasattr(env, "gdal_options"):
+        return
+
+    env.gdal_options = [x for x in env.gdal_options if x["docname"] != docname]
+
+
+def purge_option_refs(app, env, docname):
+    if not hasattr(env, "gdal_options_refs"):
+        return
+
+    for key in env.gdal_option_refs:
+        env.gdal_option_refs[key] = [
+            x for x in env.gdal_option_refs[key] if x["document"] != docname
+        ]
+
+
+def merge_option_defs(app, env, docnames, other):
+    if not hasattr(env, "gdal_options"):
+        env.gdal_options = []
+    if hasattr(other, "gdal_options"):
+        env.gdal_options.extend(other.gdal_options)
+
+
+def merge_option_refs(app, env, docnames, other):
+    if not hasattr(env, "gdal_option_refs"):
+        env.gdal_option_refs = {}
+    if hasattr(other, "gdal_option_refs"):
+        for k, v in other.gdal_option_refs.items():
+            if k in env.gdal_option_refs:
+                env.gdal_option_refs[k] += v
+            else:
+                env.gdal_option_refs[k] = v.copy()
+
+
+def create_config_index(app, doctree, fromdocname):
+    env = app.builder.env
+
+    if not hasattr(env, "gdal_option_refs"):
+        env.gdal_option_refs = {}
+
+    if not hasattr(env, "gdal_options"):
+        env.gdal_options = []
+
+    for node in doctree.findall(config_index):
+        content = []
+
+        for opt in env.gdal_options:
+            refs = env.gdal_option_refs.get(opt["key"], [])
+
+            # If true, include a link to the definition of
+            # the option along with usages. If false, only
+            # usages will be linked.
+            link_to_definition = True
+
+            if link_to_definition:
+                refs.append({"document": opt["docname"]})
+
+            if refs:
+                para = nodes.paragraph()
+                li_node = nodes.list_item("", para)
+
+                # Link the option back to its definition.
+                opt_name = nodes.literal(opt["option_name"], opt["option_name"])
+                def_ref = nodes.reference(
+                    "",
+                    "",
+                    refuri=app.builder.get_relative_uri(fromdocname, opt["docname"]),
+                )
+                def_ref.append(opt_name)
+                para += def_ref
+
+                para += nodes.Text(": ")
+
+                # Create a link for each reference to that option.
+                # TODO sort by document title instead of document name?
+                ref_docs = sorted({ref["document"] for ref in refs})
+
+                for i, ref_doc in enumerate(ref_docs):
+                    ref_title = str(env.titles[ref_doc].children[0])
+
+                    ref_node = nodes.reference(
+                        "",
+                        ref_title,
+                        refuri=app.builder.get_relative_uri(fromdocname, ref_doc),
+                        internal=True,
+                    )
+                    if i > 0:
+                        para += nodes.Text(", ")
+                    para += ref_node
+
+                content.append(li_node)
+
+        node.replace_self(content)
+
+
+def link_option_refs(app, doctree, fromdocname):
+    env = app.builder.env
+
+    logger = logging.getLogger(__name__)
+
+    if not hasattr(env, "gdal_options"):
+        env.gdal_options = []
+
+    for node in doctree.findall(config_reference):
+        ref_key = option_key(node.option_type, node.option_name)
+
+        matched = False
+
+        # TODO use dict? Would then need to handle check for duplicate declarations
+        # both at declaration site and in merge function.
+        for opt in env.gdal_options:
+            if opt["key"] == ref_key:
+                if matched:
+                    logger.warning(
+                        f"Duplicate definition of {node.option_name} of type {node.option_type}",
+                        location=node,
+                    )
+
+                from_doc = node.doc
+                to_doc = opt["docname"]
+
+                refuri = app.builder.get_relative_uri(from_doc, to_doc)
+
+                ref_node = nodes.reference(
+                    "", "", refuri=refuri + "#" + opt["target_id"], internal=True
+                )
+                ref_text = nodes.literal(opt["option_name"], opt["option_name"])
+                ref_node.append(ref_text)
+
+                node.replace_self(ref_node)
+                matched = True
+
+        if not matched:
+            logger.warning(
+                f"Can't find option {node.option_name} of type {node.option_type}",
+                location=node,
+            )
+            text_node = nodes.Text(node.option_name)
+            node.replace_self(text_node)
+
+
+class ConfigIndex(Directive):
+    def run(self):
+        return [config_index("")]
+
+
 def setup(app):
+    app.add_node(config_reference)
+    app.add_node(config_index)
+
     app.add_config_value("options_global_config_doc", None, "html")
     app.add_config_value("options_since_ignore_before", None, "html")
 
-    for opt_type in {"config", "dsco", "lco", "co", "oo"}:
-        app.add_directive(f"{opt_type}", option_classes[opt_type])
+    app.connect("doctree-resolved", link_option_refs)
+    app.connect("doctree-resolved", create_config_index)
+    app.connect("env-purge-doc", purge_option_defs)
+    app.connect("env-merge-info", merge_option_defs)
+    app.connect("env-purge-doc", purge_option_refs)
+    app.connect("env-merge-info", merge_option_refs)
+
+    for opt_type, opt_directive in option_classes.items():
+        app.add_directive(f"{opt_type}", opt_directive)
         app.add_role(opt_type, config_ref(opt_type))
 
-    app.add_role("global_config", config_ref("global_config"))
     app.add_role("decl_configoption", decl_configoption("%s"))
 
     return {"version": "0.1", "parallel_read_safe": True, "parallel_write_safe": True}

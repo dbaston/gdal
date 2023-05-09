@@ -292,6 +292,13 @@ General options
    between 2 and 4 GB. It is the responsibility of the user to set a consistent
    value.
 
+.. config:: GDAL_NUM_THREADS
+   :choices: ALL_CPUS, <integer>
+   :default: ALL_CPUS
+
+   Sets the number of worker threads to be used by GDAL operations that support
+   multithreading.
+
 .. config:: GDAL_SKIP
    :choices: space-separated list
 
@@ -535,7 +542,6 @@ Persistent Auxiliary Metadata (PAM) options
 PROJ options
 ^^^^^^^^^^^^
 
-
 .. config:: CENTER_LONG
 
 .. config:: CHECK_WITH_INVERT_PROJ
@@ -616,8 +622,8 @@ List of configuration options and where they apply
 .. note::
     This list is known to be incomplete. It depends on proper annotation of configuration
     options where they are mentioned elsewhere in the documentation.
-    If you want to help to extend it, use the ``:decl_configoption:`NAME```
-    syntax in places where a configuration option is mentioned.
+    If you want to help to extend it, you can help update documentation to use the
+    syntax described in :ref:`config_option_syntax`.
 
 
 .. include:: configoptions_index_generated.rst

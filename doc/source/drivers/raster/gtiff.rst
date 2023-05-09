@@ -309,7 +309,7 @@ Open options
    LZMA. Default is compression in the main thread.
    Starting with GDAL 3.6, this option also enables multi-threaded decoding
    when RasterIO() requests intersect several tiles/strips.
-   The :decl_configoption:`GDAL_NUM_THREADS` configuration option can also
+   The :config:`GDAL_NUM_THREADS` configuration option can also
    be used as an alternative to setting the open option.
 
 -  **GEOREF_SOURCES=string**: (GDAL > 2.2) Define which georeferencing
@@ -831,8 +831,7 @@ the default behavior of the GTiff driver.
 -  :decl_configoption:`GDAL_GEOREF_SOURCES` =comma-separated list with one or several of PAM,
    INTERNAL, TABFILE, WORLDFILE or XML (XML added in 3.7). (GDAL >= 2.2). See
    `Georeferencing <#georeferencing>`__ paragraph.
--  :decl_configoption:`GDAL_NUM_THREADS` =number_of_threads/ALL_CPUS: (GDAL >= 2.1) Enable
-   multi-threaded compression by specifying the number of worker
+-  :config:`GDAL_NUM_THREADS` enables multi-threaded compression by specifying the number of worker
    threads. Worth it for slow compression algorithms such as DEFLATE or
    LZMA. Will be ignored for JPEG. Default is compression in the main
    thread. Note: this configuration option also apply to other parts to
