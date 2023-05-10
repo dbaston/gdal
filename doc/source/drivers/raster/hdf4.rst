@@ -207,7 +207,11 @@ transformation matrix restored back.
 
 Creation Options:
 
--  **RANK=n**: Create **n**-dimensional SDS. Currently only 2D and 3D
+.. co:: RANK
+   :choices: 2, 3
+   :default: 3
+
+   Create **n**-dimensional SDS. Currently only 2D and 3D
    datasets supported. By default a 3-dimensional dataset will be
    created.
 
@@ -223,7 +227,11 @@ Open options
 
 The following open option is supported:
 
-- **LIST_SDS=AUTO/YES/NO**: (GDAL >= 3.2) Whether to report Scientific Data Sets (SDS).
+.. oo:: LIST_SDS
+  :choices: AUTO, YES, NO
+  :since: 3.2
+
+  Whether to report Scientific Data Sets (SDS).
   By default, when a HDF file contains EOS_SWATH or EOS_GRID, SDS will not be
   listed as GDAL subdatasets (as this would cause them to be reported twice).
   Listing them can be forced by setting LIST_SDS to YES.
