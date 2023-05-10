@@ -115,7 +115,7 @@ class BaseConfigOption(SphinxDirective):
     required_arguments = 1
     option_spec = {
         "since": str,
-        "choices": parse_choices,  # FIXME need to ignore commas that are part of the choice, see GTiff DISCARD_LSB, GDAL_GEOREF_SOURCES
+        "choices": parse_choices,
         "default": str,
     }
 
