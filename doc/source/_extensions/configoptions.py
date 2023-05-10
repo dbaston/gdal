@@ -1,3 +1,5 @@
+import re
+
 from docutils import nodes
 from docutils.parsers.rst import Directive
 from sphinx.util import logging
@@ -62,13 +64,19 @@ def config_ref(opt_type):
     return role
 
 
+def parse_choices(text):
+    # split on commas, except those that are escaped with \
+    # strip whitespace and remove escape character \
+    return [x.replace("\\,", ",").strip() for x in re.split(r"(?<![\\]),", text)]
+
+
 class BaseConfigOption(SphinxDirective):
 
     has_content = True
     required_arguments = 1
     option_spec = {
         "since": str,
-        "choices": lambda x: list(choice.strip() for choice in x.split(",")),
+        "choices": parse_choices,  # FIXME need to ignore commas that are part of the choice, see GTiff DISCARD_LSB, GDAL_GEOREF_SOURCES
         "default": str,
     }
 
@@ -126,8 +134,16 @@ class BaseConfigOption(SphinxDirective):
             since_ver = self.options["since"]
             min_since_ver = self.env.app.config.options_since_ignore_before
 
-            if not min_since_ver or self.version_at_least(since_ver, min_since_ver):
-                text += f"({self.env.app.config.project} >= {since_ver}) "
+            try:
+                if not min_since_ver or self.version_at_least(since_ver, min_since_ver):
+                    text += f"({self.env.app.config.project} >= {since_ver}) "
+            except ValueError:
+                # TODO figure out how to emit a line number here?
+                logger = logging.getLogger(__name__)
+                logger.warning(
+                    f":since: should be a sequence of integers and periods (got {since_ver})",
+                    location=self.env.docname,
+                )
 
         if "default" in self.options:
             text += f'Defaults to {self.options["default"]}. '
