@@ -6,8 +6,47 @@ from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 
 
+class Option:
+    def __init__(self, *, option_type, option_name, docname, lineno, target, target_id):
+        self.option_type = option_type
+        self.option_name = option_name
+        self.docname = docname
+        self.lineno = lineno
+        self.target = target
+        self.target_id = target_id
+
+    def __eq__(self, other):
+        return (
+            self.option_type == other.option_type
+            and self.option_name == other.option_name
+            and self.docname == other.docname
+            and self.lineno == other.lineno
+        )
+
+    def key(self):
+        return option_key(self.option_type, self.option_name)
+
+
 def option_key(option_type, option_name):
     return f"{option_type}-{option_name}"
+
+
+def register_option(env, opt):
+    if not hasattr(env, "gdal_options"):
+        env.gdal_options = {}
+
+    orig_opt = env.gdal_options.get(opt.key(), None)
+    if orig_opt is not None and orig_opt != opt:
+        # Ignore exact duplicates that may arise during parallel processing.
+        # If the options differ in any way (docname, lineno, etc.)
+        # then raise a warning.
+        logger = logging.getLogger(__name__)
+        logger.warning(
+            f"Duplicate definition of {opt.option_name} (previously defined at {orig_opt.docname}:{orig_opt.lineno})",
+            location=(opt.docname, opt.lineno),
+        )
+    else:
+        env.gdal_options[opt.key()] = opt
 
 
 class config_reference(nodes.General, nodes.Element):
@@ -102,23 +141,19 @@ class BaseConfigOption(SphinxDirective):
         target_id = f"{self.opt_type}-{option_name.lower()}"
         target_node = nodes.target("", "", ids=[target_id])
 
-        if not hasattr(self.env, "gdal_options"):
-            self.env.gdal_options = []
-
         # Record information about this option and where it was
         # defined in our environment, so we can process cross
         # references later.
-        self.env.gdal_options.append(
-            {
-                "key": option_key(self.opt_type, option_name),
-                "option_name": option_name,
-                "option_type": self.opt_type,
-                "docname": self.env.docname,
-                "lineno": self.lineno,
-                "target": target_node,
-                "target_id": target_id,
-            }
+        opt = Option(
+            option_type=self.opt_type,
+            option_name=option_name,
+            docname=self.env.docname,
+            lineno=self.lineno,
+            target=target_node,
+            target_id=target_id,
         )
+
+        register_option(self.env, opt)
 
         para = nodes.paragraph()
         li_node = nodes.list_item("", para)
@@ -200,7 +235,9 @@ def purge_option_defs(app, env, docname):
     if not hasattr(env, "gdal_options"):
         return
 
-    env.gdal_options = [x for x in env.gdal_options if x["docname"] != docname]
+    env.gdal_options = {
+        k: v for k, v in env.gdal_options.items() if v.docname != docname
+    }
 
 
 def purge_option_refs(app, env, docname):
@@ -214,10 +251,9 @@ def purge_option_refs(app, env, docname):
 
 
 def merge_option_defs(app, env, docnames, other):
-    if not hasattr(env, "gdal_options"):
-        env.gdal_options = []
     if hasattr(other, "gdal_options"):
-        env.gdal_options.extend(other.gdal_options)
+        for opt in other.gdal_options.values():
+            register_option(env, opt)
 
 
 def merge_option_refs(app, env, docnames, other):
@@ -234,17 +270,26 @@ def merge_option_refs(app, env, docnames, other):
 def create_config_index(app, doctree, fromdocname):
     env = app.builder.env
 
+    # logger = logging.getLogger(__name__)
+    # logger.info(f"Preparing config indices in {fromdocname}")
+
+    if not hasattr(env, "gdal_option_index_docs"):
+        env.gdal_option_index_docs = set()
+
     if not hasattr(env, "gdal_option_refs"):
         env.gdal_option_refs = {}
 
     if not hasattr(env, "gdal_options"):
-        env.gdal_options = []
+        env.gdal_options = {}
+
+    if fromdocname not in env.gdal_option_index_docs:
+        return
 
     for node in doctree.findall(config_index):
         content = []
 
-        for opt in env.gdal_options:
-            refs = env.gdal_option_refs.get(opt["key"], [])
+        for opt in env.gdal_options.values():
+            refs = env.gdal_option_refs.get(opt.key, [])
 
             # If true, include a link to the definition of
             # the option along with usages. If false, only
@@ -252,18 +297,18 @@ def create_config_index(app, doctree, fromdocname):
             link_to_definition = True
 
             if link_to_definition:
-                refs.append({"document": opt["docname"]})
+                refs.append({"document": opt.docname})
 
             if refs:
                 para = nodes.paragraph()
                 li_node = nodes.list_item("", para)
 
                 # Link the option back to its definition.
-                opt_name = nodes.literal(opt["option_name"], opt["option_name"])
+                opt_name = nodes.literal(opt.option_name, opt.option_name)
                 def_ref = nodes.reference(
                     "",
                     "",
-                    refuri=app.builder.get_relative_uri(fromdocname, opt["docname"]),
+                    refuri=app.builder.get_relative_uri(fromdocname, opt.docname),
                 )
                 def_ref.append(opt_name)
                 para += def_ref
@@ -290,72 +335,54 @@ def create_config_index(app, doctree, fromdocname):
                 content.append(li_node)
 
         node.replace_self(content)
-
-
-def warn_duplicate_options(app, env):
-    logger = logging.getLogger(__name__)
-
-    # TODO make gdal_options a dict? Would then need to handle check for duplicate declarations
-    # both at declaration site and in merge function. Or, could combine them in a dict here
-    # and store to the environment.
-    if not hasattr(env, "gdal_options"):
-        return
-
-    opt_dict = {}
-
-    for opt in env.gdal_options:
-        orig_opt = opt_dict.get(opt["key"], None)
-        if orig_opt:
-            logger.warning(
-                f"Duplicate definition of {opt['option_name']} (previously defined at {orig_opt['docname']}:{orig_opt['lineno']})",
-                location=(opt["docname"], opt["lineno"]),
-            )
-        else:
-            opt_dict[opt["key"]] = opt
+    # logger.info(f"Done preparing config indices in {fromdocname}")
 
 
 def link_option_refs(app, doctree, fromdocname):
     env = app.builder.env
 
     logger = logging.getLogger(__name__)
+    # logger.info(f"Linking object references in {fromdocname}")
 
     if not hasattr(env, "gdal_options"):
-        env.gdal_options = []
+        env.gdal_options = {}
 
     for node in doctree.findall(config_reference):
         ref_key = option_key(node.option_type, node.option_name)
 
-        matched_opt = None
-
-        for opt in env.gdal_options:
-            if opt["key"] == ref_key:
-                matched_opt = opt
-                break
+        matched_opt = env.gdal_options.get(ref_key, None)
 
         if matched_opt is None:
             logger.warning(
-                f"Can't find option {node.option_name} of type {node.option_type}",
+                f"Can't find option {node.option_name} of type {node.option_type}: ({', '.join(sorted(env.gdal_options.keys()))}",
                 location=node,
             )
 
             ref_node = nodes.Text(node.option_name)
         else:
             from_doc = node.doc
-            to_doc = matched_opt["docname"]
+            to_doc = matched_opt.docname
 
             refuri = app.builder.get_relative_uri(from_doc, to_doc)
 
             ref_node = nodes.reference(
-                "", "", refuri=refuri + "#" + matched_opt["target_id"], internal=True
+                "", "", refuri=refuri + "#" + matched_opt.target_id, internal=True
             )
-            ref_text = nodes.literal(opt["option_name"], opt["option_name"])
+            ref_text = nodes.literal(matched_opt.option_name, matched_opt.option_name)
             ref_node.append(ref_text)
 
         node.replace_self(ref_node)
 
+    # logger.info("Done linking object references")
+
 
 class ConfigIndex(Directive):
     def run(self):
+        if not hasattr(self.env, "config_index_docs"):
+            self.env.config_index_docs = set()
+
+        self.config_index_docs.add(self.docname)
+
         return [config_index("")]
 
 
@@ -366,7 +393,6 @@ def setup(app):
     app.add_config_value("options_global_config_doc", None, "html")
     app.add_config_value("options_since_ignore_before", None, "html")
 
-    app.connect("env-updated", warn_duplicate_options)
     app.connect("doctree-resolved", link_option_refs)
     app.connect("doctree-resolved", create_config_index)
     app.connect("env-purge-doc", purge_option_defs)
