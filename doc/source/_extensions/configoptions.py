@@ -292,6 +292,28 @@ def create_config_index(app, doctree, fromdocname):
         node.replace_self(content)
 
 
+def warn_duplicate_options(app, env):
+    logger = logging.getLogger(__name__)
+
+    # TODO make gdal_options a dict? Would then need to handle check for duplicate declarations
+    # both at declaration site and in merge function. Or, could combine them in a dict here
+    # and store to the environment.
+    if not hasattr(env, "gdal_options"):
+        return
+
+    opt_dict = {}
+
+    for opt in env.gdal_options:
+        orig_opt = opt_dict.get(opt["key"], None)
+        if orig_opt:
+            logger.warning(
+                f"Duplicate definition of {opt['option_name']} (previously defined at {orig_opt['docname']}:{orig_opt['lineno']})",
+                location=(opt["docname"], opt["lineno"]),
+            )
+        else:
+            opt_dict[opt["key"]] = opt
+
+
 def link_option_refs(app, doctree, fromdocname):
     env = app.builder.env
 
@@ -303,39 +325,33 @@ def link_option_refs(app, doctree, fromdocname):
     for node in doctree.findall(config_reference):
         ref_key = option_key(node.option_type, node.option_name)
 
-        matched = False
+        matched_opt = None
 
-        # TODO use dict? Would then need to handle check for duplicate declarations
-        # both at declaration site and in merge function.
         for opt in env.gdal_options:
             if opt["key"] == ref_key:
-                if matched:
-                    logger.warning(
-                        f"Duplicate definition of {node.option_name} of type {node.option_type}",
-                        location=node,
-                    )
+                matched_opt = opt
+                break
 
-                from_doc = node.doc
-                to_doc = opt["docname"]
-
-                refuri = app.builder.get_relative_uri(from_doc, to_doc)
-
-                ref_node = nodes.reference(
-                    "", "", refuri=refuri + "#" + opt["target_id"], internal=True
-                )
-                ref_text = nodes.literal(opt["option_name"], opt["option_name"])
-                ref_node.append(ref_text)
-
-                node.replace_self(ref_node)
-                matched = True
-
-        if not matched:
+        if matched_opt is None:
             logger.warning(
                 f"Can't find option {node.option_name} of type {node.option_type}",
                 location=node,
             )
-            text_node = nodes.Text(node.option_name)
-            node.replace_self(text_node)
+
+            ref_node = nodes.Text(node.option_name)
+        else:
+            from_doc = node.doc
+            to_doc = matched_opt["docname"]
+
+            refuri = app.builder.get_relative_uri(from_doc, to_doc)
+
+            ref_node = nodes.reference(
+                "", "", refuri=refuri + "#" + matched_opt["target_id"], internal=True
+            )
+            ref_text = nodes.literal(opt["option_name"], opt["option_name"])
+            ref_node.append(ref_text)
+
+        node.replace_self(ref_node)
 
 
 class ConfigIndex(Directive):
@@ -350,6 +366,7 @@ def setup(app):
     app.add_config_value("options_global_config_doc", None, "html")
     app.add_config_value("options_since_ignore_before", None, "html")
 
+    app.connect("env-updated", warn_duplicate_options)
     app.connect("doctree-resolved", link_option_refs)
     app.connect("doctree-resolved", create_config_index)
     app.connect("env-purge-doc", purge_option_defs)
