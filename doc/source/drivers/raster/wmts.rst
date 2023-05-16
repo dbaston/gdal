@@ -82,34 +82,52 @@ Open options
 
 The following open options are available:
 
-- **URL**: URL (or filename for local files) to GetCapabilities response document.
+.. oo:: URL
+
+  URL (or filename for local files) to GetCapabilities response document.
   Required if not specified in the connection string (e.g if using "WMTS:" only)
 
-- **LAYER**: Layer identifier
+.. oo:: LAYER
 
-- **TILEMATRIXSET**: Tile Matrix Set identifier, which determines the CRS into
+  Layer identifier
+
+.. oo:: TILEMATRIXSET
+
+  Tile Matrix Set identifier, which determines the CRS into
   which the layer will be exposed. Must be one of the listed tile matrix
   for the layer.
 
-- **TILEMATRIX**: Tile Matrix identifier. Must be one of the listed tile matrix of
+.. oo:: TILEMATRIX
+
+  Tile Matrix identifier. Must be one of the listed tile matrix of
   the select tile matrix set for the layer. Mutually exclusive with ZOOM_LEVEL.
   If not specified the last tile matrix, i.e. the one with the best resolution,
   is selected.
 
-- **ZOOM_LEVEL**: Index of the maximum zoom level tile matrix to use for the
+.. oo:: ZOOM_LEVEL
+
+  Index of the maximum zoom level tile matrix to use for the
   full resolution GDAL dataset (lower zoom levels will be used for overviews).
   The first one (ie the one of lower resolution) is indexed 0.
   Mutually exclusive with TILEMATRIX.
   If not specified the last tile matrix, i.e. the one with the best resolution,
   is selected.
 
-- **STYLE**: Style identifier. Must be one of layer.
+.. oo:: STYLE
 
-- **EXTENDBEYONDDATELINE** = YES/NO.  Whether to make the extent go over dateline
+  Style identifier. Must be one of layer.
+
+.. oo:: EXTENDBEYONDDATELINE
+  :choices: YES, N
+
+  Whether to make the extent go over dateline
   and warp tile requests. See ExtendBeyondDateLine parameter of the local service
   description XML file described below for more details.
 
-- **EXTENT_METHOD** = AUTO/LAYER_BBOX/TILE_MATRIX_SET/MOST_PRECISE_TILE_MATRIX.
+.. oo:: EXTENT_METHOD
+  :choices: AUTO, LAYER_BBOX, ILE_MATRIX_SET, MOST_PRECISE_TILE_MATRIX
+  :default: AUTO
+
   GDAL needs to retrieve an extent for the layer. Different sources are possible.
   WGS84BoundingBox element at the Layer level, BoundingBox elements with potentially
   several CRS at the Layer level, BoundingBox of the TileMatrixSet definitions
@@ -127,11 +145,17 @@ The following open options are available:
   If MOST_PRECISE_TILE_MATRIX is specified, the implit extent of the
   most precise tile matrix will be used.
 
-- **CLIP_EXTENT_WITH_MOST_PRECISE_TILE_MATRIX** = YES/NO (GDAL >= 3.4.2).
+.. oo:: CLIP_EXTENT_WITH_MOST_PRECISE_TILE_MATRIX
+  :choices: YES, NO
+  :since: 3.4.2
+
   Whether to use the implied bounds of the most precise TileMatrix to clip the
   layer extent (defaults to NO if the layer bounding box is used, YES otherwise)
 
-- **CLIP_EXTENT_WITH_MOST_PRECISE_TILE_MATRIX_LIMITS** = YES/NO (GDAL >= 3.4.2).
+.. oo:: CLIP_EXTENT_WITH_MOST_PRECISE_TILE_MATRIX_LIMITS
+  :choices: YES, NO
+  :since: 3.4.2
+
   Whether to use the implied bounds of the most precise TileMatrixLimit to clip the
   layer extent (defaults to NO if the layer bounding box is used, YES otherwise)
 
@@ -383,7 +407,7 @@ It is important that there be no spaces or other content before the
 +-----------------------------------+-----------------------------------+
 
 Starting with GDAL 2.3, additional HTTP headers can be sent by setting the
-GDAL_HTTP_HEADER_FILE configuration option to point to a filename of a text
+:config:`GDAL_HTTP_HEADER_FILE` configuration option to point to a filename of a text
 file with “key: value” HTTP headers.
 
 GetFeatureInfo request

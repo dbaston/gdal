@@ -186,28 +186,56 @@ creation option.
 
 The available creation options are:
 
--  **GEOREF_FORMAT**\ =MIPL/GEOTIFF. (GDAL >= 3.4) How to encode georeferencing
+.. co:: GEOREF_FORMAT
+   :choices: MIPL, GEOTIFF
+   :since: GDAL >= 3.4
+
+   How to encode georeferencing
    information. Defaults to MIPL using the ``MAP`` property group. When setting to
    GEOTIFF, a ``GEOTIFF`` property group will be used using GeoTIFF keys and tags.
    The COORDINATE_SYSTEM_NAME, POSITIVE_LONGITUDE_DIRECTION and TARGET_NAME
    options will be ignored when selecting the GEOTIFF encoding.
--  **COORDINATE_SYSTEM_NAME**\ =PLANETOCENTRIC/PLANETOGRAPHIC. Value of
-   MAP.COORDINATE_SYSTEM_NAME. Defaults to PLANETOCENTRIC. If specified, and
+
+.. co:: COORDINATE_SYSTEM_NAME
+   :choices: PLANETOCENTRIC, PLANETOGRAPHIC
+   :default: PLANETOCENTRIC
+
+   Value of
+   MAP.COORDINATE_SYSTEM_NAME. If specified, and
    USE_SRC_MAP is in effect, this will be taken into account to
    override the source COORDINATE_SYSTEM_NAME.
--  **POSITIVE_LONGITUDE_DIRECTION**\ =EAST/WEST. Value of
-   MAP.override. Defaults to EAST. If specified,
+
+.. co:: POSITIVE_LONGITUDE_DIRECTION
+   :choices: EAST, WEST
+   :default: EAST
+
+   Value of MAP.override. If specified,
    and USE_SRC_MAP is in effect, this will be taken into account to
    override the source POSITIVE_LONGITUDE_DIRECTION.
--  **TARGET_NAME**\ =string. Value of MAP.TARGET_NAME. This is
+
+.. co:: TARGET_NAME
+
+   Value of MAP.TARGET_NAME. This is
    normally deduced from the SRS datum name. If specified, and
    USE_SRC_MAP is in effect, this will be taken into account to
    override the source TARGET_NAME.
--  **USE_SRC_LABEL**\ =YES/NO. Whether to use source label in VICAR to
-   VICAR conversions. Defaults to YES.
--  **LABEL**\ =string. Label to use, either as a JSON string or a filename
+
+.. co:: USE_SRC_LABEL
+   :choices: YES, NO.
+   :default: YES
+
+   Whether to use source label in VICAR to VICAR conversions.
+
+.. co:: LABEL
+
+   Label to use, either as a JSON string or a filename
    containing one. If defined, takes precedence over USE_SRC_LABEL.
--  **COMPRESS**\= NONE/BASIC/BASIC2. Compression method. Default to NONE.
+
+.. oo:: COMPRESS
+   :choices: NONE, BASIC, BASIC2.
+   :default: NONE
+
+   Compression method.
    For maximum interoperability, do not use BASIC or BASIC2 which are not
    well specified and not always available in VICAR capable applications.
 

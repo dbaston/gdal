@@ -40,17 +40,28 @@ Creation options
 
 Various creation options exists, among them :
 
--  **QUALITY=n**: By default the quality flag is set to 75, but this
+.. co:: QUALITY
+   :choices: [1-100]
+   :default: 75
+
+   By default the quality flag is set to 75, but this
    option can be used to select other values. Values must be in the
    range 1-100. Low values result in higher compression ratios, but
    poorer image quality.
 
--  **LOSSLESS=True/False** By
-   default, lossy compression is used. If set to True, lossless
+.. co:: LOSSLESS
+   :choices: TRUE, FALSE
+   :default: FALSE
+
+   By default, lossy compression is used. If set to TRUE, lossless
    compression will be used.
 
--  **LOSSLESS_COPY=AUTO/YES/NO**: (GDAL >= 3.7)
-   Whether conversion should be lossless. Defaults to AUTO.
+.. co:: LOSSLESS_COPY
+   :choices: AUTO, YES, NO
+   :since: 3.7
+   :default: AUTO
+
+   Whether conversion should be lossless.
    In AUTO or YES mode, if LOSSLESS=YES and the source dataset uses WEBP
    compression, lossless copying of it is done.
    If set to NO, or in AUTO mode if the source dataset does not use WEBP

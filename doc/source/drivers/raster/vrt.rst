@@ -55,19 +55,25 @@ Creation options
 
 The following creations options are supported:
 
--  **BLOCKXSIZE=n**: (GDAL >= 3.7) Sets block width.
+.. oo:: BLOCKXSIZE
+   :since: 3.7
 
--  **BLOCKYSIZE=n**: (GDAL >= 3.7) Sets block height.
+   Sets block width.
 
-Setting explicitly the block size is an advanced setting that should only be
-used, when the user has determined that it is needed. By default the block size
-is set to:
+.. oo:: BLOCKYSIZE
+   :since: 3.7
 
-- 128x128 for a source-based VRT raster band. Unless the VRT is made of a single
-  source and this single source is not subsetted, in which case the block size of
-  the unique source will be set as the VRT raster band block size)
+   Sets block height.
 
-- 512x128 for a warped VRT.
+   Setting explicitly the block size is an advanced setting that should only be
+   used when the user has determined that it is needed. By default the block size
+   is set to:
+
+   - 128x128 for a source-based VRT raster band. Unless the VRT is made of a single
+     source and this single source is not subsetted, in which case the block size of
+     the unique source will be set as the VRT raster band block size)
+
+   - 512x128 for a warped VRT.
 
 .vrt Format
 -----------

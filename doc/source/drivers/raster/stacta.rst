@@ -37,15 +37,21 @@ Open options
 
 The following open options are supported:
 
-* ``WHOLE_METATILE`` = YES/NO. If set to YES, metatiles will be entirely downloaded
-  (into memory). Otherwise by default, if metatiles are bigger than a threshold,
-  they will be accessed in a piece-wise way.
+.. co:: WHOLE_METATILE
+   :choices: YES, NO.
 
-* ``SKIP_MISSING_METATILE`` = YES/NO. If set to YES, metatiles that are missing
-  will be skipped without error, and corresponding area in the dataset will be
-  filled with the nodata value or zero if there is no nodata value. This setting
-  can also be set with the :decl_configoption:`GDAL_STACTA_SKIP_MISSING_METATILE`
-  configuration option.
+   If set to YES, metatiles will be entirely downloaded
+   (into memory). Otherwise by default, if metatiles are bigger than a threshold,
+   they will be accessed in a piece-wise way.
+
+.. co:: SKIP_MISSING_METATILE
+   :choices: YES, NO
+
+   If set to YES, metatiles that are missing
+   will be skipped without error, and corresponding area in the dataset will be
+   filled with the nodata value or zero if there is no nodata value. This setting
+   can also be set with the :config:`GDAL_STACTA_SKIP_MISSING_METATILE`
+   configuration option.
 
 Subdatasets
 -----------

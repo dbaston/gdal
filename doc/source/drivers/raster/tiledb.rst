@@ -31,7 +31,10 @@ Creation options
 
 Various creation and open options exists, among them :
 
--  **TILEDB_CONFIG=config**: A local file with TileDB configuration
+.. co:: TILEDB_CONFIG
+   :choices: <filename>
+
+    A local file with TileDB configuration
    `options <https://docs.tiledb.io/en/stable/tutorials/config.html>`__
 
 See Also
