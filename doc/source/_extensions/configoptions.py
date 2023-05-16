@@ -135,7 +135,9 @@ class BaseConfigOption(SphinxDirective):
     def run(self):
         option_name = self.arguments[0]
 
+        documented_choices = True
         if "choices" not in self.options:
+            documented_choices = False
             self.options["choices"] = ["value"]
 
         target_id = f"{self.opt_type}-{option_name.lower()}"
@@ -172,15 +174,23 @@ class BaseConfigOption(SphinxDirective):
                 if not min_since_ver or self.version_at_least(since_ver, min_since_ver):
                     text += f"({self.env.app.config.project} >= {since_ver}) "
             except ValueError:
-                # TODO figure out how to emit a line number here?
                 logger = logging.getLogger(__name__)
                 logger.warning(
-                    f":since: should be a sequence of integers and periods (got {since_ver})",
+                    f"Option {option_name} :since: should be a sequence of integers and periods (got {since_ver})",
                     location=self.env.docname,
                 )
 
         if "default" in self.options:
             text += f'Defaults to {self.options["default"]}. '
+            if (
+                documented_choices
+                and self.options["default"] not in self.options["choices"]
+            ):
+                logger = logging.getLogger(__name__)
+                logger.warning(
+                    f"Option {option_name} :default: value is not one of the documented choices (got {self.options['default']})",
+                    location=self.env.docname,
+                )
 
         if len(self.content) == 0:
             self.content.append(text, "")
