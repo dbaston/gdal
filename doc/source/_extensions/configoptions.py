@@ -156,7 +156,6 @@ class BaseConfigOption(SphinxDirective):
         register_option(self.env, opt)
 
         para = nodes.paragraph()
-        li_node = nodes.list_item("", para)
 
         text = f"**{option_name}"
 
@@ -190,7 +189,7 @@ class BaseConfigOption(SphinxDirective):
 
         self.state.nested_parse(self.content, self.content_offset, para)
 
-        return [target_node, li_node]
+        return [target_node, para]
 
 
 class ConfigOption(BaseConfigOption):
@@ -273,8 +272,8 @@ def create_config_index(app, doctree, fromdocname):
     # logger = logging.getLogger(__name__)
     # logger.info(f"Preparing config indices in {fromdocname}")
 
-    if not hasattr(env, "gdal_option_index_docs"):
-        env.gdal_option_index_docs = set()
+    # if not hasattr(env, "gdal_option_index_docs"):
+    #    env.gdal_option_index_docs = set()
 
     if not hasattr(env, "gdal_option_refs"):
         env.gdal_option_refs = {}
@@ -282,8 +281,8 @@ def create_config_index(app, doctree, fromdocname):
     if not hasattr(env, "gdal_options"):
         env.gdal_options = {}
 
-    if fromdocname not in env.gdal_option_index_docs:
-        return
+    # if fromdocname not in env.gdal_option_index_docs:
+    #    return
 
     for node in doctree.findall(config_index):
         content = []
@@ -301,7 +300,6 @@ def create_config_index(app, doctree, fromdocname):
 
             if refs:
                 para = nodes.paragraph()
-                li_node = nodes.list_item("", para)
 
                 # Link the option back to its definition.
                 opt_name = nodes.literal(opt.option_name, opt.option_name)
@@ -332,7 +330,7 @@ def create_config_index(app, doctree, fromdocname):
                         para += nodes.Text(", ")
                     para += ref_node
 
-                content.append(li_node)
+                content.append(para)
 
         node.replace_self(content)
     # logger.info(f"Done preparing config indices in {fromdocname}")
@@ -378,10 +376,10 @@ def link_option_refs(app, doctree, fromdocname):
 
 class ConfigIndex(Directive):
     def run(self):
-        if not hasattr(self.env, "config_index_docs"):
-            self.env.config_index_docs = set()
+        # if not hasattr(self.env, "config_index_docs"):
+        #    self.env.config_index_docs = set()
 
-        self.config_index_docs.add(self.docname)
+        # self.config_index_docs.add(self.docname)
 
         return [config_index("")]
 
