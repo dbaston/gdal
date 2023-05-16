@@ -24,11 +24,21 @@ class Option:
         )
 
     def key(self):
-        return option_key(self.option_type, self.option_name)
+        return option_key(
+            option_type=self.option_type,
+            option_name=self.option_name,
+            docname=self.docname,
+        )
 
 
-def option_key(option_type, option_name):
-    return f"{option_type}-{option_name}"
+def option_key(*, option_type, option_name, docname):
+    # Options of type "config" are considered to be global
+    # in scope, while other types are associated with
+    # a specific driver. Use docname as a proxy for driver.
+    if option_type == "config":
+        return f"{option_type}-{option_name}"
+    else:
+        return f"{docname}-{option_type}-{option_name}"
 
 
 def register_option(env, opt):
@@ -54,10 +64,11 @@ class config_reference(nodes.General, nodes.Element):
     Placeholder class marking a reference to a config option, to be resolved later.
     """
 
-    def __init__(self, option_type, option_name, doc):
+    def __init__(self, option_type, option_name, doc, *, option_value=None):
         super(nodes.General, self).__init__()
         self.option_type = option_type
         self.option_name = option_name
+        self.option_value = option_value
         self.doc = doc
 
 
@@ -73,10 +84,13 @@ def config_ref(opt_type):
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
         env = inliner.document.settings.env
 
-        # TODO handle ambiguous options, like if two drivers
-        # have open options with the same name, and we want
-        # to be able to specify which one we mean.
-        option = text
+        # TODO add some syntax to reference co, lco, dsco, oo etc. defined on
+        # another page.
+
+        # Allow a reference like :co:`APPEND_SUBDATASET=YES` to link to APPEND_SUBDATASET
+        split_text = text.rsplit("=", 1)
+        option = split_text[0]
+        option_value = split_text[1] if len(split_text) > 1 else None
 
         # Record the document from which this reference was
         # used. This lets us build a reverse index showing
@@ -84,7 +98,9 @@ def config_ref(opt_type):
         if not hasattr(env, "gdal_option_refs"):
             env.gdal_option_refs = {}
 
-        ref_key = option_key(opt_type, option)
+        ref_key = option_key(
+            option_type=opt_type, option_name=option, docname=env.docname
+        )
 
         if ref_key not in env.gdal_option_refs:
             env.gdal_option_refs[ref_key] = []
@@ -96,7 +112,9 @@ def config_ref(opt_type):
         # have been parsed and we've discovered where each
         # option is defined, we can go back and replace the
         # placeholder nodes with actual references.
-        ref_node = config_reference(opt_type, option, env.docname)
+        ref_node = config_reference(
+            opt_type, option, env.docname, option_value=option_value
+        )
 
         return [ref_node], []
 
@@ -356,7 +374,13 @@ def link_option_refs(app, doctree, fromdocname):
         env.gdal_options = {}
 
     for node in doctree.findall(config_reference):
-        ref_key = option_key(node.option_type, node.option_name)
+        ref_key = option_key(
+            option_type=node.option_type, option_name=node.option_name, docname=node.doc
+        )
+
+        link_text = node.option_name
+        if node.option_value:
+            link_text += f"={node.option_value}"
 
         matched_opt = env.gdal_options.get(ref_key, None)
 
@@ -366,7 +390,7 @@ def link_option_refs(app, doctree, fromdocname):
                 location=node,
             )
 
-            ref_node = nodes.Text(node.option_name)
+            ref_node = nodes.literal(link_text, link_text)
         else:
             from_doc = node.doc
             to_doc = matched_opt.docname
@@ -376,7 +400,8 @@ def link_option_refs(app, doctree, fromdocname):
             ref_node = nodes.reference(
                 "", "", refuri=refuri + "#" + matched_opt.target_id, internal=True
             )
-            ref_text = nodes.literal(matched_opt.option_name, matched_opt.option_name)
+
+            ref_text = nodes.literal(link_text, link_text)
             ref_node.append(ref_text)
 
         node.replace_self(ref_node)
