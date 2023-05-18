@@ -2,6 +2,7 @@ import re
 
 from docutils import nodes
 from docutils.parsers.rst import Directive
+from sphinx.addnodes import pending_xref
 from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
 
@@ -41,6 +42,13 @@ def option_key(*, option_type, option_name, docname):
         return f"{docname}-{option_type}-{option_name}"
 
 
+def split_option_key(key):
+    """
+    Return option_type, name
+    """
+    return key.split("-")[-2:]
+
+
 def register_option(env, opt):
     if not hasattr(env, "gdal_options"):
         env.gdal_options = {}
@@ -59,17 +67,28 @@ def register_option(env, opt):
         env.gdal_options[opt.key()] = opt
 
 
-class config_reference(nodes.General, nodes.Element):
-    """
-    Placeholder class marking a reference to a config option, to be resolved later.
-    """
-
-    def __init__(self, option_type, option_name, doc, *, option_value=None):
-        super(nodes.General, self).__init__()
-        self.option_type = option_type
-        self.option_name = option_name
-        self.option_value = option_value
-        self.doc = doc
+# class config_reference(nodes.General, nodes.Element):
+#    """
+#    Placeholder class marking a reference to a config option, to be resolved later.
+#    """
+#
+#    def __init__(self, option_type, option_name, doc, *, option_value=None):
+#        super(nodes.General, self).__init__()
+#        super(nodes.Element, self).__init__()
+#        self.option_type = option_type
+#        self.option_name = option_name
+#        self.option_value = option_value
+#        self.doc = doc
+#
+#
+# def visit_config_reference(self, node):
+#    raise Excpetion("XXX")
+#    pass
+#
+#
+# def depart_config_reference(self, node):
+#    pass
+#
 
 
 class config_index(nodes.General, nodes.Element):
@@ -90,7 +109,6 @@ def config_ref(opt_type):
         # Allow a reference like :co:`APPEND_SUBDATASET=YES` to link to APPEND_SUBDATASET
         split_text = text.rsplit("=", 1)
         option = split_text[0]
-        option_value = split_text[1] if len(split_text) > 1 else None
 
         # Record the document from which this reference was
         # used. This lets us build a reverse index showing
@@ -112,8 +130,12 @@ def config_ref(opt_type):
         # have been parsed and we've discovered where each
         # option is defined, we can go back and replace the
         # placeholder nodes with actual references.
-        ref_node = config_reference(
-            opt_type, option, env.docname, option_value=option_value
+        # ref_node = config_reference(
+        #    opt_type, option, env.docname, option_value=option_value
+        # )
+        ref_text = nodes.literal(text, text)
+        ref_node = pending_xref(
+            "", ref_text, reftype=opt_type, refdomain="std", reftarget=ref_key
         )
 
         return [ref_node], []
@@ -153,12 +175,14 @@ class BaseConfigOption(SphinxDirective):
     def run(self):
         option_name = self.arguments[0]
 
-        documented_choices = True
+        # documented_choices = True
         if "choices" not in self.options:
-            documented_choices = False
+            # documented_choices = False
             self.options["choices"] = ["value"]
 
-        target_id = f"{self.opt_type}-{option_name.lower()}"
+        target_id = option_key(
+            option_type=self.opt_type, option_name=option_name, docname=self.env.docname
+        )
         target_node = nodes.target("", "", ids=[target_id])
 
         # Record information about this option and where it was
@@ -200,15 +224,16 @@ class BaseConfigOption(SphinxDirective):
 
         if "default" in self.options:
             text += f'Defaults to {self.options["default"]}. '
-            if (
-                documented_choices
-                and self.options["default"] not in self.options["choices"]
-            ):
-                logger = logging.getLogger(__name__)
-                logger.warning(
-                    f"Option {option_name} :default: value is not one of the documented choices (got {self.options['default']})",
-                    location=self.env.docname,
-                )
+            # if (
+            #    documented_choices
+            #    and len(self.options["choices"]) > 1
+            #    and self.options["default"] not in self.options["choices"]
+            # ):
+            #    logger = logging.getLogger(__name__)
+            #    logger.warning(
+            #        f"Option {option_name} :default: value is not one of the documented choices (got {self.options['default']})",
+            #        location=self.env.docname,
+            #    )
 
         if len(self.content) == 0:
             self.content.append(text, "")
@@ -364,49 +389,82 @@ def create_config_index(app, doctree, fromdocname):
     # logger.info(f"Done preparing config indices in {fromdocname}")
 
 
-def link_option_refs(app, doctree, fromdocname):
-    env = app.builder.env
+def link_option_refs2(app, env, node, contnode):
+    # Handler for "missing-reference" event
+    if node["reftype"] not in option_classes.keys():
+        return
 
-    logger = logging.getLogger(__name__)
-    # logger.info(f"Linking object references in {fromdocname}")
+    matched_opt = env.gdal_options.get(node["reftarget"], None)
 
-    if not hasattr(env, "gdal_options"):
-        env.gdal_options = {}
-
-    for node in doctree.findall(config_reference):
-        ref_key = option_key(
-            option_type=node.option_type, option_name=node.option_name, docname=node.doc
+    if matched_opt is None:
+        logger = logging.getLogger(__name__)
+        # FIXME revert to warning
+        option_type, option_name = split_option_key(node["reftarget"])
+        logger.info(
+            f"Can't find option {option_name} of type {option_type}",
+            location=node,
         )
+        # FIXME
+        return nodes.literal("UNMATCHED", "UNMATCHED")
 
-        link_text = node.option_name
-        if node.option_value:
-            link_text += f"={node.option_value}"
+    from_doc = node["refdoc"]
+    to_doc = matched_opt.docname
 
-        matched_opt = env.gdal_options.get(ref_key, None)
+    refuri = app.builder.get_relative_uri(from_doc, to_doc)
 
-        if matched_opt is None:
-            logger.warning(
-                f"Can't find option {node.option_name} of type {node.option_type}: ({', '.join(sorted(env.gdal_options.keys()))}",
-                location=node,
-            )
+    ref_node = nodes.reference(
+        "", "", refuri=refuri + "#" + node["reftarget"], internal=True
+    )
 
-            ref_node = nodes.literal(link_text, link_text)
-        else:
-            from_doc = node.doc
-            to_doc = matched_opt.docname
+    ref_node += node.children
 
-            refuri = app.builder.get_relative_uri(from_doc, to_doc)
+    return ref_node
 
-            ref_node = nodes.reference(
-                "", "", refuri=refuri + "#" + matched_opt.target_id, internal=True
-            )
 
-            ref_text = nodes.literal(link_text, link_text)
-            ref_node.append(ref_text)
-
-        node.replace_self(ref_node)
-
-    # logger.info("Done linking object references")
+# def link_option_refs(app, doctree, fromdocname):
+#    env = app.builder.env
+#
+#    logger = logging.getLogger(__name__)
+#    # logger.info(f"Linking object references in {fromdocname}")
+#
+#    if not hasattr(env, "gdal_options"):
+#        env.gdal_options = {}
+#
+#    for node in doctree.findall(config_reference):
+#        ref_key = option_key(
+#            option_type=node.option_type, option_name=node.option_name, docname=node.doc
+#        )
+#
+#        link_text = node.option_name
+#        if node.option_value:
+#            link_text += f"={node.option_value}"
+#
+#        matched_opt = env.gdal_options.get(ref_key, None)
+#
+#        if matched_opt is None:
+#            # FIXME revert to warning
+#            logger.info(
+#                f"Can't find option {node.option_name} of type {node.option_type}",
+#                location=node,
+#            )
+#
+#            ref_node = nodes.literal(link_text, link_text)
+#        else:
+#            from_doc = node.doc
+#            to_doc = matched_opt.docname
+#
+#            refuri = app.builder.get_relative_uri(from_doc, to_doc)
+#
+#            ref_node = nodes.reference(
+#                "", "", refuri=refuri + "#" + matched_opt.target_id, internal=True
+#            )
+#
+#            ref_text = nodes.literal(link_text, link_text)
+#            ref_node.append(ref_text)
+#
+#        node.replace_self(ref_node)
+#
+#    # logger.info("Done linking object references")
 
 
 class ConfigIndex(Directive):
@@ -419,19 +477,43 @@ class ConfigIndex(Directive):
         return [config_index("")]
 
 
+from sphinx.transforms.post_transforms import SphinxPostTransform
+
+
+class Fizzle(SphinxPostTransform):
+
+    default_priority = 8
+
+    def is_supported(self):
+        return True
+
+    def run(self, **kwargs):
+        raise Exception("Post-Transform")
+
+
 def setup(app):
-    app.add_node(config_reference)
     app.add_node(config_index)
 
-    app.add_config_value("options_global_config_doc", None, "html")
+    # app.add_config_value("options_global_config_doc", None, "html")
     app.add_config_value("options_since_ignore_before", None, "html")
 
-    app.connect("doctree-resolved", link_option_refs)
+    # app.connect("doctree-resolved", link_option_refs)
     app.connect("doctree-resolved", create_config_index)
     app.connect("env-purge-doc", purge_option_defs)
     app.connect("env-merge-info", merge_option_defs)
     app.connect("env-purge-doc", purge_option_refs)
     app.connect("env-merge-info", merge_option_refs)
+
+    app.connect("missing-reference", link_option_refs2)
+
+    #    def check_con(app, env):
+    #        import pdb
+    #        breakpoint()
+    #        raise Exception("check consistency")
+    #
+    # app.connect('env-check-consistency', check_con)
+
+    #    app.add_post_transform(Fizzle)
 
     for opt_type, opt_directive in option_classes.items():
         app.add_directive(f"{opt_type}", opt_directive)
