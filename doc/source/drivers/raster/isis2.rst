@@ -46,13 +46,19 @@ other metadata is captured.
 Creation Options
 ~~~~~~~~~~~~~~~~
 
--  **LABELING_METHOD=ATTACHED/DETACHED**: Determines whether the header
-   labeling should be in the same file as the imagery (the default -
-   ATTACHED) or in a separate file (DETACHED).
+-  .. co:: LABELING_METHOD
+      :choices: ATTACHED, DETACHED
+      :default: ATTACHED
 
--  **IMAGE_EXTENSION=\ extension**: Set the extension used for detached
-   image files, defaults to "cub". Only used if
-   LABELING_METHOD=DETACHED.
+      Determines whether the header
+      labeling should be in the same file as the imagery (ATTACHED)
+      or in a separate file (DETACHED).
+
+-  .. co:: IMAGE_EXTENSION
+      :default: cub
+
+      Set the extension used for detached image files. Only used if
+      :co:`LABELING_METHOD=DETACHED`.
 
 See Also
 --------

@@ -298,26 +298,27 @@ Creation Options
 
       Whether metadata should be written, in a
       dedicated JP2 'xml ' box. Defaults to NO. The content of the 'xml '
-         ::
 
-            <GDALMultiDomainMetadata>
-              <Metadata>
-                <MDI key="foo">bar</MDI>
-              </Metadata>
-              <Metadata domain='aux_domain'>
-                <MDI key="foo">bar</MDI>
-              </Metadata>
-              <Metadata domain='a_xml_domain' format='xml'>
-                <arbitrary_xml_content>
-                </arbitrary_xml_content>
-              </Metadata>
-            </GDALMultiDomainMetadata>
+      ::
 
-         If there are metadata domain whose name starts with "xml:BOX\_", they
-         will be written each as separate JP2 'xml ' box.
+         <GDALMultiDomainMetadata>
+           <Metadata>
+             <MDI key="foo">bar</MDI>
+           </Metadata>
+           <Metadata domain='aux_domain'>
+             <MDI key="foo">bar</MDI>
+           </Metadata>
+           <Metadata domain='a_xml_domain' format='xml'>
+             <arbitrary_xml_content>
+             </arbitrary_xml_content>
+           </Metadata>
+         </GDALMultiDomainMetadata>
 
-         If there is a metadata domain whose name is "xml:XMP", its content
-         will be written as a JP2 'uuid' XMP box.
+      If there are metadata domain whose name starts with "xml:BOX\_", they
+      will be written each as separate JP2 'xml ' box.
+
+      If there is a metadata domain whose name is "xml:XMP", its content
+      will be written as a JP2 'uuid' XMP box.
 
 -  .. co:: MAIN_MD_DOMAIN_ONLY
       :choices: YES, NO
