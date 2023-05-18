@@ -16,7 +16,10 @@ Netpbm files can be created with a type of PNM.
 
 Creation Options:
 
--  **MAXVAL=n**: Force setting the maximum color value to **n** in the
+.. co:: MAXVAL
+   :choices: <n>
+
+   Force setting the maximum color value to **n** in the
    output PNM file. May be useful if you planning to use the output
    files with software which is not liberal to this value.
 

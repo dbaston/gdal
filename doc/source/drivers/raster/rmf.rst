@@ -42,26 +42,64 @@ Metadata
 
 Open Options
 ------------
-- **RMF_SET_VERTCS**: set to ON, the layers spatial reference
+.. oo:: RMF_SET_VERTCS
+   :choices: ON
+
+   Set to ON, the layers spatial reference
    will include vertical coordinate system description if exist.
    This feature can be enabled via config option with same name.
 
 Creation Options
 ----------------
 
--  **MTW=ON**: Force the generation of MTW matrix (RSW will be created
+.. co:: MTW
+   :choices: ON
+
+   Force the generation of MTW matrix (RSW will be created
    by default).
--  **BLOCKXSIZE=n**: Sets tile width, defaults to 256.
--  **BLOCKYSIZE=n**: Set tile height. Tile height defaults to 256.
--  **RMFHUGE=NO/YES/IF_SAFER**: Creation of huge RMF file (Supported by
-   GIS Panorama since v11). Defaults to NO.
--  **COMPRESS=NONE/LZW/JPEG/RMF_DEM**: (From GDAL 2.4) Compression type.
-   Defaults to NONE. Note: JPEG compression supported only with RGB
+
+.. co:: BLOCKXSIZE
+   :choices: <int>
+   :default: 256
+
+   Sets tile width.
+
+.. co:: BLOCKYSIZE
+   :choices: <int>
+   :default: 256
+
+   Set tile height.
+
+.. co:: RMFHUGE
+   :choices: NO, YES, IF_SAFER
+   :default: NO
+
+   Creation of huge RMF file (Supported by
+   GIS Panorama since v11).
+
+.. co:: COMPRESS
+   :choices: NONE, LZW, JPEG, RMF_DEM
+   :default: NONE
+   :since: 2.3
+
+   Compression type.
+   Note: JPEG compression supported only with RGB
    (3-band) Byte datasets. RMF_DEM compression supported only with Int32
    one channel MTW datasets.
--  **JPEG_QUALITY**: (From GDAL 2.4) JPEG quality 1-100. Defaults to 75.
--  **NUM_THREADS=number_of_threads/ALL_CPUS**: (From GDAL 2.4) Enable
-   multi-threaded compression by specifying the number of worker
+
+.. co:: JPEG_QUALITY
+   :choices: [1-100]
+   :default: 75
+   :since: 2.4
+
+
+   JPEG quality 1-100.
+
+.. co:: NUM_THREADS
+   :choices: <int>, ALL_CPUS
+   :since: 2.4
+
+   Enable multi-threaded compression by specifying the number of worker
    threads. Default is compression in the main thread.
 
 See Also:

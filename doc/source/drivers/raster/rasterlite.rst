@@ -84,27 +84,50 @@ table name will be base on the DB name itself.
 Creation options
 ~~~~~~~~~~~~~~~~
 
--  **WIPE** (=NO by default): Set to YES to erase all preexisting data
+.. co:: WIPE
+
+   Set to YES to erase all preexisting data
    in the specified table
 
--  **TILED** (=YES by default) : Set to NO if the source dataset must be
+.. co:: TILED
+
+   Set to NO if the source dataset must be
    written as a single tile in the raster table
 
--  **BLOCKXSIZE**\ =n: Sets tile width, defaults to 256.
+.. co:: BLOCKXSIZE
+   :choices: <int>
+   :default: 256
 
--  **BLOCKYSIZE**\ =n: Sets tile height, defaults to 256.
+   Sets tile width.
 
--  **DRIVER**\ =[GTiff/GIF/PNG/JPEG/...] : name of the GDAL
-   driver to use for storing tiles. Defaults to GTiff
+.. co:: BLOCKYSIZE
+   :choices: <int>
+   :default: 256
 
--  **COMPRESS**\ =[LZW/JPEG/DEFLATE/...] : (GTiff driver) name of the
+   Sets tile height.
+
+.. co:: DRIVER
+   :default: GTiff
+
+   name of the GDAL
+   driver to use for storing tiles.
+
+.. co:: COMPRESS
+
+   (GTiff driver) name of the
    compression method
 
--  **PHOTOMETRIC**\ =[RGB/YCbCr/...] : (GTiff driver) photometric
-   interpretation
+.. co:: PHOTOMETRIC
+   :choices: RGB, YCbCr, ...
 
--  **QUALITY** : (JPEG-compressed GTiff, JPEG and WEBP drivers)
-   JPEG/WEBP quality 1-100. Defaults to 75
+   (GTiff driver) photometric interpretation
+
+.. co:: QUALITY
+   :choices: [1-100]
+   :default: 75
+
+   (JPEG-compressed GTiff, JPEG and WEBP drivers)
+   JPEG/WEBP quality.
 
 Overviews
 ---------

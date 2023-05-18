@@ -16,7 +16,7 @@ array-oriented data access and is used for representing scientific data.
 The fill value metadata or missing_value backward compatibility is
 preserved as NODATA value when available.
 
-NOTE: Implemented as ``gdal/frmts/netcdf/netcdfdataset.cpp``.
+NOTE: Implemented as :source_file:`frmts/netcdf/netcdfdataset.cpp`.
 
 Driver capabilities
 -------------------

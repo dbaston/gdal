@@ -188,7 +188,7 @@ The available creation options are:
 
 .. co:: GEOREF_FORMAT
    :choices: MIPL, GEOTIFF
-   :since: GDAL >= 3.4
+   :since: 3.4
 
    How to encode georeferencing
    information. Defaults to MIPL using the ``MAP`` property group. When setting to
