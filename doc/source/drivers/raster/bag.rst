@@ -375,7 +375,7 @@ Usage examples
 See Also
 --------
 
--  Implemented as ``gdal/frmts/hdf5/bagdataset.cpp``.
+-  Implemented as :source_file:`frmts/hdf5/bagdataset.cpp`.
 -  `The Open Navigation Surface Project <http://www.opennavsurf.org>`__
 -  `Description of Bathymetric Attributed Grid Object (BAG) Version
    1.6 <https://github.com/OpenNavigationSurface/BAG/raw/master/docs/BAG_FSD_Release_1.6.3.doc>`__

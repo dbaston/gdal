@@ -274,6 +274,6 @@ Python :
 See Also
 --------
 
--  Implemented as ``gdal/frmts/pds/isis3dataset.cpp``.
+-  Implemented as :source_file:`frmts/pds/isis3dataset.cpp`.
 -  :ref:`GDAL PDS Driver <raster.pds>`
 -  :ref:`GDAL ISIS2 Driver <raster.isis2>`

@@ -57,6 +57,6 @@ Creation Options
 See Also
 --------
 
--  Implemented as ``gdal/frmts/pds/isis2dataset.cpp``.
+-  Implemented as :source_file:`frmts/pds/isis2dataset.cpp`.
 -  :ref:`raster.pds` driver
 -  :ref:`raster.isis3` driver

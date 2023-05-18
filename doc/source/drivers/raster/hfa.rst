@@ -125,7 +125,7 @@ by the HFA driver:
 See Also
 --------
 
--  Implemented as ``gdal/frmts/hfa/hfadataset.cpp``.
+-  Implemented as :source_file:`frmts/hfa/hfadataset.cpp`.
 -  More information, and other tools are available on the `Imagine
    (.img)
    Reader <http://web.archive.org/web/20130730133056/http://home.gdal.org/projects/imagine/hfa_index.html>`__

@@ -96,4 +96,4 @@ the geotransform.
 See Also
 --------
 
--  Implemented as ``gdal/frmts/dted/dteddataset.cpp``.
+-  Implemented as :source_file:`frmts/dted/dteddataset.cpp`.

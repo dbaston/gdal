@@ -49,7 +49,7 @@ format).
 The :ref:`raster.aig` driver is also available for Arc/Info Binary Grid
 format.
 
-NOTE: Implemented as ``gdal/frmts/aaigrid/aaigriddataset.cpp``.
+NOTE: Implemented as :source_file:`frmts/aaigrid/aaigriddataset.cpp`.
 
 Driver capabilities
 -------------------

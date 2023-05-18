@@ -41,7 +41,7 @@ Creation Options:
    suffix replaces the binary file suffix, e.g. for "file.bin" name
    "file.hdr" header file will be created.
 
-NOTE: Implemented as ``gdal/frmts/raw/envidataset.cpp``.
+NOTE: Implemented as :source_file:`frmts/raw/envidataset.cpp`.
 
 Driver capabilities
 -------------------

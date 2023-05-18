@@ -25,7 +25,7 @@ Only Latitude - Longitude systems (see the `FITS standard document
 have been implemented, those for which remote sensing processing is commonly used.
 As 3D Datum information is missing in FITS/WCS standard, Radii and target bodies
 are translated using the planetary extension proposed `here
-<https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2018EA000388>`_. 
+<https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2018EA000388>`_.
 
 Non-standard header keywords that are present in the FITS file will be
 copied to the dataset's metadata when the file is opened, for access via
@@ -333,7 +333,7 @@ Examples
 Other
 -----
 
-NOTE: Implemented as ``gdal/frmts/fits/fitsdataset.cpp``.
+NOTE: Implemented as :source_file:`frmts/fits/fitsdataset.cpp`.
 
 .. _notes-on-cfitsio-linking:
 

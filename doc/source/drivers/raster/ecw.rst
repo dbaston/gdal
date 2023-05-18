@@ -223,7 +223,7 @@ File Metadata Keys:
 See Also
 --------
 
--  Implemented as ``gdal/frmts/ecw/ecwdataset.cpp``.
+-  Implemented as :source_file:`frmts/ecw/ecwdataset.cpp`.
 -  ERDAS ECW/JP2 SDK Read-Only Redistributable available at
    `www.hexagongeospatial.com <https://supportsi.hexagon.com/help/s/article/ERDAS-ECW-JP2-SDK-Read-Only-Redistributable-download>`__
 -  Further product information available in the `User

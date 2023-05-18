@@ -50,56 +50,65 @@ Creation Options
 If you have the MrSID ESDK (5.x or newer), it can be used to write
 JPEG2000 files. The following creation options are supported.
 
--  **WORLDFILE=YES**: to write an ESRI world file (with the extension
-   .j2w).
--  **COMPRESSION=n**: Indicates the desired compression ratio. Zero
-   indicates lossless compression. Twenty would indicate a 20:1
-   compression ratio (the image would be compressed to 1/20 its original
-   size).
--  **XMLPROFILE=[path to file]**: Indicates a path to an
-   Extensis-specific XML profile that can be used to set JPEG2000
-   encoding parameters. They can be created using the MrSID ESDK, or
-   with GeoExpress, or by hand using the following example as a
-   template:
+-  .. co:: WORLDFILE
+      :choices: YES
 
-   ::
+      to write an ESRI world file (with the extension .j2w).
 
-      <?xml version="1.0"?>
-      <Jp2Profile version="1.0">
-        <Header>
-          <name>Default</name>
-          <description>Extensis preferred settings (20051216)</description>
-        </Header>
-        <Codestream>
-          <layers>
-            8
-          </layers>
-          <levels>
-            99
-          </levels>
-          <tileSize>
-            0 0
-          </tileSize>
-          <progressionOrder>
-            RPCL
-          </progressionOrder>
-          <codeblockSize>
-            64 64
-          </codeblockSize>
-          <pltMarkers>
-            true
-          </pltMarkers>
-          <wavelet97>
-            false
-          </wavelet97>
-          <precinctSize>
-            256 256
-          </precinctSize>
-        </Codestream>
-      </Jp2Profile>
+-  .. co:: COMPRESSION
+
+      Indicates the desired compression ratio. Zero
+      indicates lossless compression. Twenty would indicate a 20:1
+      compression ratio (the image would be compressed to 1/20 its original
+      size).
+
+-  .. co:: XMLPROFILE
+      :choices: <filename>
+
+      Indicates a path to an
+      Extensis-specific XML profile that can be used to set JPEG2000
+      encoding parameters. They can be created using the MrSID ESDK, or
+      with GeoExpress, or by hand using the following example as a
+      template:
+
+      ::
+
+         <?xml version="1.0"?>
+         <Jp2Profile version="1.0">
+           <Header>
+             <name>Default</name>
+             <description>Extensis preferred settings (20051216)</description>
+           </Header>
+           <Codestream>
+             <layers>
+               8
+             </layers>
+             <levels>
+               99
+             </levels>
+             <tileSize>
+               0 0
+             </tileSize>
+             <progressionOrder>
+               RPCL
+             </progressionOrder>
+             <codeblockSize>
+               64 64
+             </codeblockSize>
+             <pltMarkers>
+               true
+             </pltMarkers>
+             <wavelet97>
+               false
+             </wavelet97>
+             <precinctSize>
+               256 256
+             </precinctSize>
+           </Codestream>
+         </Jp2Profile>
 
 See Also
 --------
 
--  Implemented as ``gdal/frmts/mrsid/mrsiddataset.cpp``.
+-  Implemented as :source_file:`frmts/mrsid/mrsiddataset.cpp`.
 -  `Extensis web site <http://www.extensis.com/support/developers>`__

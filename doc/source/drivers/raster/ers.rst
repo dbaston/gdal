@@ -51,4 +51,4 @@ Creation Options:
 See Also
 --------
 
--  Implemented as ``gdal/frmts/ers/ersdataset.cpp``.
+-  Implemented as :source_file:`frmts/ers/ersdataset.cpp`.

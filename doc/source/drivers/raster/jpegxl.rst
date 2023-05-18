@@ -131,35 +131,61 @@ The following creation options are available:
       The default value is the special value -1.0, which means to use the same
       distance value as non-alpha channel (ie DISTANCE).
 
--  **QUALITY=[-inf,100]**: Alternative setting to DISTANCE to specify lossy
-   compression, roughly matching libjpeg quality setting in the [0,100] range.
-   Default is 90.0
+-  .. co:: QUALITY
+      :choices: [-inf\,100]
+      :default: 90.0
 
--  **NBITS=n**: Create a file with less than 8 bits per sample by
-   passing a value from 1 to 7 for a Byte type, or a value from 9 to 15 for
-   a UInt16 type.
+      Alternative setting to :co:`DISTANCE` to specify lossy
+      compression, roughly matching libjpeg quality setting in the [0,100] range.
 
--  **NUM_THREADS=number_of_threads/ALL_CPUS**: Set the number of worker threads
-   for multi-threaded compression. Default is ALL_CPUS.
-   If not set, can also be controlled with the
-   :decl_configoption:`GDAL_NUM_THREADS` configuration option.
+-  .. co:: NBITS
+      :choices: <integer>
 
--  **SOURCE_ICC_PROFILE=value**: ICC profile encoded in Base64. Can also be
-   set to empty string to avoid the ICC profile from the source dataset to be used.
+      Create a file with less than 8 bits per sample by
+      passing a value from 1 to 7 for a Byte type, or a value from 9 to 15 for
+      a UInt16 type.
 
--  **WRITE_EXIF_METADATA=YES/NO**: (libjxl > 0.6.1) Whether to write EXIF metadata from the
-   EXIF metadata domain of the source dataset in a Exif box.
-   Default is YES.
+-  .. co:: NUM_THREADS
+      :choices: <number_of_threads>, ALL_CPUS
+      :default: ALL_CPUS
 
--  **WRITE_XMP=YES/NO**: (libjxl > 0.6.1) Whether to write XMP metadata from the
-   xml:XMP metadata domain of the source dataset in a xml box.
-   Default is YES.
+      Set the number of worker threads
+      for multi-threaded compression.
+      If not set, can also be controlled with the
+      :config:`GDAL_NUM_THREADS` configuration option.
 
--  **WRITE_GEOJP2=YES/NO**: (libjxl > 0.6.1) Whether to write georeferencing in a JUMBF UUID box
-   using GeoJP2 encoding. Default is YES.
+-  .. co:: SOURCE_ICC_PROFILE
 
--  **COMPRESS_BOXES=YES/NO**: (libjxl > 0.6.1) Whether to to decompress Exif/XMP/GeoJP2 boxes
-   using Brotli compression. Default is NO.
+      ICC profile encoded in Base64. Can also be
+      set to empty string to avoid the ICC profile from the source dataset to be used.
+
+-  .. co:: WRITE_EXIF_METADATA
+      :choices: YES, NO
+      :default: YES
+
+      (libjxl > 0.6.1) Whether to write EXIF metadata from the
+      EXIF metadata domain of the source dataset in a Exif box.
+
+-  .. co:: WRITE_XMP
+      :choices: YES, NO
+      :default: YES
+
+      (libjxl > 0.6.1) Whether to write XMP metadata from the
+      xml:XMP metadata domain of the source dataset in a xml box.
+
+-  .. co:: WRITE_GEOJP2
+      :choices: YES, NO
+      :default: YES
+
+      (libjxl > 0.6.1) Whether to write georeferencing in a JUMBF UUID box
+      using GeoJP2 encoding.
+
+-  .. co:: COMPRESS_BOXES
+      :choices: YES, NO
+      :default: NO
+
+      (libjxl > 0.6.1) Whether to to decompress Exif/XMP/GeoJP2 boxes
+      using Brotli compression.
 
 See Also
 --------

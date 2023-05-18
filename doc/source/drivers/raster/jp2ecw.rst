@@ -248,7 +248,7 @@ generic File Metadata reported under "JPEG2000" metadata domain (-mdd):
 See Also
 --------
 
--  Implemented as ``gdal/frmts/ecw/ecwdataset.cpp``.
+-  Implemented as :source_file:`frmts/ecw/ecwdataset.cpp`.
 -  ECW/JP2 SDK available at
    `www.hexagongeospatial.com <http://hexagongeospatial.com/products/data-management-compression/ecw/erdas-ecw-jp2-sdk>`__
 -  Further product information available in the `User

@@ -100,12 +100,21 @@ Open Options
 
 The following open options are available:
 
--  **USE_INTERNAL_OVERVIEWS=YES/NO**: Whether to use partial DCT decompression
-   to generate overviews. Default to YES.
+-  .. oo:: USE_INTERNAL_OVERVIEWS
+      :choices: YES, NO
+      :default: YES
 
--  **APPLY_ORIENTATION=YES/NO**: (GDAL >= 3.7) Whether to use EXIF_Orientation
-   metadata item to rotate/flip the image to apply scene orientation.
-   Defaults to NO (that is the image will be returned in sensor orientation).
+      Whether to use partial DCT decompression
+      to generate overviews.
+
+-  .. oo:: APPLY_ORIENTATION
+      :choices: YES, NO
+      :default: NO
+      :since: 3.7
+
+      Whether to use EXIF_Orientation
+      metadata item to rotate/flip the image to apply scene orientation.
+      Defaults to NO (that is the image will be returned in sensor orientation).
 
 Creation Options
 ----------------
@@ -125,55 +134,111 @@ YCbCrK colorspace is not supported in creation. If the source
 dataset has a nodata mask, it will be appended as a zlib compressed mask
 to the JPEG file.
 
--  **WORLDFILE=YES**: Force the generation of an associated ESRI world
-   file (with the extension .wld).
--  **QUALITY=n**: By default the quality flag is set to 75, but this
-   option can be used to select other values. Values must be in the
-   range 10-100. Low values result in higher compression ratios, but
-   poorer image quality. Values above 95 are not meaningfully better
-   quality but can but substantially larger.
--  **LOSSLESS_COPY=AUTO/YES/NO**: (GDAL >= 3.7)
-   Whether conversion should be lossless. Defaults to AUTO.
-   In AUTO or YES mode, if LOSSLESS=YES and the source dataset uses JPEG
-   compression, or JPEGXL compression with a JPEG reconstruction box, lossless
-   recoding from it is done.
-   If set to NO, or in AUTO mode and the source is not compatible of lossless
-   transcoding, the regular conversion code path is taken.
--  **PROGRESSIVE=ON**: Enabled generation of progressive JPEGs. In some
-   cases these will display a reduced resolution image in viewers such
-   as Netscape, and Internet Explorer, before the full file has been
-   downloaded. However, some applications cannot read progressive JPEGs
-   at all. GDAL can read progressive JPEGs, but takes no advantage of
-   their progressive nature.
--  **INTERNAL_MASK=YES/NO**: By default, if needed, an internal mask in
-   the "zlib compressed mask appended to the file" approach is written
-   to identify pixels that are not valid data.
-   This can be disabled by setting this option to NO.
--  **ARITHMETIC=YES/NO**: To enable arithmetic
-   coding. Not enabled in all libjpeg builds, because of possible legal
-   restrictions.
--  **BLOCK=1...16**: (libjpeg >= 8c) DCT block
-   size. All values from 1 to 16 are possible. Default is 8 (baseline
-   format). A value other than 8 will produce files incompatible with
-   versions prior to libjpeg 8c.
--  **COLOR_TRANSFORM=RGB or RGB1**: (libjpeg >= 9). Set to RGB1 for
-   lossless RGB. Note: this will produce files
-   incompatible with versions prior to libjpeg 9.
--  **SOURCE_ICC_PROFILE=value**: ICC profile encoded in Base64.
--  **COMMENT=string**: String to embed in a
-   comment JPEG marker. When reading, such strings are exposed in the
-   COMMENT metadata item.
--  **EXIF_THUMBNAIL=YES/NO**: Whether to
-   generate an EXIF thumbnail(overview), itself JPEG compressed.
-   Defaults to NO. If enabled, the maximum dimension of the thumbnail
-   will be 128, if neither THUMBNAIL_WIDTH nor THUMBNAIL_HEIGHT are
-   specified.
--  **THUMBNAIL_WIDTH=n**: Width of thumbnail.
-   Only taken into account if EXIF_THUMBNAIL=YES.
--  **THUMBNAIL_HEIGHT=n**: Height of
-   thumbnail. Only taken into account if EXIF_THUMBNAIL=YES.
--  **WRITE_EXIF_METADATA=YES/NO**: (Starting with GDAL 2.3). Whether to
-   write EXIF_xxxx metadata items in a EXIF segment. Default to YES.
+-  .. co:: WORLDFILE
+      :choices: YES
+
+      Force the generation of an associated ESRI world
+      file (with the extension .wld).
+
+-  .. co:: QUALITY
+      :choices: 10-100
+      :default: 75
+
+      By default the quality flag is set to 75, but this
+      option can be used to select other values. Values must be in the
+      range 10-100. Low values result in higher compression ratios, but
+      poorer image quality. Values above 95 are not meaningfully better
+      quality but can but substantially larger.
+
+-  .. co:: LOSSLESS_COPY
+      :choices: AUTO, YES, NO
+      :default: AUTO
+      :since: 3.7
+
+      Whether conversion should be lossless.
+      In AUTO or YES mode, if LOSSLESS=YES and the source dataset uses JPEG
+      compression, or JPEGXL compression with a JPEG reconstruction box, lossless
+      recoding from it is done.
+      If set to NO, or in AUTO mode and the source is not compatible of lossless
+      transcoding, the regular conversion code path is taken.
+
+-  .. co:: PROGRESSIVE
+      :choices: ON
+
+      Enabled generation of progressive JPEGs. In some
+      cases these will display a reduced resolution image in viewers such
+      as Netscape, and Internet Explorer, before the full file has been
+      downloaded. However, some applications cannot read progressive JPEGs
+      at all. GDAL can read progressive JPEGs, but takes no advantage of
+      their progressive nature.
+
+-  .. co:: INTERNAL_MASK
+      :choices: YES, NO
+
+      By default, if needed, an internal mask in
+      the "zlib compressed mask appended to the file" approach is written
+      to identify pixels that are not valid data.
+      This can be disabled by setting this option to NO.
+
+-  .. co:: ARITHMETIC
+      :choices: YES, NO
+
+      To enable arithmetic
+      coding. Not enabled in all libjpeg builds, because of possible legal
+      restrictions.
+
+-  .. co:: BLOCK
+      :choices: 1-16
+      :default: 8
+
+      (libjpeg >= 8c) DCT block
+      size. All values from 1 to 16 are possible. Default is 8 (baseline
+      format). A value other than 8 will produce files incompatible with
+      versions prior to libjpeg 8c.
+
+-  .. co:: COLOR_TRANSFORM
+      :choices: RGB, RGB1
+
+      (libjpeg >= 9). Set to RGB1 for
+      lossless RGB. Note: this will produce files
+      incompatible with versions prior to libjpeg 9.
+
+-  .. co:: SOURCE_ICC_PROFILE
+
+      ICC profile encoded in Base64.
+
+-  .. co:: COMMENT
+
+      String to embed in a
+      comment JPEG marker. When reading, such strings are exposed in the
+      COMMENT metadata item.
+
+-  .. co:: EXIF_THUMBNAIL
+      :choices: YES, NO
+      :default: NO
+
+      Whether to
+      generate an EXIF thumbnail(overview), itself JPEG compressed.
+      If enabled, the maximum dimension of the thumbnail
+      will be 128, if neither THUMBNAIL_WIDTH nor THUMBNAIL_HEIGHT are
+      specified.
+
+-  .. co:: THUMBNAIL_WIDTH
+
+      Width of thumbnail.
+      Only taken into account if :co:`EXIF_THUMBNAIL=YES`.
+
+-  .. co:: THUMBNAIL_HEIGHT
+
+      Height of thumbnail.
+      Only taken into account if :co:`EXIF_THUMBNAIL=YES`.
+
+-  .. co:: WRITE_EXIF_METADATA
+      :choices: YES, NO
+      :default: YES
+      :since: 2.3
+
+      Whether to write EXIF_xxxx metadata items in a EXIF segment.
 
 EXIF and GPS tags
 -----------------

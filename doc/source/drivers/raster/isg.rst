@@ -16,7 +16,7 @@ http://www.isgeoid.polimi.it/Geoid/reg_list.html
 
 Format specification is at http://www.isgeoid.polimi.it/Geoid/ISG_format_20160121.pdf
 
-NOTE: Implemented as ``gdal/frmts/aaigrid/aaigriddataset.cpp``.
+NOTE: Implemented as :source_file:`frmts/aaigrid/aaigriddataset.cpp`.
 
 Driver capabilities
 -------------------

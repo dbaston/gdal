@@ -268,8 +268,8 @@ libraries).
 See Also
 --------
 
--  Implemented as ``gdal/frmts/hdf4/hdf4dataset.cpp`` and
-   ``gdal/frmts/hdf4/hdf4imagedataset.cpp``.
+-  Implemented as :source_file:`frmts/hdf4/hdf4dataset.cpp` and
+   :source_file:`frmts/hdf4/hdf4imagedataset.cpp`.
 -  `The HDF Group <http://www.hdfgroup.org/>`__
 -  Sources of the data in HDF4 and HDF4-EOS formats:
 
