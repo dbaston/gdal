@@ -72,32 +72,58 @@ Open options
 
 The following open options are available :
 
--  **GET_METADATA_URL**\ =value: URL to the GetImageMetadata endpoint.
-   Required if not specified in the connection string.
--  **API_KEY**\ =value: API key for authentication. If specified, must
-   be used together with the CLIENT_ID option. Can be specified also
-   through the GDAL_DAAS_API_KEY configuration option.
--  **CLIENT_ID**\ =value: Client id for authentication. If specified,
-   must be used together with the API_KEY option. Can be specified also
-   through the GDAL_DAAS_CLIENT_ID configuration option.
--  **ACCESS_TOKEN**\ =value: Access token. Can be specified also through
-   the GDAL_DAAS_ACCESS_TOKEN configuration option. Exclusive of
-   API_KEY/CLIENT_ID
--  **X_FORWARDED_USER**\ =value: User from which the request originates
-   from. Can be specified also through the GDAL_DAAS_X_FORWARDED_USER
-   configuration option.
--  **BLOCK_SIZE**\ =value. Size of a block in pixels requested to the
-   server. Defaults to 512 pixels. Between 64 and 8192.
--  **PIXEL_ENCODING**\ =value. Format in which pixels are queried.
-   Defaults to
+-  .. oo:: GET_METADATA_URL
 
-   -  **AUTO**: for 1, 3 or 4-band images of type Byte, resolves to PNG.
-      Otherwise to RAW
-   -  **RAW**: compatible of all images. Pixels are requested in a
-      uncompressed raw format.
-   -  **PNG**: compatible of 1, 3 or 4-band images of type Byte
-   -  **JPEG**: compatible of 1 or 3-band images of type Byte
-   -  **JPEG2000**: compatible of all images. Requires GDAL to be built
-      with one of its JPEG2000-capable drivers.
+      URL to the GetImageMetadata endpoint.
+      Required if not specified in the connection string.
 
--  **MASKS**\ =YES/NO. Whether to expose mask bands. Default to YES.
+-  .. oo:: API_KEY
+
+      API key for authentication. If specified, must
+      be used together with the :oo:`CLIENT_ID` option. Can be specified also
+      through the GDAL_DAAS_API_KEY configuration option.
+
+-  .. oo:: CLIENT_ID
+
+      Client id for authentication. If specified,
+      must be used together with the :oo:`API_KEY` option. Can be specified also
+      through the GDAL_DAAS_CLIENT_ID configuration option.
+
+-  .. oo:: ACCESS_TOKEN
+
+      Access token. Can be specified also through
+      the GDAL_DAAS_ACCESS_TOKEN configuration option. Exclusive of
+      :oo:`API_KEY`/:oo:`CLIENT_ID`.
+
+-  .. oo:: X_FORWARDED_USER
+
+      User from which the request originates
+      from. Can be specified also through the GDAL_DAAS_X_FORWARDED_USER
+      configuration option.
+
+-  .. oo:: BLOCK_SIZE
+      :choices: 64-8192
+      :default: 512
+
+      Size of a block in pixels requested to the server.
+
+-  .. oo:: PIXEL_ENCODING
+      :choices: AUTO, RAW, PNG, JPEG, JPEG2000
+      :default: AUTO
+
+      Format in which pixels are queried:
+
+      -  **AUTO**: for 1, 3 or 4-band images of type Byte, resolves to PNG.
+         Otherwise to RAW
+      -  **RAW**: compatible of all images. Pixels are requested in a
+         uncompressed raw format.
+      -  **PNG**: compatible of 1, 3 or 4-band images of type Byte
+      -  **JPEG**: compatible of 1 or 3-band images of type Byte
+      -  **JPEG2000**: compatible of all images. Requires GDAL to be built
+         with one of its JPEG2000-capable drivers.
+
+-  .. oo:: MASKS
+      :choices: YES, NO
+      :default: YES
+
+      Whether to expose mask bands.

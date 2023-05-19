@@ -26,12 +26,11 @@ Creation options
 ----------------
 
 -  .. co:: COMPRESS
-      :choices: NONE, BZIP2, XZ, ZLIB, ZLIB1, ZLIB2, ZLIB3, ZLIB4, ZLIB5, ZLIB6
+      :choices: NONE, BZIP2, XZ, ZLIB, ZLIB1, ZLIB2, ZLIB3, ZLIB4, ZLIB5, ZLIB6, ZLIB7, ZLIB8, ZLIB9
       :default: NONE
 
-       Set the GTA compression method: NONE
+      Set the GTA compression method.
 
-   ZLIB7, ZLIB8, ZLIB9.
 
 See Also
 --------

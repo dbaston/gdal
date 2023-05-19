@@ -95,7 +95,7 @@ resolutions for the internal transparency mask, the GeoTIFF driver only
 supports internal transparency masks of the same dimensions as the main
 image. Transparency masks of internal overviews are also supported.
 
-When the GDAL_TIFF_INTERNAL_MASK configuration option is set to YES and
+When the :config:`GDAL_TIFF_INTERNAL_MASK` configuration option is set to YES and
 the GeoTIFF file is opened in update mode, the CreateMaskBand() method
 on a TIFF dataset or rasterband will create an internal transparency
 mask. Otherwise, the default behavior of nodata mask creation will be
@@ -134,7 +134,7 @@ and nodata masks are internal or not.
 There are two well supported configurations:
 
 -  Internal overviews, internal nodata mask: If a GeoTIFF file has a
-   internal transparency mask (and the GDAL_TIFF_INTERNAL_MASK
+   internal transparency mask (and the :config:`GDAL_TIFF_INTERNAL_MASK`
    environment variable is not set to NO) and the GeoTIFF file is opened
    in update mode, BuildOverviews() will automatically create overviews
    for the internal transparency mask.

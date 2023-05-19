@@ -111,7 +111,7 @@ ________________________
    cache at a given resolution level, even if data does exist at
    other levels at the same location.
 
--  A cache can exceede the maximum size supported by GDAL, which
+-  A cache can exceed the maximum size supported by GDAL, which
    is INT32_MAX, in either dimension. This driver will generate
    an error when opening such caches. Removing the
    **LODInfo** nodes with the highest **LevelID** from the conf.xml

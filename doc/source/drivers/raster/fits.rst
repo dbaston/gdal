@@ -252,19 +252,26 @@ Layer creation options
 
 The following layer creation options are available:
 
-- **REPEAT_{fieldname}=number**. For a given field (substitute {fieldname} by its
-  name) of type IntegerList, Integer64List
-  or RealList, specify a fixed number of elements. Otherwise those fields will be
-  created as variable-length FITS columns, which can have performance impact on
-  creation.
+- .. lco:: REPEAT_{fieldname}
+     :choices: <integer>
 
-- **COMPUTE_REPEAT=AT_FIELD_CREATION/AT_FIRST_FEATURE_CREATION**. For fields of
-  type IntegerList, Integer64List or RealList, specifies when they are mapped to
-  a FITS column type. The default is AT_FIELD_CREATION, and implies that they
-  will be created as variable-length FITS columns, unless a REPEAT_{fieldname}
-  option is specified. When AT_FIRST_FEATURE_CREATION is specified, the number of
-  elements in the first feature will be taken into account to create fixed-size
-  FITS columns.
+     For a given field (substitute {fieldname} by its
+     name) of type IntegerList, Integer64List
+     or RealList, specify a fixed number of elements. Otherwise those fields will be
+     created as variable-length FITS columns, which can have performance impact on
+     creation.
+
+- .. lco:: COMPUTE_REPEAT
+     :choices: AT_FIELD_CREATION, AT_FIRST_FEATURE_CREATION
+     :default: AT_FIELD_CREATION
+
+     For fields of
+     type IntegerList, Integer64List or RealList, specifies when they are mapped to
+     a FITS column type. The default is AT_FIELD_CREATION, and implies that they
+     will be created as variable-length FITS columns, unless a :lco:`REPEAT_{fieldname}`
+     option is specified. When AT_FIRST_FEATURE_CREATION is specified, the number of
+     elements in the first feature will be taken into account to create fixed-size
+     FITS columns.
 
 When using ogr2ogr or :cpp:func:`GDALVectorTranslate` with a FITS source, the
 FITS header will be taken into account, in particular to help to determine the

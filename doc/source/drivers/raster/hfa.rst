@@ -179,7 +179,7 @@ by the HFA driver:
       :since: 2.3
 
       The block size (tile width/height) used for overviews
-      can be specified by setting the ****
+      can be specified by setting this
       configuration option to a power- of-two value between 32 and 2048.
 
 See Also

@@ -35,57 +35,83 @@ Creation Options
 General creation options
 ************************
 
--  **BLOCKSIZE=n**: Sets the tile width and height in pixels. Defaults to 512. Must be divisible by 16.
+-  .. co:: BLOCKSIZE
+      :choices: <integer>
+      :default: 512
 
--  **COMPRESS=[NONE/LZW/JPEG/DEFLATE/ZSTD/WEBP/LERC/LERC_DEFLATE/LERC_ZSTD/LZMA]**: Set the compression to use.
-   Defaults to ``LZW`` starting with GDAL 3.4 (default in previous version is ``NONE``).
+      Sets the tile width and height in pixels. Must be divisible by 16.
 
-   * ``JPEG`` should generally only be used with
-     Byte data (8 bit per channel). But if GDAL is built with internal libtiff and
-     libjpeg, it is    possible to read and write TIFF files with 12bit JPEG compressed TIFF
-     files (seen as UInt16 bands with NBITS=12). See the `"8 and 12 bit
-     JPEG in TIFF" <http://trac.osgeo.org/gdal/wiki/TIFF12BitJPEG>`__ wiki
-     page for more details.
-     For the COG driver, JPEG compression for 3 or 4-band images automatically
-     selects the PHOTOMETRIC=YCBCR colorspace with a 4:2:2 subsampling of the Y,Cb,Cr
-     components.
+-  .. co:: COMPRESS
+      :choices: NONE, LZW, JPEG, DEFLATE, ZSTD, WEBP, LERC, LERC_DEFLATE, LERC_ZSTD, LZMA
+      :default: LZW
 
-   * ``LZW``, ``DEFLATE`` and ``ZSTD`` compressions can be used with the PREDICTOR creation option.
+      Set the compression to use.
+      Defaults to ``LZW`` starting with GDAL 3.4 (default in previous version is ``NONE``).
 
-   * ``ZSTD`` is available when using internal libtiff and if GDAL built against
-     libzstd >=1.0, or if built against external libtiff with zstd support.
+      * ``JPEG`` should generally only be used with
+        Byte data (8 bit per channel). But if GDAL is built with internal libtiff and
+        libjpeg, it is    possible to read and write TIFF files with 12bit JPEG compressed TIFF
+        files (seen as UInt16 bands with NBITS=12). See the `"8 and 12 bit
+        JPEG in TIFF" <http://trac.osgeo.org/gdal/wiki/TIFF12BitJPEG>`__ wiki
+        page for more details.
+        For the COG driver, JPEG compression for 3 or 4-band images automatically
+        selects the PHOTOMETRIC=YCBCR colorspace with a 4:2:2 subsampling of the Y,Cb,Cr
+        components.
 
-   * ``LERC`` is available when using internal libtiff.
+      * ``LZW``, ``DEFLATE`` and ``ZSTD`` compressions can be used with the PREDICTOR creation option.
 
-   * ``LERC_ZSTD`` is available when ``LERC`` and ``ZSTD`` are available.
+      * ``ZSTD`` is available when using internal libtiff and if GDAL built against
+        libzstd >=1.0, or if built against external libtiff with zstd support.
 
-   * ``JXL`` is for JPEG-XL, and is only available when using internal libtiff and building GDAL against
-     https://github.com/libjxl/libjxl . JXL compression may only be used on datasets with 4 bands or less.
-     Option added in GDAL 3.4
+      * ``LERC`` is available when using internal libtiff.
 
--  **LEVEL=integer_value**: DEFLATE/ZSTD/LERC_DEFLATE/LERC_ZSTD/LZMA compression level.
-   A lower number will
-   result in faster compression but less efficient compression rate.
-   1 is the fastest.
+      * ``LERC_ZSTD`` is available when ``LERC`` and ``ZSTD`` are available.
 
-   * For DEFLATE/LZMA, 9 is the slowest/higher compression rate
-     (or 12 when using a libtiff with libdeflate support). The default is 6.
-   * For ZSTD, 22 is the slowest/higher compression rate. The default is 9.
+      * ``JXL`` is for JPEG-XL, and is only available when using internal libtiff and building GDAL against
+        https://github.com/libjxl/libjxl . JXL compression may only be used on datasets with 4 bands or less.
+        Option added in GDAL 3.4
 
--  **MAX_Z_ERROR=threshold**: Set the maximum error threshold on values
-   for LERC/LERC_DEFLATE/LERC_ZSTD compression. The default is 0
-   (lossless).
+-  .. co:: LEVEL
+      :choices: <integes>
 
--  **QUALITY=integer_value**: JPEG/WEBP quality setting. A value of 100 is best
-   quality (least compression), and 1 is worst quality (best compression).
-   The default is 75. For WEBP, QUALITY=100 automatically turns on lossless mode.
+      DEFLATE/ZSTD/LERC_DEFLATE/LERC_ZSTD/LZMA compression level.
+      A lower number will
+      result in faster compression but less efficient compression rate.
+      1 is the fastest.
 
--  **JXL_LOSSLESS=YES/NO**: Set whether JPEG-XL compression should be lossless
-   (YES, default) or lossy (NO). For lossy compression, the underlying data
-   should be either gray, gray+alpha, rgb or rgb+alpha.
+      * For DEFLATE/LZMA, 9 is the slowest/higher compression rate
+        (or 12 when using a libtiff with libdeflate support). The default is 6.
+      * For ZSTD, 22 is the slowest/higher compression rate. The default is 9.
 
--  **JXL_EFFORT=[1-9]**: Level of effort for JPEG-XL compression.
-   The higher, the smaller file and slower compression time. Default is 5.
+-  .. co:: MAX_Z_ERROR
+      :default: 0
+
+      Set the maximum error threshold on values
+      for LERC/LERC_DEFLATE/LERC_ZSTD compression. The default is 0
+      (lossless).
+
+-  .. co:: QUALITY
+      :choices: <integer>
+      :default: 75
+
+      JPEG/WEBP quality setting. A value of 100 is best
+      quality (least compression), and 1 is worst quality (best compression).
+      For WEBP, QUALITY=100 automatically turns on lossless mode.
+
+-  .. co:: JXL_LOSSLESS
+      :choices: YES, NO
+      :default: YES
+
+      Set whether JPEG-XL compression should be lossless
+      (YES) or lossy (NO). For lossy compression, the underlying data
+      should be either gray, gray+alpha, rgb or rgb+alpha.
+
+-  .. co:: JXL_EFFORT
+      :choices: 1-9
+      :default: 5
+
+      Level of effort for JPEG-XL compression.
+      The higher, the smaller file and slower compression time.
 
 -  **JXL_DISTANCE=[0.1-15]**: Distance level for lossy JPEG-XL compression.
    It is specified in multiples of a just-noticeable difference
