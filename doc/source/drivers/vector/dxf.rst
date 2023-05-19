@@ -85,15 +85,25 @@ The following entity types are supported:
    Three configuration options are available to control the behavior of
    INSERT entities:
 
-   -  :decl_configoption:`DXF_MERGE_BLOCK_GEOMETRIES`: To avoid merging blocks into a
-      compound geometry the DXF_MERGE_BLOCK_GEOMETRIES config option may
-      be set to FALSE. Use this option if you need to preserve the
-      styling (such as colors) of individual linework entities within
-      the block.
-   -  :decl_configoption:`DXF_INLINE_BLOCKS`: See below.
-   -  (GDAL >= 2.3.0) :decl_configoption:`DXF_FEATURE_LIMIT_PER_BLOCK`: Maximum number of
-      features inserted from a single block. Set to -1 for no limit.
-      Defaults to 10000.
+   -  .. config:: DXF_MERGE_BLOCK_GEOMETRIES
+         :choices: TRUE, FALSE
+
+         To avoid merging blocks into a
+         compound geometry the DXF_MERGE_BLOCK_GEOMETRIES config option may
+         be set to FALSE. Use this option if you need to preserve the
+         styling (such as colors) of individual linework entities within
+         the block.
+
+   -  .. config:: DXF_INLINE_BLOCKS
+
+          See below.
+
+   -  .. config:: DXF_FEATURE_LIMIT_PER_BLOCK
+         :since: 2.3.0
+         :default: 10000
+
+         Maximum number of
+         features inserted from a single block. Set to -1 for no limit.
 
 -  ATTDEF, ATTRIB:
 
@@ -107,9 +117,12 @@ The following entity types are supported:
    but no effort is currently made to represent the fill style of HATCH
    entities.
 
-   (GDAL >= 2.3.0) The :decl_configoption:`DXF_HATCH_TOLERANCE` config option determines the
-   tolerance used when looking for the next component to add to the
-   hatch boundary.
+   .. config:: DXF_HATCH_TOLERANCE
+      :since: 2.3.0
+
+      Determines the
+      tolerance used when looking for the next component to add to the
+      hatch boundary.
 
    (GDAL <= 2.2.x) Only line and polyline boundary paths are translated
    correctly.
@@ -150,13 +163,23 @@ when translating entities. Currently no effort is made to preserve
 complex line types (those that include text or shapes) or HATCH fill
 styles.
 
-The approximation of arcs, ellipses, circles and rounded polylines as
-linestrings is done by splitting the arcs into subarcs of no more than a
-threshold angle. This angle is set using the :decl_configoption:`OGR_ARC_STEPSIZE`
-configuration option. This defaults to 4 degrees. You can also set the
-:decl_configoption:`OGR_ARC_MAX_GAP` configuration option to enforce a maximum distance
-between adjacent points on the interpolated curve. Setting this option
-to 0 (the default) means no maximum distance applies.
+The following configurations options control the approximation of
+arcs, ellipses, circles and rounded polylines as
+linestrings.
+
+- .. config:: OGR_ARC_STEPSIZE
+     :choices: <degrees>
+     :default: 4
+
+     Arcs will be split into subarcs of no more than the specified
+     threshold angle.
+
+- .. config:: OGR_ARC_MAX_GAP
+     :default: 0
+
+     Arcs will be approximated while enforcing a maximum distance
+     between adjacent points on the interpolated curve. Setting this option
+     to 0 (the default) means no maximum distance applies.
 
 For splines, the interpolated polyline contains eight vertices for each
 control point.
@@ -214,14 +237,19 @@ contain 3D modelling data in the proprietary Autodesk ShapeManager (ASM) format,
 a broadly compatible fork of the ACIS format. GDAL cannot transform these
 entities into OGR geometries, so they are skipped by default.
 
-Starting from GDAL 2.3.0, the :decl_configoption:`DXF_3D_EXTENSIBLE_MODE` configuration
-option may be set to TRUE to include these entities with the raw ASM
-data stored in a field, allowing for interoperability with commercial conversion
-tools. This option adds two new fields:
+This behavior can be controlled with the following configuration option:
 
--  ASMData: A binary field that contains the ASM data.
--  ASMTransform: A column-major list of 12 real values indicating the affine
-   transformation to be applied to the entity.
+- .. config:: DXF_3D_EXTENSIBLE_MODE
+     :choices: TRUE, FALSE
+     :since: 2.3.0
+
+     If TRUE, include ASM entities with the raw ASM
+     data stored in a field, allowing for interoperability with commercial conversion
+     tools. This option adds two new fields:
+
+     -  ASMData: A binary field that contains the ASM data.
+     -  ASMTransform: A column-major list of 12 real values indicating the affine
+        transformation to be applied to the entity.
 
 This feature only works for DXF files in AutoCAD 2013 (AC1027) format
 and later.
@@ -238,12 +266,15 @@ code page naming and whether GDAL/OGR is built against the iconv library
 for character recoding.
 
 In some cases the $DWGCODEPAGE setting in a DXF file will be wrong, or
-unrecognised by OGR. It could be edited manually, or the :decl_configoption:`DXF_ENCODING`
-configuration variable can be used to override what id will be used by
-OGR in transcoding. The value of DXF_ENCODING should be an encoding name
-supported by CPLRecode() (i.e. an iconv name), not a DXF $DWGCODEPAGE
-name. Using a DXF_ENCODING name of "UTF-8" will avoid any attempt to
-recode the text as it is read.
+unrecognised by OGR. In this case, :config:`DXF_ENCODING` may be used to
+override what id will be used by OGR in transcoding.
+
+.. config:: DXF_ENCODING
+
+   An encoding name
+   supported by :cpp:func:`CPLRecode` (i.e. an iconv name), not a DXF $DWGCODEPAGE
+   name. Using a value "UTF-8" will avoid any attempt to
+   recode the text as it is read.
 
 --------------
 
@@ -298,10 +329,17 @@ following style string parameters are understood:
 
 The dataset creation supports the following dataset creation options:
 
--  **HEADER=**\ *filename*: Override the header file used - in place of
-   header.dxf located in the GDAL_DATA directory.
--  **TRAILER=**\ *filename*: Override the trailer file used - in place
-   of trailer.dxf located in the GDAL_DATA directory.
+-  .. dsco:: HEADER
+      :choices: <filename>
+
+      Override the header file used - in place of
+      header.dxf located in the GDAL_DATA directory.
+
+-  .. dsco:: TRAILER
+      :choices: <filename>
+
+      Override the trailer file used - in place
+      of trailer.dxf located in the GDAL_DATA directory.
 
 The header and trailer templates can be
 complete DXF files. The driver will scan them and only extract the
@@ -388,7 +426,7 @@ variables in the header template.
 See also
 --------
 
-`List of known 
+`List of known
 issues <https://github.com/OSGeo/gdal/blob/master/ogr/ogrsf_frmts/dxf/KNOWN_ISSUES.md>`__
 
 `AutoCAD 2000 DXF

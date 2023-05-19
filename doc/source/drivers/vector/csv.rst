@@ -457,7 +457,7 @@ Layer Creation options
       :default: WKT
 
       Name of geometry
-      column. Only used if :co:`GEOMETRY=AS_WKT` and :co:`CREATE_CSVT=YES`.
+      column. Only used if :lco:`GEOMETRY=AS_WKT` and :lco:`CREATE_CSVT=YES`.
 
 -  .. lco:: STRING_QUOTING
       :choices: IF_NEEDED, IF_AMBIGUOUS, ALWAYS

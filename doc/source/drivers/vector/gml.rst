@@ -412,62 +412,119 @@ with code similar to the following one :
 Open options
 ------------
 
--  **XSD=filename**: to specify an explicit filename for
-   the XSD application schema to use.
--  **WRITE_GFS=AUTO/YES/NO**: (GDAL >= 3.2) whether to write a .gfs file.
-   In AUTO mode, the .gfs file is only written if there is no recognized .xsd
-   file, no existing .gfs file and for non-network file systems. This option
-   can be set to YES for force .gfs file writing in situations where AUTO would
-   not attempt to do it. Or it can be set to NO to disable .gfs file writing.
--  **GFS_TEMPLATE=filename**: to unconditionally use a predefined GFS file.
-   This option is really useful when you are planning to import many distinct GML
-   files in subsequent steps [**-append**] and you absolutely want to
-   preserve a fully consistent data layout for the whole GML set.
-   Please, pay attention not to use the **-lco LAUNDER=yes** setting
-   when this option; this should break the correct
-   recognition of attribute names between subsequent GML import runs.
--  **FORCE_SRS_DETECTION=YES/NO**: Force a full scan to
-   detect the SRS of layers. This option may be needed in the case where
-   the .gml file is accompanied with a .xsd. Normally in that situation,
-   OGR would not detect the SRS, because this requires to do a full scan
-   of the file. Defaults to NO
--  **EMPTY_AS_NULL=YES/NO**: By default
-   (EMPTY_AS_NULL=YES), fields with empty content will be reported as
-   being NULL, instead of being an empty string. This is the historic
-   behavior. However this will prevent such fields to be declared as
-   not-nullable if the application schema declared them as mandatory. So
-   this option can be set to NO to have both empty strings being report
-   as such, and mandatory fields being reported as not nullable.
--  **GML_ATTRIBUTES_TO_OGR_FIELDS=YES/NO**: Whether GML
-   attributes should be reported as OGR fields. Note that this option
-   has only an effect the first time a GML file is opened (before the
-   .gfs file is created), and if it has no valid associated .xsd.
-   Defaults to NO.
--  **INVERT_AXIS_ORDER_IF_LAT_LONG=YES/NO**: Whether to
-   present SRS and coordinate ordering in traditional GIS order.
-   Defaults to YES.
--  **CONSIDER_EPSG_AS_URN=YES/NO/AUTO**: Whether to
-   consider srsName like EPSG:XXXX as respecting EPSG axis order.
-   Defaults to AUTO.
--  **SWAP_COORDINATES**\ =AUTO/YES/NO: (GDAL >= 2.1.2) Whether the order
-   of the x/y or long/lat coordinates should be swapped. In AUTO mode,
-   the driver will determine if swapping must be done from the srsName
-   and value of other options like CONSIDER_EPSG_AS_URN and
-   INVERT_AXIS_ORDER_IF_LAT_LONG. When SWAP_COORDINATES is set to YES,
-   coordinates will be always swapped regarding the order they appear in
-   the GML, and when it set to NO, they will be kept in the same order.
-   The default is AUTO.
--  **READ_MODE=AUTO/STANDARD/SEQUENTIAL_LAYERS/INTERLEAVED_LAYERS**:
-   Read mode. Defaults to AUTO.
--  **EXPOSE_GML_ID=YES/NO/AUTO**: Whether to make feature
-   gml:id as a gml_id attribute. Defaults to AUTO.
--  **EXPOSE_FID=YES/NO/AUTO**: Whether to make feature fid
-   as a fid attribute. Defaults to AUTO.
--  **DOWNLOAD_SCHEMA=YES/NO**: Whether to download the
-   remote application schema if needed (only for WFS currently).
-   Defaults to YES.
--  **REGISTRY=filename**: Filename of the registry with
-   application schemas. Defaults to {GDAL_DATA}/gml_registry.xml.
+-  .. oo:: XSD
+      :choices: <filename>
+
+       to specify an explicit filename for the XSD application schema to use.
+
+-  .. oo:: WRITE_GFS
+      :choices: AUTO, YES, NO
+      :since: 3.1
+
+      whether to write a .gfs file.
+      In AUTO mode, the .gfs file is only written if there is no recognized .xsd
+      file, no existing .gfs file and for non-network file systems. This option
+      can be set to YES for force .gfs file writing in situations where AUTO would
+      not attempt to do it. Or it can be set to NO to disable .gfs file writing.
+
+-  .. oo:: GFS_TEMPLATE
+      :choices: <filename>
+
+      to unconditionally use a predefined GFS file.
+      This option is really useful when you are planning to import many distinct GML
+      files in subsequent steps [**-append**] and you absolutely want to
+      preserve a fully consistent data layout for the whole GML set.
+      Please, pay attention not to use the **-lco LAUNDER=yes** setting
+      when this option; this should break the correct
+      recognition of attribute names between subsequent GML import runs.
+
+-  .. oo:: FORCE_SRS_DETECTION
+      :choices: YES, NO
+      :default: NO
+
+      Force a full scan to
+      detect the SRS of layers. This option may be needed in the case where
+      the .gml file is accompanied with a .xsd. Normally in that situation,
+      OGR would not detect the SRS, because this requires to do a full scan
+      of the file.
+
+-  .. oo:: EMPTY_AS_NULL
+      :choices: YES, NO
+      :default: YES
+
+      If YES, fields with empty content will be reported as
+      being NULL, instead of being an empty string. This is the historic
+      behavior. However this will prevent such fields to be declared as
+      not-nullable if the application schema declared them as mandatory. So
+      this option can be set to NO to have both empty strings being report
+      as such, and mandatory fields being reported as not nullable.
+
+-  .. oo:: GML_ATTRIBUTES_TO_OGR_FIELDS
+      :choices: YES, NO
+      :default: NO
+
+      Whether GML
+      attributes should be reported as OGR fields. Note that this option
+      has only an effect the first time a GML file is opened (before the
+      .gfs file is created), and if it has no valid associated .xsd.
+
+-  .. oo:: INVERT_AXIS_ORDER_IF_LAT_LONG
+      :choices: YES, NO
+      :default: YES
+
+      Whether to
+      present SRS and coordinate ordering in traditional GIS order.
+
+-  .. oo:: CONSIDER_EPSG_AS_URN
+      :choices: YES, NO, AUTO
+      :default: AUTO
+
+       Whether to
+       consider srsName like EPSG:XXXX as respecting EPSG axis order.
+
+-  .. oo:: SWAP_COORDINATES
+      :choices: AUTO, YES, NO
+      :default: AUTO
+      :since: 2.1.2
+
+      Whether the order
+      of the x/y or long/lat coordinates should be swapped. In AUTO mode,
+      the driver will determine if swapping must be done from the srsName
+      and value of other options like :oo:`CONSIDER_EPSG_AS_URN` and
+      :oo:`INVERT_AXIS_ORDER_IF_LAT_LONG`. When :oo:`SWAP_COORDINATES` is set to YES,
+      coordinates will be always swapped regarding the order they appear in
+      the GML, and when it set to NO, they will be kept in the same order.
+
+-  .. oo:: READ_MODE
+      :choices: AUTO, STANDARD, SEQUENTIAL_LAYERS, INTERLEAVED_LAYERS
+      :default: AUTO
+
+      Read mode.
+
+-  .. oo:: EXPOSE_GML_ID
+      :choices: =YES, NO, AUTO
+      :default: AUTO
+
+      Whether to make feature gml:id as a gml_id attribute.
+
+-  .. oo:: EXPOSE_FID
+      :choices: YES, NO, AUTO
+      :default: AUTO
+
+      Whether to make feature fid as a fid attribute.
+
+-  .. oo:: DOWNLOAD_SCHEMA
+      :choices: YES, NO
+      :default: YES
+
+      Whether to download the
+      remote application schema if needed (only for WFS currently).
+
+-  .. oo:: REGISTRY
+      :choices: <filename>
+      :default: {GDAL_DATA}/gml_registry.xml.
+
+      Filename of the registry with application schemas.
 
 Creation Issues
 ---------------
@@ -480,87 +537,145 @@ ogr:geometryProperty element on the feature.
 Dataset creation options
 ------------------------
 
--  **XSISCHEMAURI**: If provided, this URI will be inserted as the
-   schema location. Note that the schema file isn't actually accessed by
-   OGR, so it is up to the user to ensure it will match the schema of
-   the OGR produced GML data file.
--  **XSISCHEMA**: This can be EXTERNAL, INTERNAL or OFF and defaults to
-   EXTERNAL. This writes a GML application schema file to a
-   corresponding .xsd file (with the same basename). If INTERNAL is used
-   the schema is written within the GML file, but this is experimental
-   and almost certainly not valid XML. OFF disables schema generation
-   (and is implicit if XSISCHEMAURI is used).
--  **PREFIX** Defaults to 'ogr'. This is the prefix for
-   the application target namespace.
--  **STRIP_PREFIX** Defaults to FALSE. Can be set to TRUE
-   to avoid writing the prefix of the application target namespace in
-   the GML file.
--  **TARGET_NAMESPACE** Defaults to
-   'http://ogr.maptools.org/'. This is the application target namespace.
--  **FORMAT**: This can be set to :
+-  .. dsco:: XSISCHEMAURI
 
-   -  *GML2* in order to write GML files that follow GML 2.1.2 (Default before GDAL 3.4)
-   -  *GML3* in order to write GML files that follow GML 3.1.1 SF-0
-      profile.
-   -  *GML3Deegree* in order to produce a GML 3.1.1 .XSD
-      schema, with a few variations with respect to what is recommended
-      by GML3 SF-0 profile, but that will be better accepted by some
-      software (such as Deegree 3).
-   -  *GML3.2*\ in order to write GML files that follow
-      GML 3.2.1 SF-0 profile. (Default since GDAL 3.4)
+      If provided, this URI will be inserted as the
+      schema location. Note that the schema file isn't actually accessed by
+      OGR, so it is up to the user to ensure it will match the schema of
+      the OGR produced GML data file.
 
-   Non-linear geometries can be written. This is
-   only compatible with selecting on of that above GML3 format variant.
-   Otherwise, such geometries will be approximating into their closest
-   matching linear geometry.
-   Note: fields of type StringList, RealList or
-   IntegerList can be written. This will cause to advertise the SF-1
-   profile in the .XSD schema (such types are not supported by SF-0).
--  **GML_FEATURE_COLLECTION**\ =YES/NO (OGR >= 2.3) Whether to use the
-   gml:FeatureCollection, instead of creating a dedicated container
-   element in the target namespace. Only valid for FORMAT=GML3/GML3.2.
-   Note that gml:FeatureCollection has been deprecated in GML 3.2, and
-   is not allowed by the OGC 06-049r1 "Geography Markup Language (GML)
-   simple features profile" (for GML 3.1.1) and OGC 10-100r3 "Geography
-   Markup Language (GML) simple features profile (with Corrigendum)"
-   (for GML 3.2) specifications.
--  **GML3_LONGSRS**\ =YES/NO. (only valid when
-   FORMAT=GML3/GML3Degree/GML3.2) Deprecated by SRSNAME_FORMAT in GDAL
-   2.2. Default to YES. If YES, SRS with EPSG authority will be written
-   with the "urn:ogc:def:crs:EPSG::" prefix. In the case the SRS is a
-   SRS without explicit AXIS order, but that the same SRS authority code
-   imported with ImportFromEPSGA() should be treated as lat/long or
-   northing/easting, then the function will take care of coordinate
-   order swapping. If set to NO, SRS with EPSG authority will be written
-   with the "EPSG:" prefix, even if they are in lat/long order.
--  **SRSNAME_FORMAT**\ =SHORT/OGC_URN/OGC_URL (Only valid for
-   FORMAT=GML3/GML3Degree/GML3.2, GDAL >= 2.2). Defaults to OGC_URN. If
-   SHORT, then srsName will be in the form AUTHORITY_NAME:AUTHORITY_CODE
-   If OGC_URN, then srsName will be in the form
-   urn:ogc:def:crs:AUTHORITY_NAME::AUTHORITY_CODE If OGC_URL, then
-   srsName will be in the form
-   http://www.opengis.net/def/crs/AUTHORITY_NAME/0/AUTHORITY_CODE For
-   OGC_URN and OGC_URL, in the case the SRS is a SRS without explicit
-   AXIS order, but that the same SRS authority code imported with
-   ImportFromEPSGA() should be treated as lat/long or northing/easting,
-   then the function will take care of coordinate order swapping.
--  **SRSDIMENSION_LOC**\ =POSLIST/GEOMETRY/GEOMETRY,POSLIST. (Only valid
-   for FORMAT=GML3/GML3Degree/GML3.2) Default to POSLIST.
-   For 2.5D geometries, define the location where to attach the
-   srsDimension attribute. There are diverging implementations. Some put
-   in on the <gml:posList> element, other on the top geometry element.
--  **WRITE_FEATURE_BOUNDED_BY**\ =YES/NO. (only valid when
-   FORMAT=GML3/GML3Degree/GML3.2) Default to YES. If set to NO, the
-   <gml:boundedBy> element will not be written for each feature.
--  **SPACE_INDENTATION**\ =YES/NO. Default to YES. If
-   YES, the output will be indented with spaces for more readability,
-   but at the expense of file size.
--  **GML_ID**\ =string. (Only valid for GML 3.2) Value of
-   feature collection gml:id. Default value is "aFeatureCollection".
--  **NAME**\ =string. Content of GML name element. Can also be set as
-   the NAME metadata item on the dataset.
--  **DESCRIPTION**\ =string. Content of GML description element. Can
-   also be set as the DESCRIPTION metadata item on the dataset.
+-  .. dsco:: XSISCHEMA
+      :choices: EXTERNAL, INTERNAL, OFF
+      :default: EXTERNAL
+
+      If EXTERNAL. This writes a GML application schema file to a
+      corresponding .xsd file (with the same basename). If INTERNAL is used
+      the schema is written within the GML file, but this is experimental
+      and almost certainly not valid XML. OFF disables schema generation
+      (and is implicit if :dsco:`XSISCHEMAURI` is used).
+
+-  .. dsco:: PREFIX
+      :default: ogr
+
+      This is the prefix for the application target namespace.
+
+-  .. dsco:: STRIP_PREFIX
+      :choices: TRUE, FALSE
+      :default: FALSE
+
+      Can be set to TRUE
+      to avoid writing the prefix of the application target namespace in
+      the GML file.
+
+-  .. dsco:: TARGET_NAMESPACE
+      :default: 'http://ogr.maptools.org/'
+
+      This is the application target namespace.
+
+-  .. dsco:: FORMAT
+      :choices: GML2, GML3, GML3Deegree, GMl3.2
+
+      Select from the following formats:
+
+      -  *GML2* in order to write GML files that follow GML 2.1.2 (Default before GDAL 3.4)
+      -  *GML3* in order to write GML files that follow GML 3.1.1 SF-0
+         profile.
+      -  *GML3Deegree* in order to produce a GML 3.1.1 .XSD
+         schema, with a few variations with respect to what is recommended
+         by GML3 SF-0 profile, but that will be better accepted by some
+         software (such as Deegree 3).
+      -  *GML3.2*\ in order to write GML files that follow
+         GML 3.2.1 SF-0 profile. (Default since GDAL 3.4)
+
+      Non-linear geometries can be written. This is
+      only compatible with selecting on of that above GML3 format variant.
+      Otherwise, such geometries will be approximating into their closest
+      matching linear geometry.
+      Note: fields of type StringList, RealList or
+      IntegerList can be written. This will cause to advertise the SF-1
+      profile in the .XSD schema (such types are not supported by SF-0).
+
+-  .. dsco:: GML_FEATURE_COLLECTION
+      :choices: YES, NO
+      :since: 2.3
+
+       Whether to use the
+       gml:FeatureCollection, instead of creating a dedicated container
+       element in the target namespace. Only valid for FORMAT=GML3/GML3.2.
+       Note that gml:FeatureCollection has been deprecated in GML 3.2, and
+       is not allowed by the OGC 06-049r1 "Geography Markup Language (GML)
+       simple features profile" (for GML 3.1.1) and OGC 10-100r3 "Geography
+       Markup Language (GML) simple features profile (with Corrigendum)"
+       (for GML 3.2) specifications.
+
+-  .. dsco:: GML3_LONGSRS
+      :choices: YES, NO
+
+      (only valid when
+      :dsco:`FORMAT=GML3/GML3Degree/GML3.2`) Deprecated by :dsco:`SRSNAME_FORMAT` in GDAL
+      2.2. Default to YES. If YES, SRS with EPSG authority will be written
+      with the "urn:ogc:def:crs:EPSG::" prefix. In the case the SRS is a
+      SRS without explicit AXIS order, but that the same SRS authority code
+      imported with ImportFromEPSGA() should be treated as lat/long or
+      northing/easting, then the function will take care of coordinate
+      order swapping. If set to NO, SRS with EPSG authority will be written
+      with the "EPSG:" prefix, even if they are in lat/long order.
+
+-  .. dsco:: SRSNAME_FORMAT
+      :choices: SHORT, OGC_URN, OGC_URL
+      :default: OGC_URN
+
+      (Only valid for
+      :dsco:`FORMAT=GML3/GML3Degree/GML3.2`, GDAL >= 2.2). If
+      SHORT, then srsName will be in the form AUTHORITY_NAME:AUTHORITY_CODE
+      If OGC_URN, then srsName will be in the form
+      urn:ogc:def:crs:AUTHORITY_NAME::AUTHORITY_CODE If OGC_URL, then
+      srsName will be in the form
+      http://www.opengis.net/def/crs/AUTHORITY_NAME/0/AUTHORITY_CODE For
+      OGC_URN and OGC_URL, in the case the SRS is a SRS without explicit
+      AXIS order, but that the same SRS authority code imported with
+      ImportFromEPSGA() should be treated as lat/long or northing/easting,
+      then the function will take care of coordinate order swapping.
+
+-  .. dsco:: SRSDIMENSION_LOC
+      :choices: POSLIST, GEOMETRY, GEOMETRY\,POSLIST
+
+      (Only valid
+      for :dsco:`FORMAT=GML3/GML3Degree/GML3.2`) Default to POSLIST.
+      For 2.5D geometries, define the location where to attach the
+      srsDimension attribute. There are diverging implementations. Some put
+      in on the <gml:posList> element, other on the top geometry element.
+
+-  .. dsco:: WRITE_FEATURE_BOUNDED_BY
+      :choices: YES, NO
+      :default: YES
+
+      (only valid when
+      :dsco:`FORMAT=GML3/GML3Degree/GML3.2`) If set to NO, the
+      <gml:boundedBy> element will not be written for each feature.
+
+-  .. dsco:: SPACE_INDENTATION
+      :choices: YES, NO
+      :default: YES
+
+      If YES, the output will be indented with spaces for more readability,
+      but at the expense of file size.
+
+-  .. dsco:: GML_ID
+      :default: aFeatureCollection
+
+      (Only valid for GML 3.2) Value of
+      feature collection gml:id.
+
+-  .. dsco:: NAME
+
+      Content of GML name element. Can also be set as
+      the NAME metadata item on the dataset.
+
+-  .. dsco:: DESCRIPTION
+
+      Content of GML description element. Can
+      also be set as the DESCRIPTION metadata item on the dataset.
 
 VSI Virtual File System API support
 -----------------------------------
@@ -1124,7 +1239,7 @@ See Also
 Credits
 -------
 
--  Implementation for **GML_SKIP_RESOLVE_ELEMS HUGE** was contributed by
+-  Implementation for :config:`GML_SKIP_RESOLVE_ELEMS HUGE` was contributed by
    A.Furieri, with funding from Regione Toscana
 -  Support for cadastral data in Finnish National Land Survey GML and
    Inspire GML was funded by The Information Centre of the Ministry of
