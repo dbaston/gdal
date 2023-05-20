@@ -122,11 +122,11 @@ Dataset Creation Options
       :choices: 512, 1024, ... , 32256
       :default: 512
 
-     (multiples of 512)
-     Block size for .map files.
-     MapInfo 15.2 and above creates .tab files with a blocksize of 16384
-     bytes. Any MapInfo version should be able to handle block sizes from
-     512 to 32256.
+      (multiples of 512)
+      Block size for .map files.
+      MapInfo 15.2 and above creates .tab files with a blocksize of 16384
+      bytes. Any MapInfo version should be able to handle block sizes from
+      512 to 32256.
 
 Layer Creation Options
 ~~~~~~~~~~~~~~~~~~~~~~

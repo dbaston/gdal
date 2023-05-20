@@ -138,7 +138,7 @@ browser, trough a
 element:
 
 -  .. dsco:: LISTSTYLE_TYPE
-      :choice: check, radioFolder, checkOffOnly, checkHideChildren
+      :choices: check, radioFolder, checkOffOnly, checkHideChildren
 
       Sets the
       `<listItemType> <https://developers.google.com/kml/documentation/kmlreference#listItemType>`__
@@ -406,6 +406,7 @@ options :
       element
 
 -  .. lco:: VISIBILITY
+
       `<visibility> <https://developers.google.com/kml/documentation/kmlreference#visibility>`__
       element
 
@@ -641,7 +642,7 @@ tag in KML, you can set a configuration option.
       if a Placemark has a Camera with a tilt element.
 
 -  .. config:: LIBKML_ROLL_FIELD
-      :defualt: roll
+      :default: roll
 
       Name of the real field that maps to the kml tag
       `<roll> <https://developers.google.com/kml/documentation/kmlreference#roll>`__.
