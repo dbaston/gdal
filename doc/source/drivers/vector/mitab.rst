@@ -138,10 +138,13 @@ Configuration options
 The following :ref:`configuration options <configoptions>` are
 available:
 
--  :decl_configoption:`MITAB_SET_TOWGS84_ON_KNOWN_DATUM` =YES/NO:
-   (GDAL >= 3.0.3). The default behavior, starting with GDAL 3.0.3, is NO.
-   That is, the TOWGS84 parameters read from the .tab header will *not* be set
-   on the Datum object of the CRS, when the datum can be inferred.
+-  .. config:: MITAB_SET_TOWGS84_ON_KNOWN_DATUM
+      :choices: YES, NO
+      :since: 3.0.3
+
+      The default behavior, starting with GDAL 3.0.3, is NO.
+      That is, the TOWGS84 parameters read from the .tab header will *not* be set
+      on the Datum object of the CRS, when the datum can be inferred.
 
 See Also
 ~~~~~~~~
