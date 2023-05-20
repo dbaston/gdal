@@ -67,30 +67,6 @@ def register_option(env, opt):
         env.gdal_options[opt.key()] = opt
 
 
-# class config_reference(nodes.General, nodes.Element):
-#    """
-#    Placeholder class marking a reference to a config option, to be resolved later.
-#    """
-#
-#    def __init__(self, option_type, option_name, doc, *, option_value=None):
-#        super(nodes.General, self).__init__()
-#        super(nodes.Element, self).__init__()
-#        self.option_type = option_type
-#        self.option_name = option_name
-#        self.option_value = option_value
-#        self.doc = doc
-#
-#
-# def visit_config_reference(self, node):
-#    raise Excpetion("XXX")
-#    pass
-#
-#
-# def depart_config_reference(self, node):
-#    pass
-#
-
-
 class config_index(nodes.General, nodes.Element):
     """
     Placeholder class marking the location of a config option index, to be created later.
@@ -157,6 +133,7 @@ class BaseConfigOption(SphinxDirective):
         "since": str,
         "choices": parse_choices,
         "default": str,
+        "required": str,
     }
 
     @staticmethod
@@ -180,6 +157,21 @@ class BaseConfigOption(SphinxDirective):
             # documented_choices = False
             self.options["choices"] = ["value"]
 
+        if "required" in self.options:
+            if self.options["required"].upper() in {"TRUE", "YES"}:
+                required = True
+            elif self.options["required"].upper() in {"FALSE", "NO"}:
+                required = False
+            else:
+                required = False
+                logger = logging.getLogger(__name__)
+                logger.warning(
+                    f"Option {option_name} :required: should be YES or NO)",
+                    location=self.env.docname,
+                )
+        else:
+            required = False
+
         target_id = option_key(
             option_type=self.opt_type, option_name=option_name, docname=self.env.docname
         )
@@ -201,12 +193,21 @@ class BaseConfigOption(SphinxDirective):
 
         para = nodes.paragraph()
 
-        text = f"**{option_name}"
+        # Option name and choices
+        text = f"{option_name}"
 
         if len(self.options["choices"]) > 1:
-            text += f'=[{"/".join(self.options["choices"])}]**: '
+            text += f'=[{"/".join(self.options["choices"])}]: '
         else:
-            text += f'={self.options["choices"][0]}**: '
+            text += f'={self.options["choices"][0]}: '
+
+        para += nodes.strong(text, text)
+
+        caveats = []
+
+        # Required flag
+        if required:
+            para += caveats.append(nodes.Text("required"))
 
         if "since" in self.options:
             since_ver = self.options["since"]
@@ -214,7 +215,9 @@ class BaseConfigOption(SphinxDirective):
 
             try:
                 if not min_since_ver or self.version_at_least(since_ver, min_since_ver):
-                    text += f"({self.env.app.config.project} >= {since_ver}) "
+                    caveats.append(
+                        nodes.Text(f"{self.env.app.config.project} >= {since_ver}")
+                    )
             except ValueError:
                 logger = logging.getLogger(__name__)
                 logger.warning(
@@ -222,8 +225,18 @@ class BaseConfigOption(SphinxDirective):
                     location=self.env.docname,
                 )
 
+        if caveats:
+            para += nodes.Text(" (")
+            for i, caveat in enumerate(caveats):
+                if i > 0:
+                    para += nodes.Text(", ")
+                para += caveat
+            para += nodes.Text(") ")
+
         if "default" in self.options:
-            text += f'Defaults to {self.options["default"]}. '
+            para += nodes.Text(" Defaults to ")
+            para += nodes.literal(self.options["default"], self.options["default"])
+            para += nodes.Text(". ")
             # if (
             #    documented_choices
             #    and len(self.options["choices"]) > 1
@@ -235,12 +248,17 @@ class BaseConfigOption(SphinxDirective):
             #        location=self.env.docname,
             #    )
 
-        if len(self.content) == 0:
-            self.content.append(text, "")
-        else:
-            self.content[0] = text + self.content[0]
+        # Parse the option description into a throwaway node.  This lets us
+        # flatten the parsed content so that the first piece of text appears on
+        # the same line as the config option signature.
+        content_node = nodes.Element()
 
-        self.state.nested_parse(self.content, self.content_offset, para)
+        self.state.nested_parse(self.content, self.content_offset, content_node)
+
+        if len(content_node.children) > 0:
+            para += content_node.children[0].children
+        if len(content_node.children) > 1:
+            para += content_node.children[1:]
 
         return [target_node, para]
 
@@ -398,9 +416,8 @@ def link_option_refs2(app, env, node, contnode):
 
     if matched_opt is None:
         logger = logging.getLogger(__name__)
-        # FIXME revert to warning
         option_type, option_name = split_option_key(node["reftarget"])
-        logger.info(
+        logger.warning(
             f"Can't find option {option_name} of type {option_type}",
             location=node,
         )
@@ -477,18 +494,12 @@ class ConfigIndex(Directive):
         return [config_index("")]
 
 
-from sphinx.transforms.post_transforms import SphinxPostTransform
+def log_options(app, env):
+    logger = logging.getLogger(__name__)
 
-
-class Fizzle(SphinxPostTransform):
-
-    default_priority = 8
-
-    def is_supported(self):
-        return True
-
-    def run(self, **kwargs):
-        raise Exception("Post-Transform")
+    logger.info(
+        f"Identified {len(env.gdal_options)} GDAL options with {len(env.gdal_option_refs)} references."
+    )
 
 
 def setup(app):
@@ -496,6 +507,10 @@ def setup(app):
 
     # app.add_config_value("options_global_config_doc", None, "html")
     app.add_config_value("options_since_ignore_before", None, "html")
+
+    for opt_type, opt_directive in option_classes.items():
+        app.add_directive(f"{opt_type}", opt_directive)
+        app.add_role(opt_type, config_ref(opt_type))
 
     # app.connect("doctree-resolved", link_option_refs)
     app.connect("doctree-resolved", create_config_index)
@@ -506,18 +521,7 @@ def setup(app):
 
     app.connect("missing-reference", link_option_refs2)
 
-    #    def check_con(app, env):
-    #        import pdb
-    #        breakpoint()
-    #        raise Exception("check consistency")
-    #
-    # app.connect('env-check-consistency', check_con)
-
-    #    app.add_post_transform(Fizzle)
-
-    for opt_type, opt_directive in option_classes.items():
-        app.add_directive(f"{opt_type}", opt_directive)
-        app.add_role(opt_type, config_ref(opt_type))
+    app.connect("env-updated", log_options)
 
     app.add_role("decl_configoption", decl_configoption("%s"))
 
