@@ -347,8 +347,7 @@ Dataset creation options
       metadata item, which is the center of :co:`BOUNDS` at minimum zoom level.
 
 -  .. co:: TILING_SCHEME
-      :choices: <crs\,tile_origin_upper_left_x\,tile_origin_upper_left_y\,
-   tile_dimension_zoom_0>
+      :choices: <crs\,tile_origin_upper_left_x\,tile_origin_upper_left_y\,tile_dimension_zoom_0>
 
       Define a custom tiling scheme with a CRS
       (typically given as EPSG:XXXX), the coordinates of the upper-left
