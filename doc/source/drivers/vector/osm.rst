@@ -86,7 +86,7 @@ The driver will use an internal SQLite database to resolve geometries.
 If that database remains under 100 MB it will reside in RAM. If it grows
 above, it will be written in a temporary file on disk. By default, this
 file will be written in the current directory, unless you define the
-:decl_configoption:`CPL_TMPDIR` configuration option. The 100 MB default threshold can be
+:config:`CPL_TMPDIR` configuration option. The 100 MB default threshold can be
 adjusted with the :decl_configoption:`OSM_MAX_TMPFILE_SIZE` configuration option (value in
 MB).
 
@@ -193,19 +193,44 @@ And to combine the above steps :
 Open options
 ------------
 
--  **CONFIG_FILE=filename**: Configuration filename.
-   Defaults to {GDAL_DATA}/osmconf.ini.
--  **USE_CUSTOM_INDEXING=YES/NO**: Whether to enable custom
-   indexing. Defaults to YES.
--  **COMPRESS_NODES=YES/NO**: Whether to compress nodes in
-   temporary DB. Defaults to NO.
--  **MAX_TMPFILE_SIZE=int_val**: Maximum size in MB of
-   in-memory temporary file. If it exceeds that value, it will go to
-   disk. Defaults to 100.
--  **INTERLEAVED_READING=YES/NO**: Whether to enable
-   interleaved reading. Defaults to NO.
--  **TAGS_FORMAT=HSTORE/JSON**: (GDAL >=3.7) Format for all_tags/other_tags fields.
-   Defaults to HSTORE.
+-  .. oo:: CONFIG_FILE=
+      :choices: <filename>
+      :default: {GDAL_DATA}/osmconf.ini
+
+      Configuration filename.
+
+-  .. oo:: USE_CUSTOM_INDEXING
+      :choices: YES, NO
+      :default: YES
+
+      Whether to enable custom indexing.
+
+-  .. oo:: COMPRESS_NODES
+      :choices: YES, NO
+      :default: NO
+
+      Whether to compress nodes in temporary DB.
+
+-  .. oo:: MAX_TMPFILE_SIZE
+      :choices: <MBytes>
+      :default: 100
+
+      Maximum size in MB of
+      in-memory temporary file. If it exceeds that value, it will go to
+      disk.
+
+-  .. oo:: INTERLEAVED_READING
+      :choices: YES, NO
+      :default: NO
+
+      Whether to enable interleaved reading.
+
+-  .. oo:: TAGS_FORMAT
+      :choices: HSTORE, JSON
+      :default: HSTORE
+      :since: 3.7
+
+      Format for all_tags/other_tags fields.
 
 See Also
 --------

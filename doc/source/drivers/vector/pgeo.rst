@@ -19,8 +19,8 @@ Personal Geodatabases are accessed by passing the file name of the .mdb
 file to be accessed as the data source name.
 
 In order to facilitate compatibility with different configurations, the
-:decl_configoption:`PGEO_DRIVER_TEMPLATE` config Option was added to 
-provide a way to programmatically set the DSN programmatically with the 
+:decl_configoption:`PGEO_DRIVER_TEMPLATE` config Option was added to
+provide a way to programmatically set the DSN programmatically with the
 filename as an
 argument. In cases where the driver name is known, this allows for the
 construction of the DSN based on that information in a manner similar to
@@ -58,8 +58,12 @@ and metadata of a Personal GeoDatabase table as XML content.
 Dataset open options
 --------------------
 
--  **LIST_ALL_TABLES**\ =YES/NO: This may be "YES" to force all tables,
-   including system and internal tables (such as the GDB_* tables) to be listed (since GDAL 3.4)
+-  .. oo:: LIST_ALL_TABLES
+      :choices: YES, NO
+      :since: 3.4
+
+      This may be "YES" to force all tables,
+      including system and internal tables (such as the GDB_* tables) to be listed
 
 Driver capabilities
 -------------------

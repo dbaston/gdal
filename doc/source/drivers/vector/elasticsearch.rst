@@ -587,7 +587,7 @@ options:
       :choices: YES, NO
       :default: YES
 
-     Whether to use bulk insert for feature creation.
+      Whether to use bulk insert for feature creation.
 
 -  .. lco:: BULK_SIZE
       :choices: <bytes>
