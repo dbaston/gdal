@@ -459,7 +459,6 @@ source_file_url_template = "https://github.com/OSGeo/gdal/blob/master/{}"
 
 # -- GDAL Config option listing ------------------------------------------
 options_since_ignore_before = "3.0"
-options_global_config_doc = "user/configoptions"
 
 # -- Redirects --------------------------------------------------
 
