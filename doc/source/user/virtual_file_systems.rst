@@ -92,7 +92,7 @@ Addition of a new file to an existing zip:
     VSIFWriteL("Hello World", 1, strlen("Hello world"), newfile);
     VSIFCloseL(newfile);
 
-Starting with GDAL 2.4, the :decl_configoption:`GDAL_NUM_THREADS` configuration option can be set to an integer or ``ALL_CPUS`` to enable multi-threaded compression of a single file. This is similar to the pigz utility in independent mode. By default the input stream is split into 1 MB chunks (the chunk size can be tuned with the :decl_configoption:`CPL_VSIL_DEFLATE_CHUNK_SIZE` configuration option, with values like "x K" or "x M"), and each chunk is independently compressed (and terminated by a nine byte marker 0x00 0x00 0xFF 0xFF 0x00 0x00 0x00 0xFF 0xFF, signaling a full flush of the stream and dictionary, enabling potential independent decoding of each chunk). This slightly reduces the compression rate, so very small chunk sizes should be avoided.
+Starting with GDAL 2.4, the :config:`GDAL_NUM_THREADS` configuration option can be set to an integer or ``ALL_CPUS`` to enable multi-threaded compression of a single file. This is similar to the pigz utility in independent mode. By default the input stream is split into 1 MB chunks (the chunk size can be tuned with the :config:`CPL_VSIL_DEFLATE_CHUNK_SIZE` configuration option, with values like "x K" or "x M"), and each chunk is independently compressed (and terminated by a nine byte marker 0x00 0x00 0xFF 0xFF 0x00 0x00 0x00 0xFF 0xFF, signaling a full flush of the stream and dictionary, enabling potential independent decoding of each chunk). This slightly reduces the compression rate, so very small chunk sizes should be avoided.
 Starting with GDAL 3.7, this technique is reused to generate .zip files following :ref:`sozip_intro`.
 
 Read and write operations cannot be interleaved. The new zip must be closed before being re-opened in read mode.
@@ -149,7 +149,7 @@ When the file is located in a writable location, a file with extension .gz.prope
 
 Write capabilities are also available, but read and write operations cannot be interleaved.
 
-Starting with GDAL 2.4, the :decl_configoption:`GDAL_NUM_THREADS` configuration option can be set to an integer or ``ALL_CPUS`` to enable multi-threaded compression of a single file. This is similar to the pigz utility in independent mode. By default the input stream is split into 1 MB chunks (the chunk size can be tuned with the :decl_configoption:`CPL_VSIL_DEFLATE_CHUNK_SIZE` configuration option, with values like "x K" or "x M"), and each chunk is independently compressed (and terminated by a nine byte marker 0x00 0x00 0xFF 0xFF 0x00 0x00 0x00 0xFF 0xFF, signaling a full flush of the stream and dictionary, enabling potential independent decoding of each chunk). This slightly reduces the compression rate, so very small chunk sizes should be avoided.
+Starting with GDAL 2.4, the :config:`GDAL_NUM_THREADS` configuration option can be set to an integer or ``ALL_CPUS`` to enable multi-threaded compression of a single file. This is similar to the pigz utility in independent mode. By default the input stream is split into 1 MB chunks (the chunk size can be tuned with the :config:`CPL_VSIL_DEFLATE_CHUNK_SIZE` configuration option, with values like "x K" or "x M"), and each chunk is independently compressed (and terminated by a nine byte marker 0x00 0x00 0xFF 0xFF 0x00 0x00 0x00 0xFF 0xFF, signaling a full flush of the stream and dictionary, enabling potential independent decoding of each chunk). This slightly reduces the compression rate, so very small chunk sizes should be avoided.
 
 .. _vsitar:
 
@@ -294,9 +294,9 @@ Example using :program:`ogrinfo` to read a shapefile on the internet:
 
 Starting with GDAL 2.3, options can be passed in the filename with the following syntax: ``/vsicurl?[option_i=val_i&]*url=http://...`` where each option name and value (including the value of "url") is URL-encoded. Currently supported options are:
 
-- use_head=yes/no: whether the HTTP HEAD request can be emitted. Default to YES. Setting this option overrides the behavior of the :decl_configoption:`CPL_VSIL_CURL_USE_HEAD` configuration option.
-- max_retry=number: default to 0. Setting this option overrides the behavior of the :decl_configoption:`GDAL_HTTP_MAX_RETRY` configuration option.
-- retry_delay=number_in_seconds: default to 30. Setting this option overrides the behavior of the :decl_configoption:`GDAL_HTTP_RETRY_DELAY` configuration option.
+- use_head=yes/no: whether the HTTP HEAD request can be emitted. Default to YES. Setting this option overrides the behavior of the :config:`CPL_VSIL_CURL_USE_HEAD` configuration option.
+- max_retry=number: default to 0. Setting this option overrides the behavior of the :config:`GDAL_HTTP_MAX_RETRY` configuration option.
+- retry_delay=number_in_seconds: default to 30. Setting this option overrides the behavior of the :config:`GDAL_HTTP_RETRY_DELAY` configuration option.
 - list_dir=yes/no: whether an attempt to read the file list of the directory where the file is located should be done. Default to YES.
 - useragent=value: HTTP UserAgent header
 - referer=value: HTTP Referer header
@@ -311,50 +311,44 @@ Starting with GDAL 2.3, options can be passed in the filename with the following
 - pc_url_signing=yes/no: whether to use the URL signing mechanism of Microsoft Planetary Computer (https://planetarycomputer.microsoft.com/docs/concepts/sas/). (GDAL >= 3.5.2)
 - pc_collection=name: name of the collection of the dataset for Planetary Computer URL signing. Only used when pc_url_signing=yes. (GDAL >= 3.5.2)
 
-Partial downloads (requires the HTTP server to support random reading) are done with a 16 KB granularity by default. Starting with GDAL 2.3, the chunk size can be configured with the :decl_configoption:`CPL_VSIL_CURL_CHUNK_SIZE` configuration option, with a value in bytes. If the driver detects sequential reading it will progressively increase the chunk size up to 2 MB to improve download performance. Starting with GDAL 2.3, the :decl_configoption:`GDAL_INGESTED_BYTES_AT_OPEN` configuration option can be set to impose the number of bytes read in one GET call at file opening (can help performance to read Cloud optimized geotiff with a large header).
+Partial downloads (requires the HTTP server to support random reading) are done with a 16 KB granularity by default. Starting with GDAL 2.3, the chunk size can be configured with the :config:`CPL_VSIL_CURL_CHUNK_SIZE` configuration option, with a value in bytes. If the driver detects sequential reading it will progressively increase the chunk size up to 2 MB to improve download performance. Starting with GDAL 2.3, the :config:`GDAL_INGESTED_BYTES_AT_OPEN` configuration option can be set to impose the number of bytes read in one GET call at file opening (can help performance to read Cloud optimized geotiff with a large header).
 
-The :decl_configoption:`GDAL_HTTP_PROXY` (for both HTTP and HTTPS protocols), :decl_configoption:`GDAL_HTTPS_PROXY` (for HTTPS protocol only), :decl_configoption:`GDAL_HTTP_PROXYUSERPWD` and :decl_configoption:`GDAL_PROXY_AUTH` configuration options can be used to define a proxy server. The syntax to use is the one of Curl ``CURLOPT_PROXY``, ``CURLOPT_PROXYUSERPWD`` and ``CURLOPT_PROXYAUTH`` options.
+The :config:`GDAL_HTTP_PROXY` (for both HTTP and HTTPS protocols), :config:`GDAL_HTTPS_PROXY` (for HTTPS protocol only), :config:`GDAL_HTTP_PROXYUSERPWD` and :config:`GDAL_PROXY_AUTH` configuration options can be used to define a proxy server. The syntax to use is the one of Curl ``CURLOPT_PROXY``, ``CURLOPT_PROXYUSERPWD`` and ``CURLOPT_PROXYAUTH`` options.
 
-Starting with GDAL 2.1.3, the :decl_configoption:`CURL_CA_BUNDLE` or :decl_configoption:`SSL_CERT_FILE` configuration options can be used to set the path to the Certification Authority (CA) bundle file (if not specified, curl will use a file in a system location).
+Starting with GDAL 2.1.3, the :config:`CURL_CA_BUNDLE` or :config:`SSL_CERT_FILE` configuration options can be used to set the path to the Certification Authority (CA) bundle file (if not specified, curl will use a file in a system location).
 
-Starting with GDAL 2.3, additional HTTP headers can be sent by setting the :decl_configoption:`GDAL_HTTP_HEADER_FILE` configuration option to point to a filename of a text file with "key: value" HTTP headers.
+Starting with GDAL 2.3, additional HTTP headers can be sent by setting the :config:`GDAL_HTTP_HEADER_FILE` configuration option to point to a filename of a text file with "key: value" HTTP headers.
 
 As an alternative, starting with GDAL 3.6, the
-:decl_configoption:`GDAL_HTTP_HEADERS` configuration option can also be
-used to specify a comma separated list of key: value pairs. If a comma or a double-quote
-character is needed in the value, then the key: value pair must be
-enclosed in double-quote characters. In that situation, backslash and double
-quote character must be backslash-escaped.
-e.g GDAL_HTTP_HEADERS=Foo: Bar,"Baz: escaped backslash \\, escaped double-quote \", end of value",Another: Header
+:config:`GDAL_HTTP_HEADERS` configuration option can also be
+used to specify headers. :config:`CPL_CURL_VERBOSE=YES` allows one to see them and more, when combined with ``--debug``.
 
-:decl_configoption:`CPL_CURL_VERBOSE` set to ``YES`` allows one to see them and more, when combined with ``--debug``.
-
-Starting with GDAL 2.3, the :decl_configoption:`GDAL_HTTP_MAX_RETRY` (number of attempts) and :decl_configoption:`GDAL_HTTP_RETRY_DELAY` (in seconds) configuration option can be set, so that request retries are done in case of HTTP errors 429, 502, 503 or 504.
+Starting with GDAL 2.3, the :config:`GDAL_HTTP_MAX_RETRY` (number of attempts) and :config:`GDAL_HTTP_RETRY_DELAY` (in seconds) configuration option can be set, so that request retries are done in case of HTTP errors 429, 502, 503 or 504.
 
 Starting with GDAL 3.6, the following configuration options control the TCP keep-alive functionality (cf https://daniel.haxx.se/blog/2020/02/10/curl-ootw-keepalive-time/ for a detailed explanation):
 
-- :decl_configoption:`GDAL_HTTP_TCP_KEEPALIVE` = YES/NO. whether to enable TCP keep-alive. Defaults to NO
-- :decl_configoption:`GDAL_HTTP_TCP_KEEPIDLE` = integer, in seconds. Keep-alive idle time. Defaults to 60. Only taken into account if GDAL_HTTP_TCP_KEEPALIVE=YES.
-- :decl_configoption:`GDAL_HTTP_TCP_KEEPINTVL` = integer, in seconds. Interval time between keep-alive probes. Defaults to 60. Only taken into account if GDAL_HTTP_TCP_KEEPALIVE=YES.
+- :config:`GDAL_HTTP_TCP_KEEPALIVE` = YES/NO. whether to enable TCP keep-alive. Defaults to NO
+- :config:`GDAL_HTTP_TCP_KEEPIDLE` = integer, in seconds. Keep-alive idle time. Defaults to 60. Only taken into account if GDAL_HTTP_TCP_KEEPALIVE=YES.
+- :config:`GDAL_HTTP_TCP_KEEPINTVL` = integer, in seconds. Interval time between keep-alive probes. Defaults to 60. Only taken into account if GDAL_HTTP_TCP_KEEPALIVE=YES.
 
 Starting with GDAL 3.7, the following configuration options control support for SSL client certificates:
 
-- :decl_configoption:`GDAL_HTTP_SSLCERT` = filename. Filename of the the SSL client certificate. Cf https://curl.se/libcurl/c/CURLOPT_SSLCERT.html
-- :decl_configoption:`GDAL_HTTP_SSLCERTTYPE` = string. Format of the SSL certificate: "PEM" or "DER". Cf https://curl.se/libcurl/c/CURLOPT_SSLCERTTYPE.html
-- :decl_configoption:`GDAL_HTTP_SSLKEY` = filename. Private key file for TLS and SSL client certificate. Cf https://curl.se/libcurl/c/CURLOPT_SSLKEY.html
-- :decl_configoption:`GDAL_HTTP_KEYPASSWD` = string. Passphrase to private key. Cf https://curl.se/libcurl/c/CURLOPT_KEYPASSWD.html
+- :config:`GDAL_HTTP_SSLCERT` = filename. Filename of the the SSL client certificate. Cf https://curl.se/libcurl/c/CURLOPT_SSLCERT.html
+- :config:`GDAL_HTTP_SSLCERTTYPE` = string. Format of the SSL certificate: "PEM" or "DER". Cf https://curl.se/libcurl/c/CURLOPT_SSLCERTTYPE.html
+- :config:`GDAL_HTTP_SSLKEY` = filename. Private key file for TLS and SSL client certificate. Cf https://curl.se/libcurl/c/CURLOPT_SSLKEY.html
+- :config:`GDAL_HTTP_KEYPASSWD` = string. Passphrase to private key. Cf https://curl.se/libcurl/c/CURLOPT_KEYPASSWD.html
 
 More generally options of :cpp:func:`CPLHTTPFetch` available through configuration options are available.
 Starting with GDAL 3.7, the above configuration options can also be specified
 as path-specific options with :cpp:func:`VSISetPathSpecificOption`.
 
-The file can be cached in RAM by setting the configuration option :decl_configoption:`VSI_CACHE` to ``TRUE``. The cache size defaults to 25 MB, but can be modified by setting the configuration option :decl_configoption:`VSI_CACHE_SIZE` (in bytes). Content in that cache is discarded when the file handle is closed.
+The file can be cached in RAM by setting the configuration option :config:`VSI_CACHE` to ``TRUE``. The cache size defaults to 25 MB, but can be modified by setting the configuration option :config:`VSI_CACHE_SIZE` (in bytes). Content in that cache is discarded when the file handle is closed.
 
-In addition, a global least-recently-used cache of 16 MB shared among all downloaded content is enabled by default, and content in it may be reused after a file handle has been closed and reopen, during the life-time of the process or until :cpp:func:`VSICurlClearCache` is called. Starting with GDAL 2.3, the size of this global LRU cache can be modified by setting the configuration option :decl_configoption:`CPL_VSIL_CURL_CACHE_SIZE` (in bytes).
+In addition, a global least-recently-used cache of 16 MB shared among all downloaded content is enabled by default, and content in it may be reused after a file handle has been closed and reopen, during the life-time of the process or until :cpp:func:`VSICurlClearCache` is called. Starting with GDAL 2.3, the size of this global LRU cache can be modified by setting the configuration option :config:`CPL_VSIL_CURL_CACHE_SIZE` (in bytes).
 
-Starting with GDAL 2.3, the :decl_configoption:`CPL_VSIL_CURL_NON_CACHED` configuration option can be set to values like :file:`/vsicurl/http://example.com/foo.tif:/vsicurl/http://example.com/some_directory`, so that at file handle closing, all cached content related to the mentioned file(s) is no longer cached. This can help when dealing with resources that can be modified during execution of GDAL related code. Alternatively, :cpp:func:`VSICurlClearCache` can be used.
+Starting with GDAL 2.3, the :config:`CPL_VSIL_CURL_NON_CACHED` configuration option can be set to values like :file:`/vsicurl/http://example.com/foo.tif:/vsicurl/http://example.com/some_directory`, so that at file handle closing, all cached content related to the mentioned file(s) is no longer cached. This can help when dealing with resources that can be modified during execution of GDAL related code. Alternatively, :cpp:func:`VSICurlClearCache` can be used.
 
-Starting with GDAL 2.1, ``/vsicurl/`` will try to query directly redirected URLs to Amazon S3 signed URLs during their validity period, so as to minimize round-trips. This behavior can be disabled by setting the configuration option :decl_configoption:`CPL_VSIL_CURL_USE_S3_REDIRECT` to ``NO``.
+Starting with GDAL 2.1, ``/vsicurl/`` will try to query directly redirected URLs to Amazon S3 signed URLs during their validity period, so as to minimize round-trips. This behavior can be disabled by setting the configuration option :config:`CPL_VSIL_CURL_USE_S3_REDIRECT` to ``NO``.
 
 :cpp:func:`VSIStatL` will return the size in st_size member and file nature- file or directory - in st_mode member (the later only reliable with FTP resources for now).
 
@@ -371,11 +365,11 @@ Although this file handler is able seek to random offsets in the file, this will
 
 Recognized filenames are of the form :file:`/vsicurl_streaming/http[s]://path/to/remote/resource` or :file:`/vsicurl_streaming/ftp://path/to/remote/resource`, where :file:`path/to/remote/resource` is the URL of a remote resource.
 
-The :decl_configoption:`GDAL_HTTP_PROXY` (for both HTTP and HTTPS protocols), :decl_configoption:`GDAL_HTTPS_PROXY` (for HTTPS protocol only), :decl_configoption:`GDAL_HTTP_PROXYUSERPWD` and :decl_configoption:`GDAL_PROXY_AUTH` configuration options can be used to define a proxy server. The syntax to use is the one of Curl ``CURLOPT_PROXY``, ``CURLOPT_PROXYUSERPWD`` and ``CURLOPT_PROXYAUTH`` options.
+The :config:`GDAL_HTTP_PROXY` (for both HTTP and HTTPS protocols), :config:`GDAL_HTTPS_PROXY` (for HTTPS protocol only), :config:`GDAL_HTTP_PROXYUSERPWD` and :config:`GDAL_PROXY_AUTH` configuration options can be used to define a proxy server. The syntax to use is the one of Curl ``CURLOPT_PROXY``, ``CURLOPT_PROXYUSERPWD`` and ``CURLOPT_PROXYAUTH`` options.
 
-Starting with GDAL 2.1.3, the :decl_configoption:`CURL_CA_BUNDLE` or :decl_configoption:`SSL_CERT_FILE` configuration options can be used to set the path to the Certification Authority (CA) bundle file (if not specified, curl will use a file in a system location).
+Starting with GDAL 2.1.3, the :config:`CURL_CA_BUNDLE` or :config:`SSL_CERT_FILE` configuration options can be used to set the path to the Certification Authority (CA) bundle file (if not specified, curl will use a file in a system location).
 
-The file can be cached in RAM by setting the configuration option :decl_configoption:`VSI_CACHE` to ``TRUE``. The cache size defaults to 25 MB, but can be modified by setting the configuration option :decl_configoption:`VSI_CACHE_SIZE` (in bytes).
+The file can be cached in RAM by setting the configuration option :config:`VSI_CACHE` to ``TRUE``. The cache size defaults to 25 MB, but can be modified by setting the configuration option :config:`VSI_CACHE_SIZE` (in bytes).
 
 :cpp:func:`VSIStatL` will return the size in st_size member and file nature- file or directory - in st_mode member (the later only reliable with FTP resources for now).
 
@@ -387,41 +381,125 @@ The file can be cached in RAM by setting the configuration option :decl_configop
 /vsis3/ is a file system handler that allows on-the-fly random reading of (primarily non-public) files available in AWS S3 buckets, without prior download of the entire file. It requires GDAL to be built against libcurl.
 
 It also allows sequential writing of files. No seeks or read operations are then allowed, so in particular direct writing of GeoTIFF files with the GTiff driver is not supported, unless, if,
-starting with GDAL 3.2, the :decl_configoption:`CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE` configuration option is set to ``YES``, in which case random-write access is possible (involves the creation of a temporary local file, whose location is controlled by the :decl_configoption:`CPL_TMPDIR` configuration option).
+starting with GDAL 3.2, the :config:`CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE` configuration option is set to ``YES``, in which case random-write access is possible (involves the creation of a temporary local file, whose location is controlled by the :config:`CPL_TMPDIR` configuration option).
 Deletion of files with :cpp:func:`VSIUnlink` is also supported. Starting with GDAL 2.3, creation of directories with :cpp:func:`VSIMkdir` and deletion of (empty) directories with :cpp:func:`VSIRmdir` are also possible.
 
 Recognized filenames are of the form :file:`/vsis3/bucket/key`, where ``bucket`` is the name of the S3 bucket and ``key`` is the S3 object "key", i.e. a filename potentially containing subdirectories.
 
 The generalities of :ref:`/vsicurl/ <vsicurl>` apply.
 
+The following configuration options are specific to the /vsis3/ handler:
+
+-  .. config:: AWS_NO_SIGN_REQUEST
+      :choices: YES, NO
+      :since: 2.3
+
+-  .. config:: AWS_ACCESS_KEY_ID
+
+      Access key ID used for authentication. If using temporary credentials,
+      :config:`AWS_SESSION_TOKEN` must be set.
+
+-  .. config:: AWS_SECRET_ACCESS_KEY
+
+      Secret access key associated with :config:`AWS_ACCESS_KEY_ID`.
+
+-  .. config:: AWS_SESSION_TOKEN
+
+      Session token used for validation of temporary credentials
+      (:config:`AWS_ACCESS_KEY_ID` and :config:`AWS_SECRET_ACCESS_KEY`)
+
+-  .. config:: CPL_AWS_CREDENTIALS_FILE
+      :choices: <filename>
+
+      Location of an AWS credentials file. If not specified, the standard
+      location of ``~/.aws/credentials`` will be checked.
+
+-  .. config:: AWS_DEFAULT_PROFILE
+
+-  .. config:: AWS_PROFILE
+
+-  .. config:: AWS_CONFIG_FILE
+
+      Location of a config file that may provide credentials and the AWS
+      region. if not specified the standard location of ``~/.aws/credentials``
+      will be checked.
+
+-  .. config:: AWS_ROLE_ARN
+      :since: 3.6
+
+-  .. config:: AWS_WEB_IDENTITY_TOKEN_FILE
+      :since: 3.6
+
+-  .. config:: AWS_REGION
+      :default: us-east-1
+
+      Set the AWS region to which requests should be sent. Overridden
+      by :config:`AWS_DEFAULT_REGION`.
+
+-  .. config:: AWS_DEFAULT_REGION
+      :since: 2.3
+
+      Set the AWS region to which requests should be sent.
+
+-  .. config:: AWS_REQUEST_PAYER
+      :choices: requester
+      :since: 2.2
+
+      Set to ``requester`` to access a Requester Pays bucket and acknowledge
+      associated charges.
+
+-  .. config:: AWS_S3_ENDPOINT
+      :default: s3.amazonaws.com
+
+      Allows the use of /vsis3/ with non-AWS remote object stores that use the
+      AWS S3 protocol.
+
+-  .. config:: AWS_HTTPS
+      :choices: YES, NO
+      :default: YES
+
+      If ``YES``, AWS resources will be accessed using HTTPS. If ``NO``, HTTP
+      will be used.
+
+-  .. config:: AWS_VIRTUAL_HOSTING
+      :choices: TRUE, FALSE
+      :default: TRUE
+
+      Select the method of accessing a bucket.
+      If ``TRUE``, identifies the bucket via a virtual bucket host name, e.g.: mybucket.cname.domain.com.
+      If ``FALSE``, identifies the bucket as the top-level directory in the URI, e.g.: cname.domain.com/mybucket
+
+-  .. config:: VSIS3_CHUNK_SIZE
+      :choices: <MB>
+      :default: 50
+
+      Set the chunk size for multipart uploads.
+
+-  .. config:: CPL_VSIL_CURL_IGNORE_GLACIER_STORAGE
+      :choices: YES, NO
+      :default: YES
+      :since: 2.4
+
+      When listing a directory, ignore files with ``GLACIER`` storage class.
+      Superseded by :config:`CPL_VSIL_CURL_IGNORE_STORAGE_CLASSES`.
+
+-  .. config:: CPL_VSIL_CURL_IGNORE_STORAGE_CLASSES
+      :default: GLACIER\,DEEP_ARCHIVE
+
+      Comma-separated list of storage class names that should be ignored when
+      listing a directory. If set to empty, objects of all storage classes are
+      retrieved).
+
 Several authentication methods are possible, and are attempted in the following order:
 
-1. If :decl_configoption:`AWS_NO_SIGN_REQUEST=YES` configuration option is set, request signing is disabled. This option might be used for buckets with public access rights. Available since GDAL 2.3
-2. The :decl_configoption:`AWS_SECRET_ACCESS_KEY` and :decl_configoption:`AWS_ACCESS_KEY_ID` configuration options can be set. The :decl_configoption:`AWS_SESSION_TOKEN` configuration option must be set when temporary credentials are used.
-3. Starting with GDAL 2.3, alternate ways of providing credentials similar to what the "aws" command line utility or Boto3 support can be used. If the above mentioned environment variables are not provided, the ``~/.aws/credentials`` or ``%UserProfile%/.aws/credentials`` file will be read (or the file pointed by :decl_configoption:`CPL_AWS_CREDENTIALS_FILE`). The profile may be specified with the :decl_configoption:`AWS_DEFAULT_PROFILE` environment variable, or starting with GDAL 3.2 with the :decl_configoption:`AWS_PROFILE` environment variable (the default profile is "default").
-4. The ``~/.aws/config`` or ``%UserProfile%/.aws/config`` file may also be used (or the file pointer by :decl_configoption:`AWS_CONFIG_FILE`) to retrieve credentials and the AWS region.
-5. Starting with GDAL 3.6, if :decl_configoption:`AWS_ROLE_ARN` and :decl_configoption:`AWS_WEB_IDENTITY_TOKEN_FILE` are defined we will rely on credentials mechanism for web identity token based AWS sts action AssumeRoleWithWebIdentity (See.: https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html)
+1. If :config:`AWS_NO_SIGN_REQUEST=YES` configuration option is set, request signing is disabled. This option might be used for buckets with public access rights. Available since GDAL 2.3
+2. The :config:`AWS_SECRET_ACCESS_KEY` and :config:`AWS_ACCESS_KEY_ID` configuration options can be set. The :config:`AWS_SESSION_TOKEN` configuration option must be set when temporary credentials are used.
+3. Starting with GDAL 2.3, alternate ways of providing credentials similar to what the "aws" command line utility or Boto3 support can be used. If the above mentioned environment variables are not provided, the ``~/.aws/credentials`` or ``%UserProfile%/.aws/credentials`` file will be read (or the file pointed by :config:`CPL_AWS_CREDENTIALS_FILE`). The profile may be specified with the :config:`AWS_DEFAULT_PROFILE` environment variable, or starting with GDAL 3.2 with the :config:`AWS_PROFILE` environment variable (the default profile is "default").
+4. The ``~/.aws/config`` or ``%UserProfile%/.aws/config`` file may also be used (or the file pointer by :config:`AWS_CONFIG_FILE`) to retrieve credentials and the AWS region.
+5. Starting with GDAL 3.6, if :config:`AWS_ROLE_ARN` and :config:`AWS_WEB_IDENTITY_TOKEN_FILE` are defined we will rely on credentials mechanism for web identity token based AWS sts action AssumeRoleWithWebIdentity (See.: https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html)
 6. If none of the above method succeeds, instance profile credentials will be retrieved when GDAL is used on EC2 instances.
 
-The :decl_configoption:`AWS_REGION` (or :decl_configoption:`AWS_DEFAULT_REGION` starting with GDAL 2.3) configuration option may be set to one of the supported S3 regions and defaults to ``us-east-1``.
-
-Starting with GDAL 2.2, the :decl_configoption:`AWS_REQUEST_PAYER` configuration option may be set to "requester" to facilitate use with Requester Pays buckets.
-
-The :decl_configoption:`AWS_S3_ENDPOINT` configuration option defaults to s3.amazonaws.com.
-
-The :decl_configoption:`AWS_HTTPS` configuration option defaults to ``YES``.
-
-The :decl_configoption:`AWS_VIRTUAL_HOSTING` configuration option defaults to ``TRUE``. This allows you to configure the two ways to access the buckets, see Bucket and Host Name for more details.
-- ``TRUE`` value, identifies the bucket via a virtual bucket host name, e.g.: mybucket.cname.domain.com
-- ``FALSE`` value, identifies the bucket as the top-level directory in the URI, e.g.: cname.domain.com/mybucket
-
-On writing, the file is uploaded using the S3 multipart upload API. The size of chunks is set to 50 MB by default, allowing creating files up to 500 GB (10000 parts of 50 MB each). If larger files are needed, then increase the value of the :decl_configoption:`VSIS3_CHUNK_SIZE` config option to a larger value (expressed in MB). In case the process is killed and the file not properly closed, the multipart upload will remain open, causing Amazon to charge you for the parts storage. You'll have to abort yourself with other means such "ghost" uploads (e.g. with the s3cmd utility) For files smaller than the chunk size, a simple PUT request is used instead of the multipart upload API.
-
-Since GDAL 2.4, when listing a directory, files with GLACIER storage class are ignored unless the :decl_configoption:`CPL_VSIL_CURL_IGNORE_GLACIER_STORAGE` configuration option is set to ``NO``.
-This option has been superseded in GDAL 3.5 per the
-:decl_configoption:`CPL_VSIL_CURL_IGNORE_STORAGE_CLASSES` configuration option that
-accept a comma-separated list of storage class names and defaults to ``GLACIER,DEEP_ARCHIVE``
-(if set to empty, objects of all storage classes are retrieved).
+On writing, the file is uploaded using the S3 multipart upload API. The size of chunks is set to 50 MB by default, allowing creating files up to 500 GB (10000 parts of 50 MB each). If larger files are needed, then increase the value of the :config:`VSIS3_CHUNK_SIZE` config option to a larger value (expressed in MB). In case the process is killed and the file not properly closed, the multipart upload will remain open, causing Amazon to charge you for the parts storage. You'll have to abort yourself with other means such "ghost" uploads (e.g. with the s3cmd utility) For files smaller than the chunk size, a simple PUT request is used instead of the multipart upload API.
 
 Since GDAL 3.1, the :cpp:func:`VSIRename` operation is supported (first doing a copy of the original file and then deleting it)
 
@@ -453,7 +531,7 @@ Authentication options, and read-only features, are identical to :ref:`/vsis3/ <
 
 /vsigs/ is a file system handler that allows on-the-fly random reading of (primarily non-public) files available in Google Cloud Storage buckets, without prior download of the entire file. It requires GDAL to be built against libcurl.
 
-Starting with GDAL 2.3, it also allows sequential writing of files. No seeks or read operations are then allowed, so in particular direct writing of GeoTIFF files with the GTiff driver is not supported, unless, if, starting with GDAL 3.2, the :decl_configoption:`CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE` configuration option is set to ``YES``, in which case random-write access is possible (involves the creation of a temporary local file, whose location is controlled by the :decl_configoption:`CPL_TMPDIR` configuration option).
+Starting with GDAL 2.3, it also allows sequential writing of files. No seeks or read operations are then allowed, so in particular direct writing of GeoTIFF files with the GTiff driver is not supported, unless, if, starting with GDAL 3.2, the :config:`CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE` configuration option is set to ``YES``, in which case random-write access is possible (involves the creation of a temporary local file, whose location is controlled by the :config:`CPL_TMPDIR` configuration option).
 Deletion of files with :cpp:func:`VSIUnlink`, creation of directories with :cpp:func:`VSIMkdir` and deletion of (empty) directories with :cpp:func:`VSIRmdir` are also possible.
 
 Recognized filenames are of the form :file:`/vsigs/bucket/key` where ``bucket`` is the name of the bucket and ``key`` is the object "key", i.e. a filename potentially containing subdirectories.
@@ -501,7 +579,7 @@ Authentication options, and read-only features, are identical to :ref:`/vsigs/ <
 
 See :ref:`/vsiadls/ <vsiadls>` for a related filesystem for Azure Data Lake Storage Gen2.
 
-It also allows sequential writing of files. No seeks or read operations are then allowed, so in particular direct writing of GeoTIFF files with the GTiff driver is not supported, unless, if, starting with GDAL 3.2, the :decl_configoption:`CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE` configuration option is set to ``YES``, in which case random-write access is possible (involves the creation of a temporary local file, whose location is controlled by the :decl_configoption:`CPL_TMPDIR` configuration option).
+It also allows sequential writing of files. No seeks or read operations are then allowed, so in particular direct writing of GeoTIFF files with the GTiff driver is not supported, unless, if, starting with GDAL 3.2, the :config:`CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE` configuration option is set to ``YES``, in which case random-write access is possible (involves the creation of a temporary local file, whose location is controlled by the :config:`CPL_TMPDIR` configuration option).
 A block blob will be created if the file size is below 4 MB. Beyond, an append blob will be created (with a maximum file size of 195 GB).
 
 Deletion of files with :cpp:func:`VSIUnlink`, creation of directories with :cpp:func:`VSIMkdir` and deletion of (empty) directories with :cpp:func:`VSIRmdir` are also possible. Note: when using :cpp:func:`VSIMkdir`, a special hidden :file:`.gdal_marker_for_dir` empty file is created, since Azure Blob does not natively support empty directories. If that file is the last one remaining in a directory, :cpp:func:`VSIRmdir` will automatically remove it. This file will not be seen with :cpp:func:`VSIReadDir`. If removing files from directories not created with :cpp:func:`VSIMkdir`, when the last file is deleted, its directory is automatically removed by Azure, so the sequence ``VSIUnlink("/vsiaz/container/subdir/lastfile")`` followed by ``VSIRmdir("/vsiaz/container/subdir")`` will fail on the :cpp:func:`VSIRmdir` invocation.
@@ -577,7 +655,7 @@ The main enhancements over /vsiaz/ are:
 
 /vsioss/ is a file system handler that allows on-the-fly random reading of (primarily non-public) files available in Alibaba Cloud Object Storage Service (OSS) buckets, without prior download of the entire file. It requires GDAL to be built against libcurl.
 
-It also allows sequential writing of files. No seeks or read operations are then allowed, so in particular direct writing of GeoTIFF files with the GTiff driver is not supported, unless, if, starting with GDAL 3.2, the :decl_configoption:`CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE` configuration option is set to ``YES``, in which case random-write access is possible (involves the creation of a temporary local file, whose location is controlled by the :decl_configoption:`CPL_TMPDIR` configuration option).
+It also allows sequential writing of files. No seeks or read operations are then allowed, so in particular direct writing of GeoTIFF files with the GTiff driver is not supported, unless, if, starting with GDAL 3.2, the :config:`CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE` configuration option is set to ``YES``, in which case random-write access is possible (involves the creation of a temporary local file, whose location is controlled by the :config:`CPL_TMPDIR` configuration option).
 Deletion of files with :cpp:func:`VSIUnlink` is also supported. Creation of directories with :cpp:func:`VSIMkdir` and deletion of (empty) directories with :cpp:func:`VSIRmdir` are also possible.
 
 Recognized filenames are of the form :file:`/vsioss/bucket/key` where ``bucket`` is the name of the OSS bucket and ``key`` is the OSS object "key", i.e. a filename potentially containing subdirectories.
@@ -610,7 +688,7 @@ Authentication options, and read-only features, are identical to :ref:`/vsioss/ 
 
 /vsiswift/ is a file system handler that allows on-the-fly random reading of (primarily non-public) files available in OpenStack Swift Object Storage (swift) buckets, without prior download of the entire file. It requires GDAL to be built against libcurl.
 
-It also allows sequential writing of files. No seeks or read operations are then allowed, so in particular direct writing of GeoTIFF files with the GTiff driver is not supported, unless, if, starting with GDAL 3.2, the :decl_configoption:`CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE` configuration option is set to ``YES``, in which case random-write access is possible (involves the creation of a temporary local file, whose location is controlled by the :decl_configoption:`CPL_TMPDIR` configuration option).
+It also allows sequential writing of files. No seeks or read operations are then allowed, so in particular direct writing of GeoTIFF files with the GTiff driver is not supported, unless, if, starting with GDAL 3.2, the :config:`CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE` configuration option is set to ``YES``, in which case random-write access is possible (involves the creation of a temporary local file, whose location is controlled by the :config:`CPL_TMPDIR` configuration option).
 Deletion of files with :cpp:func:`VSIUnlink` is also supported. Creation of directories with :cpp:func:`VSIMkdir` and deletion of (empty) directories with :cpp:func:`VSIRmdir` are also possible.
 
 Recognized filenames are of the form :file:`/vsiswift/bucket/key` where ``bucket`` is the name of the swift bucket and ``key`` is the swift object "key", i.e. a filename potentially containing subdirectories.
@@ -718,7 +796,7 @@ Examples:
 
     /vsiwebhdfs/http://localhost:50070/webhdfs/v1/mydir/byte.tif
 
-It also allows sequential writing of files. No seeks or read operations are then allowed, so in particular direct writing of GeoTIFF files with the GTiff driver is not supported, unless, if, starting with GDAL 3.2, the :decl_configoption:`CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE` configuration option is set to ``YES``, in which case random-write access is possible (involves the creation of a temporary local file, whose location is controlled by the :decl_configoption:`CPL_TMPDIR` configuration option).
+It also allows sequential writing of files. No seeks or read operations are then allowed, so in particular direct writing of GeoTIFF files with the GTiff driver is not supported, unless, if, starting with GDAL 3.2, the :config:`CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE` configuration option is set to ``YES``, in which case random-write access is possible (involves the creation of a temporary local file, whose location is controlled by the :config:`CPL_TMPDIR` configuration option).
 Deletion of files with :cpp:func:`VSIUnlink` is also supported. Creation of directories with :cpp:func:`VSIMkdir` and deletion of (empty) directories with :cpp:func:`VSIRmdir` are also possible.
 
 The generalities of :ref:`/vsicurl/ <vsicurl>` apply.

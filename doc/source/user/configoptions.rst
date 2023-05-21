@@ -16,7 +16,7 @@ variables the user can set.
 How to set configuration options?
 ----------------------------------
 
-One example of a configuration option is the :decl_configoption:`GDAL_CACHEMAX`
+One example of a configuration option is the :config:`GDAL_CACHEMAX`
 option. It controls the size
 of the GDAL block cache, in megabytes. It can be set in the environment on Unix
 (bash/bourne) shell like this:
@@ -207,6 +207,9 @@ General options
    additional extensions listed in ``CPL_VSIL_ZIP_ALLOWED_EXTENSIONS`` config
    option.
 
+.. config:: CPL_VSIL_DEFLATE_CHUNK_SIZE
+
+
 .. config:: VSI_CACHE
    :choices: TRUE, FALSE
    :since: 1.10
@@ -226,6 +229,23 @@ General options
    ``VSI_CACHE_SIZE`` when opening VRT datasources containing many source
    rasters, as this is a per-file cache.
 
+.. config:: CPL_VSIL_CURL_CACHE_SIZE
+   :choices: <bytes>
+   :default: 16 MB
+   :since: 2.3
+
+   Size of global least-recently-used (LRU) cache shared among all downloaded
+   content.
+
+.. config:: CPL_CURL_USE_HEAD
+
+.. config:: CPL_VSIL_CURL_USE_S3_REDIRECT
+   :choices: YES, NO
+   :default: YES
+   :since: 2.1
+
+   Try to query quietly redirected URLs to Amazon S3 signed URLs during their
+   validity period, so as to minimize round-trips.
 
 .. config:: GDAL_DATA
    :choices: <path>
@@ -401,6 +421,27 @@ Networking options
 
       gdalinfo --config CPL_VSIL_CURL_ALLOWED_EXTENSIONS "".tif" /vsicurl/http://igskmncngs506.cr.usgs.gov/gmted/Global_tiles_GMTED/075darcsec/bln/W030/30N030W_20101117_gmted_bln075.tif
 
+.. config:: CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE
+   :choices: YES, NO
+
+   Use a local temporary file to support random writes in certain virtual file systems. The temporary file will be located in :config:`CPL_TMPDIR`.
+
+.. config:: CURL_CA_BUNDLE
+   :since: 2.1.3
+
+   Set the path to the Certification Authority (CA) bundle file.
+
+.. config:: SSL_CERT_FILE
+   :since: 2.1.3
+
+.. config:: CPL_VSIL_CURL_CHUNK_SIZE
+   :choices: <bytes>
+   :since: 2.3
+
+.. config:: GDAL_INGESTED_BYTES_AT_OPEN
+   :since: 2.3
+
+   Sets the number of bytes read in one GET call at file opening.
 
 .. config:: CPL_VSIL_CURL_NON_CACHED
    :choices: <colon-separated list>
@@ -414,6 +455,83 @@ Networking options
    file handle closing, all cached content related to the mentioned file(s) is
    no longer cached. This can help when dealing with resources that can be
    modified during execution of GDAL-related code.
+
+.. config:: GDAL_HTTP_HEADER_FILE
+   :choices: <filename>
+   :since: 2.3
+
+   Filename of a text file with "key: value" HTTP headers.
+
+.. config:: GDAL_HTTP_HEADERS
+   :since: 3.6
+
+   Specifies headers as a comma separated list of key: value pairs. If a comma
+   or a double-quote character is needed in the value, then the key: value pair
+   must be enclosed in double-quote characters. In that situation, backslash
+   and double quote character must be backslash-escaped.  e.g
+   GDAL_HTTP_HEADERS=Foo: Bar,"Baz: escaped backslash \\, escaped double-quote
+   \", end of value",Another: Header
+
+
+.. config:: GDAL_HTTP_MAX_RETRY
+   :since: 2.3
+
+   Set the number of HTTP attempts in case of HTTP errors 429, 502, 503, or 504.
+
+.. config:: GDAL_HTTP_RETRY_DELAY
+   :choices: <seconds>
+   :since: 2.3
+
+   Set the delay between HTTP attempts.
+
+.. config:: GDAL_HTTP_TCP_KEEPALIVE
+   :choices: YES, NO
+   :default: NO
+   :since: 3.6
+
+   Sets whether to enable TCP keep-alive.
+
+.. config:: GDAL_HTTP_TCP_KEEPIDLE
+   :choices: <seconds>
+   :default: 60
+   :since: 3.6
+
+   Keep-alive idle time. Only taken into account if
+   :config:`GDAL_HTTP_TCP_KEEPALIVE=YES`.
+
+.. config:: GDAL_HTTP_TCP_KEEPINTVL
+   :choices: <seconds>
+   :default: 60
+   :since: 3.6
+
+   Interval time between keep-alive probes. Only taken into account if
+   :config:`GDAL_HTTP_TCP_KEEPALIVE=YES`.
+
+.. config:: GDAL_HTTP_SSLCERT
+   :choices: <filename>
+   :since: 3.7
+
+   Filename of the the SSL client certificate. See https://curl.se/libcurl/c/CURLOPT_SSLCERT.html
+
+.. config:: GDAL_HTTP_SSLCERTTYPE
+   :choices: PEM, DER
+   :since: 3.7
+
+   Format of the SSL certificate. see
+   https://curl.se/libcurl/c/CURLOPT_SSLCERTTYPE.html
+
+.. config:: GDAL_HTTP_SSLKEY
+   :choices: <filename>
+   :since: 3.7
+
+   Private key file for TLS and SSL client certificate. see
+   https://curl.se/libcurl/c/CURLOPT_SSLKEY.html
+
+.. config:: GDAL_HTTP_KEYPASSWD
+   :since: 3.7
+
+   Passphrase to private key. See https://curl.se/libcurl/c/CURLOPT_KEYPASSWD.html
+
 
 
 .. config:: GDAL_HTTP_VERSION
@@ -488,6 +606,10 @@ Networking options
     any of those are set. GDAL_HTTP_PROXY option does however override any possibly
     set environment variables.
 
+.. config:: GDAL_HTTPS_PROXY
+
+   Set HTTPS proxy to use. See :config:`GDAL_HTTP_PROXY`.
+
 .. config:: GDAL_HTTP_PROXYUSERPWD
 
     The HTTP user and password to use for the connection to the HTTP proxy. Must be
@@ -502,6 +624,7 @@ Networking options
     information.
 
 .. config:: CPL_CURL_GZIP
+   :choices: YES, NO
 
     Sets the contents of the Accept-Encoding header sent in a HTTP request to gzip,
     and enables decoding of a response when a Content-Encoding: header
@@ -587,6 +710,12 @@ PROJ options
     Can be set to YES to remove points that can't be reprojected. See #3758 for the
     purpose of this option.
 
+.. config:: OGR_CT_USE_SRS_COORDINATE_EPOCH
+   :choices: YES, NO
+
+   If ``NO``, disables the coordinate epoch associated with the target or
+   source CRS when transforming between a static and dynamic CRS.
+
 Other global options
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -619,11 +748,6 @@ Other global options
 List of configuration options and where they apply
 --------------------------------------------------
 
-.. note::
-    This list is known to be incomplete. It depends on proper annotation of configuration
-    options where they are mentioned elsewhere in the documentation.
-    If you want to help to extend it, you can help update documentation to use the
-    syntax described in :ref:`config_option_syntax`.
+.. config_index::
+   :types: config
 
-
-.. include:: configoptions_index_generated.rst
