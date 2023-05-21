@@ -154,7 +154,7 @@ Paging
 
 Features can retrieved from NextGIS Web by chunks if supported by server
 (available since NextGIS Web 3.1). The chunk size can be altered with
-the :decl_configoption:`NGW_PAGE_SIZE` configuration option or PAGE_SIZE
+the :config:`NGW_PAGE_SIZE` configuration option or :oo:`PAGE_SIZE`
 open option.
 
 Write support

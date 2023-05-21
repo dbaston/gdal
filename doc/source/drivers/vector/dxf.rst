@@ -37,7 +37,7 @@ fields:
 -  ExtendedEntity (GDAL <= 2.2.x): The values of extended entity
    attributes all appended to form a single text field, where available.
 -  RawCodeValues (GDAL >= 2.3.0): Only available when the configuration
-   option :decl_configoption:`DXF_INCLUDE_RAW_CODE_VALUES` is set to TRUE. A string list
+   option :config:`DXF_INCLUDE_RAW_CODE_VALUES` is set to TRUE. A string list
    containing all group codes and values that are not handled by the DXF
    reader.
 -  Linetype: Where available, the line type used for this entity.
@@ -58,7 +58,7 @@ The following entity types are supported:
    By default, character escapes such as %%p are honored where
    applicable, and MTEXT control sequences like \\Wx.xx; are stripped.
    To disable this behavior and retrieve the raw text values, set the
-   configuration option :decl_configoption:`DXF_TRANSLATE_ESCAPE_SEQUENCES` to FALSE.
+   configuration option :config:`DXF_TRANSLATE_ESCAPE_SEQUENCES` to FALSE.
 -  LINE, POLYLINE, LWPOLYLINE: Translated as a LINESTRING. Rounded
    polylines (those with their vertices' bulge attributes set) will be
    tessellated. Single-vertex polylines are translated to POINT.
@@ -194,7 +194,7 @@ DXF_INLINE_BLOCKS
 ~~~~~~~~~~~~~~~~~
 
 The default behavior is for INSERT entities to be exploded with the
-geometry of the BLOCK they reference. However, if the :decl_configoption:`DXF_INLINE_BLOCKS`
+geometry of the BLOCK they reference. However, if the :config:`DXF_INLINE_BLOCKS`
 configuration option is set to the value FALSE, then the behavior is
 different as described here.
 
@@ -296,7 +296,7 @@ file (but many DXF layers can be created - see below).
    written. An effort is made to preserve line width and color.
 -  Polygon, Triangle and MultiPolygon features are written as HATCH
    entities by default. To write these features as LWPOLYLINE/POLYLINE
-   entities instead, set the configuration option :decl_configoption:`DXF_WRITE_HATCH` to
+   entities instead, set the configuration option :config:`DXF_WRITE_HATCH` to
    FALSE. You may need to do this if your geometries do not have a
    constant elevation, as the DXF HATCH entity cannot represent such
    geometries.

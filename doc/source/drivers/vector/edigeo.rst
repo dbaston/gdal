@@ -50,7 +50,7 @@ It will also add the following fields :
 -  OGR_ANGLE: the rotation angle in degrees (0 = horizontal,
    counter-clock-wise oriented)
 -  OGR_FONT_SIZE: the value of the HEI attribute multiplied by the value
-   of the configuration option :decl_configoption:`OGR_EDIGEO_FONT_SIZE_FACTOR`
+   of the configuration option :config:`OGR_EDIGEO_FONT_SIZE_FACTOR`
    that defaults to 2.
 
 Combined with the FON (font family) attributes, they can be used to

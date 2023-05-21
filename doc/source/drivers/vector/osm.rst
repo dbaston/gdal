@@ -40,7 +40,7 @@ Configuration
 In the *data* folder of the GDAL distribution, you can find an
 :source_file:`data/osmconf.ini`
 file that can be customized to fit your needs. You can also define an
-alternate path with the :decl_configoption:`OSM_CONFIG_FILE` configuration option.
+alternate path with the :config:`OSM_CONFIG_FILE` configuration option.
 
 The customization is essentially which OSM attributes and keys should be
 translated into OGR layer fields.
@@ -87,7 +87,7 @@ If that database remains under 100 MB it will reside in RAM. If it grows
 above, it will be written in a temporary file on disk. By default, this
 file will be written in the current directory, unless you define the
 :config:`CPL_TMPDIR` configuration option. The 100 MB default threshold can be
-adjusted with the :decl_configoption:`OSM_MAX_TMPFILE_SIZE` configuration option (value in
+adjusted with the :config:`OSM_MAX_TMPFILE_SIZE` configuration option (value in
 MB).
 
 For indexation of nodes, a custom mechanism not relying on SQLite is
@@ -95,10 +95,10 @@ used by default (indexation of ways to solve relations is still relying
 on SQLite). It can speed up operations significantly. However, in some
 situations (non increasing node ids, or node ids not in expected range),
 it might not work and the driver will output an error message suggesting
-to relaunch by defining the :decl_configoption:`OSM_USE_CUSTOM_INDEXING` configuration option
+to relaunch by defining the :config:`OSM_USE_CUSTOM_INDEXING` configuration option
 to NO.
 
-When custom indexing is used (default case), the :decl_configoption:`OSM_COMPRESS_NODES`
+When custom indexing is used (default case), the :config:`OSM_COMPRESS_NODES`
 configuration option can be set to YES (the default is NO). This option
 might be turned on to improve performances when I/O access is the
 limiting factor (typically the case of rotational disk), and will be
@@ -121,7 +121,7 @@ Starting with GDAL 2.2, applications should use the
 they are produced.
 
 For earlier versions, for large files, applications should set the
-:decl_configoption:`OGR_INTERLEAVED_READING` =YES configuration option to turn on a special
+:config:`OGR_INTERLEAVED_READING=YES` configuration option to turn on a special
 reading mode where the following reading pattern must be used:
 
 ::
@@ -146,7 +146,7 @@ reading mode where the following reading pattern must be used:
        while( bHasLayersNonEmpty );
 
 Note : the ogr2ogr application has been modified to use that
-:decl_configoption:`OGR_INTERLEAVED_READING` mode without any
+:config:`OGR_INTERLEAVED_READING` mode without any
 particular user action.
 
 Spatial filtering

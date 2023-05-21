@@ -111,12 +111,12 @@ Schema detection will recognized fields of type String, Integer, Real,
 StringList, IntegerList and RealList, Integer(Boolean), Date, Time and DateTime.
 
 It is possible to tell the driver to not to process attributes by
-setting configuration option :decl_configoption:`ATTRIBUTES_SKIP` =YES.
+setting configuration option :config:`ATTRIBUTES_SKIP=YES`.
 Default behavior is to preserve all attributes (as an union, see
 previous paragraph), what is equal to setting
-:decl_configoption:`ATTRIBUTES_SKIP` =NO.
+:config:`ATTRIBUTES_SKIP=NO`.
 
-If the NATIVE_DATA open option is set to YES, the Feature JSon object
+If the :oo:`NATIVE_DATA` open option is set to YES, the Feature JSon object
 will be stored as a serialized JSon object in the NativeData property of
 the OGRFeature object (and "application/vnd.geo+json" in the
 NativeMediaType property). On write, if a OGRFeature to be written has
@@ -208,7 +208,7 @@ Open options
 
       Whether to expose JSon
       arrays of strings, integers or reals as a OGR String. Default is NO.
-      Can also be set with the :decl_configoption:`OGR_GEOJSON_ARRAY_AS_STRING`
+      Can also be set with the :config:`OGR_GEOJSON_ARRAY_AS_STRING`
       configuration option.
 
 -  .. oo:: DATE_AS_STRING
@@ -220,7 +220,7 @@ Open options
       date/time/date-time content using dedicated OGR date/time/date-time types
       or as a OGR String. Default is NO (that is date/time/date-time are
       detected as such).
-      Can also be set with the :decl_configoption:`OGR_GEOJSON_DATE_AS_STRING`
+      Can also be set with the :config:`OGR_GEOJSON_DATE_AS_STRING`
       configuration option.
 
 To explain :oo:`FLATTEN_NESTED_ATTRIBUTES`, consider the following GeoJSON
