@@ -1,7 +1,6 @@
 import re
 
 from docutils import nodes
-from docutils.parsers.rst import Directive
 from sphinx.addnodes import pending_xref
 from sphinx.util import logging
 from sphinx.util.docutils import SphinxDirective
@@ -283,15 +282,6 @@ class OpenOption(BaseConfigOption):
     opt_type = "oo"
 
 
-option_classes = {
-    "config": ConfigOption,
-    "co": CreationOption,
-    "dsco": DatasetCreationOption,
-    "lco": LayerCreationOption,
-    "oo": OpenOption,
-}
-
-
 def decl_configoption(pattern):
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
         children = [nodes.Text(text, text)]
@@ -311,7 +301,7 @@ def purge_option_defs(app, env, docname):
 
 
 def purge_option_refs(app, env, docname):
-    if not hasattr(env, "gdal_options_refs"):
+    if not hasattr(env, "gdal_option_refs"):
         return
 
     for key in env.gdal_option_refs:
@@ -343,31 +333,29 @@ def create_config_index(app, doctree, fromdocname):
     # logger = logging.getLogger(__name__)
     # logger.info(f"Preparing config indices in {fromdocname}")
 
-    # if not hasattr(env, "gdal_option_index_docs"):
-    #    env.gdal_option_index_docs = set()
-
     if not hasattr(env, "gdal_option_refs"):
         env.gdal_option_refs = {}
 
     if not hasattr(env, "gdal_options"):
         env.gdal_options = {}
 
-    # if fromdocname not in env.gdal_option_index_docs:
-    #    return
-
     for node in doctree.findall(config_index):
-        content = []
+        # Filter out the options that will be included
+        # in this index.
 
-        for opt in env.gdal_options.values():
-            refs = env.gdal_option_refs.get(opt.key, [])
+        options = [
+            opt for opt in env.gdal_options.values() if opt.option_type in node.types
+        ]
+        options.sort(key=lambda x: x.option_name)
 
-            # If true, include a link to the definition of
-            # the option along with usages. If false, only
-            # usages will be linked.
-            link_to_definition = True
+        list_node = nodes.bullet_list()
 
-            if link_to_definition:
-                refs.append({"document": opt.docname})
+        for opt in options:
+            refs = env.gdal_option_refs.get(opt.key(), [])
+
+            # Include a link to the definition of
+            # the option along with usages.
+            refs.append({"document": opt.docname})
 
             if refs:
                 para = nodes.paragraph()
@@ -377,18 +365,29 @@ def create_config_index(app, doctree, fromdocname):
                 def_ref = nodes.reference(
                     "",
                     "",
-                    refuri=app.builder.get_relative_uri(fromdocname, opt.docname),
+                    refuri=app.builder.get_relative_uri(fromdocname, opt.docname)
+                    + "#"
+                    + opt.key(),
+                    internal=True,
                 )
                 def_ref.append(opt_name)
                 para += def_ref
 
                 para += nodes.Text(": ")
 
-                # Create a link for each reference to that option.
+                # Create a link for each unique page referencing the option.
                 # TODO sort by document title instead of document name?
                 ref_docs = sorted({ref["document"] for ref in refs})
 
-                for i, ref_doc in enumerate(ref_docs):
+                bullets_for_references = len(ref_docs) > 1
+
+                if bullets_for_references:
+                    ref_node_parent = nodes.bullet_list()
+                    para.append(ref_node_parent)
+                else:
+                    ref_node_parent = para
+
+                for ref_doc in ref_docs:
                     ref_title = str(env.titles[ref_doc].children[0])
 
                     ref_node = nodes.reference(
@@ -397,14 +396,19 @@ def create_config_index(app, doctree, fromdocname):
                         refuri=app.builder.get_relative_uri(fromdocname, ref_doc),
                         internal=True,
                     )
-                    if i > 0:
-                        para += nodes.Text(", ")
-                    para += ref_node
 
-                content.append(para)
+                    if bullets_for_references:
+                        ref_para = nodes.paragraph()
+                        ref_para += ref_node
+                        ref_li = nodes.list_item("", ref_para)
+                        ref_node_parent.append(ref_li)
+                    else:
+                        ref_node_parent.append(ref_node)
 
-        node.replace_self(content)
-    # logger.info(f"Done preparing config indices in {fromdocname}")
+                li_node = nodes.list_item("", para)
+                list_node.append(li_node)
+
+        node.replace_self(list_node)
 
 
 def link_option_refs2(app, env, node, contnode):
@@ -438,60 +442,29 @@ def link_option_refs2(app, env, node, contnode):
     return ref_node
 
 
-# def link_option_refs(app, doctree, fromdocname):
-#    env = app.builder.env
-#
-#    logger = logging.getLogger(__name__)
-#    # logger.info(f"Linking object references in {fromdocname}")
-#
-#    if not hasattr(env, "gdal_options"):
-#        env.gdal_options = {}
-#
-#    for node in doctree.findall(config_reference):
-#        ref_key = option_key(
-#            option_type=node.option_type, option_name=node.option_name, docname=node.doc
-#        )
-#
-#        link_text = node.option_name
-#        if node.option_value:
-#            link_text += f"={node.option_value}"
-#
-#        matched_opt = env.gdal_options.get(ref_key, None)
-#
-#        if matched_opt is None:
-#            # FIXME revert to warning
-#            logger.info(
-#                f"Can't find option {node.option_name} of type {node.option_type}",
-#                location=node,
-#            )
-#
-#            ref_node = nodes.literal(link_text, link_text)
-#        else:
-#            from_doc = node.doc
-#            to_doc = matched_opt.docname
-#
-#            refuri = app.builder.get_relative_uri(from_doc, to_doc)
-#
-#            ref_node = nodes.reference(
-#                "", "", refuri=refuri + "#" + matched_opt.target_id, internal=True
-#            )
-#
-#            ref_text = nodes.literal(link_text, link_text)
-#            ref_node.append(ref_text)
-#
-#        node.replace_self(ref_node)
-#
-#    # logger.info("Done linking object references")
+class ConfigIndex(SphinxDirective):
 
+    has_content = True
+    required_arguments = 0
+    option_spec = {"types": str}
 
-class ConfigIndex(Directive):
     def run(self):
+        if "types" not in self.options:
+            types = set(option_classes.keys())
+        else:
+            types = {x.strip() for x in self.options["types"].split(",")}
+
+        # TODO use proper constructor for config_index(?)
+        index_placeholder = config_index("")
+        index_placeholder.types = types
+
         # if not hasattr(self.env, "config_index_docs"):
         #    self.env.config_index_docs = set()
 
         # self.config_index_docs.add(self.docname)
 
-        return [config_index("")]
+        # return [config_index("")]
+        return [index_placeholder]
 
 
 def log_options(app, env):
@@ -502,15 +475,25 @@ def log_options(app, env):
     )
 
 
+option_classes = {
+    "config": ConfigOption,
+    "co": CreationOption,
+    "dsco": DatasetCreationOption,
+    "lco": LayerCreationOption,
+    "oo": OpenOption,
+}
+
+
 def setup(app):
     app.add_node(config_index)
 
-    # app.add_config_value("options_global_config_doc", None, "html")
     app.add_config_value("options_since_ignore_before", None, "html")
 
     for opt_type, opt_directive in option_classes.items():
         app.add_directive(f"{opt_type}", opt_directive)
         app.add_role(opt_type, config_ref(opt_type))
+
+    app.add_directive("config_index", ConfigIndex)
 
     # app.connect("doctree-resolved", link_option_refs)
     app.connect("doctree-resolved", create_config_index)
