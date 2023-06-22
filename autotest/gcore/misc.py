@@ -955,7 +955,6 @@ def test_misc_config_context_mgrs_3():
 ###############################################################################
 # Test GetConfigOptions
 
-
 def test_misc_get_config_options():
 
     assert gdal.GetConfigOptions() == {}
