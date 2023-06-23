@@ -1776,6 +1776,23 @@ void CPLSetConfigOptions(const char *const *papszConfigOptions)
 }
 
 /************************************************************************/
+/*                         CPLClearConfigOptions()                      */
+/************************************************************************/
+
+/**
+ * Clear configuration options set through the CPLSetConfigOption() API.
+ *
+ * Options that through environment variables or with
+ * CPLSetThreadLocalConfigOption() will *not* be cleared.
+ *
+ * @since GDAL 3.8
+ */
+void CPLClearConfigOptions(void)
+{
+    CPLSetConfigOptions(nullptr);
+}
+
+/************************************************************************/
 /*                   CPLGetThreadLocalConfigOption()                    */
 /************************************************************************/
 
@@ -2080,6 +2097,24 @@ void CPLSetThreadLocalConfigOptions(const char *const *papszConfigOptions)
         CSLDuplicate(const_cast<char **>(papszConfigOptions));
     CPLSetTLSWithFreeFunc(CTLS_CONFIGOPTIONS, papszTLConfigOptions,
                           CPLSetThreadLocalTLSFreeFunc);
+}
+
+/************************************************************************/
+/*                         CPLClearThreadLocalConfigOptions()           */
+/************************************************************************/
+
+/**
+ * Clear configuration options set through the
+ * CPLSetThreadLocalConfigOption() API.
+ *
+ * Options that through environment variables or with CPLSetConfigOption()
+ * will *not* be cleared.
+ *
+ * @since GDAL 3.8
+ */
+void CPLClearThreadLocalConfigOptions(void)
+{
+    CPLSetThreadLocalConfigOptions(nullptr);
 }
 
 /************************************************************************/

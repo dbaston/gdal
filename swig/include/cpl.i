@@ -198,9 +198,11 @@ void CPL_STDCALL PyCPLErrorHandler(CPLErr eErrClass, CPLErrorNum err_no, const c
 %rename (GetFileSystemOptions) VSIGetFileSystemOptions;
 %rename (SetConfigOption) CPLSetConfigOption;
 %rename (GetConfigOption) wrapper_CPLGetConfigOption;
+%rename (ClearConfigOptions) CPLClearConfigOptions;
 %rename (GetGlobalConfigOption) wrapper_CPLGetGlobalConfigOption;
 %rename (SetThreadLocalConfigOption) CPLSetThreadLocalConfigOption;
 %rename (GetThreadLocalConfigOption) wrapper_CPLGetThreadLocalConfigOption;
+%rename (ClearThreadLocalConfigOptions) CPLClearThreadLocalConfigOptions;
 %rename (SetCredential) wrapper_VSISetCredential;
 %rename (GetCredential) wrapper_VSIGetCredential;
 %rename (ClearCredentials) wrapper_VSIClearCredentials;
@@ -505,6 +507,8 @@ const char *wrapper_CPLGetThreadLocalConfigOption( const char * pszKey, const ch
 }
 }
 
+void CPLClearConfigOptions(void);
+void CPLClearThreadLocalConfigOptions(void);
 
 %rename(GetConfigOptions) wrapper_GetConfigOptions;
 #if defined(SWIGPYTHON) || defined(SWIGJAVA)

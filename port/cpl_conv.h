@@ -76,9 +76,11 @@ void CPL_DLL CPL_STDCALL CPLFreeConfig(void);
 /*! @endcond */
 char CPL_DLL **CPLGetConfigOptions(void);
 void CPL_DLL CPLSetConfigOptions(const char *const *papszConfigOptions);
+void CPL_DLL CPLClearConfigOptions(void);
 char CPL_DLL **CPLGetThreadLocalConfigOptions(void);
 void CPL_DLL
 CPLSetThreadLocalConfigOptions(const char *const *papszConfigOptions);
+void CPL_DLL CPLClearThreadLocalConfigOptions(void);
 void CPL_DLL CPLLoadConfigOptionsFromFile(const char *pszFilename,
                                           int bOverrideEnvVars);
 void CPL_DLL CPLLoadConfigOptionsFromPredefinedFiles(void);

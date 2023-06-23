@@ -953,7 +953,8 @@ def test_misc_config_context_mgrs_3():
 
 
 ###############################################################################
-# Test GetConfigOptions
+# Test GetConfigOptions, ClearConfigOptions
+
 
 def test_misc_get_config_options():
 
