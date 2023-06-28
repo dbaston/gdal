@@ -148,6 +148,7 @@ class GDALTest(object):
         filename_absolute=0,
         chksum_after_reopening=None,
         open_options=None,
+        tmpdir=None,
     ):
         self.driver = None
         self.drivername = drivername
@@ -170,6 +171,11 @@ class GDALTest(object):
         self.ysize = ysize
         self.options = [] if options is None else options
         self.open_options = open_options
+
+        if tmpdir is None:
+            self.tmpdir = "tmp/"
+        else:
+            self.tmpdir = tmpdir
 
     def testDriver(self):
         if self.driver is None:
@@ -438,7 +444,9 @@ class GDALTest(object):
             if vsimem:
                 new_filename = "/vsimem/" + os.path.basename(self.filename) + ".tst"
             else:
-                new_filename = "tmp/" + os.path.basename(self.filename) + ".tst"
+                new_filename = os.path.join(
+                    self.tmpdir, os.path.basename(self.filename) + ".tst"
+                )
 
         if quiet_error_handler:
             gdal.PushErrorHandler("CPLQuietErrorHandler")
@@ -620,7 +628,9 @@ class GDALTest(object):
             if vsimem:
                 new_filename = "/vsimem/" + self.filename + ".tst"
             else:
-                new_filename = "tmp/" + os.path.basename(self.filename) + ".tst"
+                new_filename = os.path.join(
+                    self.tmpdir, os.path.basename(self.filename) + ".tst"
+                )
 
         new_ds = self.driver.Create(
             new_filename,
@@ -701,7 +711,9 @@ class GDALTest(object):
         xsize = src_ds.RasterXSize
         ysize = src_ds.RasterYSize
 
-        new_filename = "tmp/" + os.path.basename(self.filename) + ".tst"
+        new_filename = os.path.join(
+            self.tmpdir, os.path.basename(self.filename) + ".tst"
+        )
         new_ds = self.driver.Create(
             new_filename,
             xsize,
@@ -757,7 +769,9 @@ class GDALTest(object):
         xsize = src_ds.RasterXSize
         ysize = src_ds.RasterYSize
 
-        new_filename = "tmp/" + os.path.basename(self.filename) + ".tst"
+        new_filename = os.path.join(
+            self.tmpdir, os.path.basename(self.filename) + ".tst"
+        )
         new_ds = self.driver.Create(
             new_filename,
             xsize,
@@ -821,7 +835,9 @@ class GDALTest(object):
         xsize = src_ds.RasterXSize
         ysize = src_ds.RasterYSize
 
-        new_filename = "tmp/" + os.path.basename(self.filename) + ".tst"
+        new_filename = os.path.join(
+            self.tmpdir, os.path.basename(self.filename) + ".tst"
+        )
         new_ds = self.driver.Create(
             new_filename,
             xsize,
@@ -870,7 +886,9 @@ class GDALTest(object):
         xsize = src_ds.RasterXSize
         ysize = src_ds.RasterYSize
 
-        new_filename = "tmp/" + os.path.basename(self.filename) + ".tst"
+        new_filename = os.path.join(
+            self.tmpdir, os.path.basename(self.filename) + ".tst"
+        )
         dt = src_ds.GetRasterBand(self.band).DataType
         new_ds = self.driver.Create(
             new_filename,
@@ -940,7 +958,9 @@ class GDALTest(object):
         xsize = src_ds.RasterXSize
         ysize = src_ds.RasterYSize
 
-        new_filename = "tmp/" + os.path.basename(self.filename) + ".tst"
+        new_filename = os.path.join(
+            self.tmpdir, os.path.basename(self.filename) + ".tst"
+        )
         new_ds = self.driver.Create(
             new_filename,
             xsize,
@@ -983,7 +1003,9 @@ class GDALTest(object):
         xsize = src_ds.RasterXSize
         ysize = src_ds.RasterYSize
 
-        new_filename = "tmp/" + os.path.basename(self.filename) + ".tst"
+        new_filename = os.path.join(
+            self.tmpdir, os.path.basename(self.filename) + ".tst"
+        )
         new_ds = self.driver.Create(
             new_filename,
             xsize,
