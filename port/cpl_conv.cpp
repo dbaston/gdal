@@ -1748,34 +1748,6 @@ char **CPLGetConfigOptions(void)
 }
 
 /************************************************************************/
-/*                         CPLSetConfigOptions()                        */
-/************************************************************************/
-
-/**
- * Replace the full list of configuration options with the passed list of
- * KEY=VALUE pairs.
- *
- * This has the same effect of clearing the existing list, and setting
- * individually each pair with the CPLSetConfigOption() API.
- *
- * This does not affect options set through environment variables or with
- * CPLSetThreadLocalConfigOption().
- *
- * The passed list is copied by the function.
- *
- * @param papszConfigOptions the new list (or NULL).
- *
- * @since GDAL 2.2
- */
-void CPLSetConfigOptions(const char *const *papszConfigOptions)
-{
-    CPLMutexHolderD(&hConfigMutex);
-    CSLDestroy(const_cast<char **>(g_papszConfigOptions));
-    g_papszConfigOptions = const_cast<volatile char **>(
-        CSLDuplicate(const_cast<char **>(papszConfigOptions)));
-}
-
-/************************************************************************/
 /*                         CPLClearConfigOptions()                      */
 /************************************************************************/
 
@@ -1977,6 +1949,63 @@ void CPL_STDCALL CPLSetConfigOption(const char *pszKey, const char *pszValue)
 
     NotifyOtherComponentsConfigOptionChanged(pszKey, pszValue,
                                              /*bTheadLocal=*/false);
+}
+
+/************************************************************************/
+/*                         CPLSetConfigOptions()                        */
+/************************************************************************/
+
+/**
+ * Replace the full list of configuration options with the passed list of
+ * KEY=VALUE pairs.
+ *
+ * This has the same effect of clearing the existing list, and setting
+ * individually each pair with the CPLSetConfigOption() API.
+ *
+ * This does not affect options set through environment variables or with
+ * CPLSetThreadLocalConfigOption().
+ *
+ * The passed list is copied by the function.
+ *
+ * @param papszConfigOptions the new list (or NULL).
+ *
+ * @since GDAL 2.2
+ */
+void CPLSetConfigOptions(const char *const *papszConfigOptions)
+{
+    CPLMutexHolderD(&hConfigMutex);
+
+    CPLStringList oOldOptions(const_cast<char **>(g_papszConfigOptions), false);
+    CPLStringList oOptionsToRemove;
+    for (const char *pszEntry : oOldOptions)
+    {
+        char *pszKey;
+        CPLParseNameValue(pszEntry, &pszKey);
+
+        if (CSLFindName(papszConfigOptions, pszKey) == -1)
+        {
+            oOptionsToRemove.AddString(pszKey);
+        }
+    }
+    for (const char *pszKey : oOptionsToRemove)
+    {
+        // Call CPLSetConfigOption so that notification is performed properly
+        CPLSetConfigOption(pszKey, nullptr);
+    }
+
+    CSLDestroy(const_cast<char **>(g_papszConfigOptions));
+
+    g_papszConfigOptions = const_cast<volatile char **>(
+        CSLDuplicate(const_cast<char **>(papszConfigOptions)));
+
+    CPLStringList oNewOptions(const_cast<char **>(papszConfigOptions), false);
+    for (const char *pszEntry : oNewOptions)
+    {
+        char *pszKey;
+        const char *pszNewValue = CPLParseNameValue(pszEntry, &pszKey);
+
+        NotifyOtherComponentsConfigOptionChanged(pszKey, pszNewValue, false);
+    }
 }
 
 /************************************************************************/

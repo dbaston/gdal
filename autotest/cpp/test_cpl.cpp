@@ -4931,6 +4931,35 @@ TEST_F(test_cpl, CPLSubscribeToSetConfigOption)
         CPLSetConfigOption("CPLSubscribeToSetConfigOption", nullptr);
         EXPECT_EQ(events.size(), 2U);
     }
+    events.clear();
+
+    // Test notifications emitted when replacing entire set of configuration
+    // options using CPLSetConfigOptions
+    {
+        CPLSetConfigOption("CPLSubscribeToSetConfigOption1", "A");
+        CPLSetConfigOption("CPLSubscribeToSetConfigOption2", "B");
+
+        CPLStringList oNewOptions;
+        oNewOptions.AddNameValue("CPLSubscribeToSetConfigOption2", "Y");
+        oNewOptions.AddNameValue("CPLSubscribeToSetConfigOption3", "Z");
+
+        events.clear();
+        int nId1 = CPLSubscribeToSetConfigOption(cbk, &events);
+
+        CPLSetConfigOptions(oNewOptions.List());
+
+        CPLUnsubscribeToSetConfigOption(nId1);
+
+        ASSERT_EQ(events.size(), 3U);
+        EXPECT_EQ(events[0].osKey, "CPLSubscribeToSetConfigOption1");
+        EXPECT_EQ(events[0].osValue, "");
+
+        EXPECT_EQ(events[1].osKey, "CPLSubscribeToSetConfigOption2");
+        EXPECT_EQ(events[1].osValue, "Y");
+
+        EXPECT_EQ(events[2].osKey, "CPLSubscribeToSetConfigOption3");
+        EXPECT_EQ(events[2].osValue, "Z");
+    }
 }
 
 TEST_F(test_cpl, VSIGetCanonicalFilename)
