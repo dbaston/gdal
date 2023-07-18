@@ -245,3 +245,15 @@ def pytest_report_header(config):
         gdal_header_info += ' (tests marked as "slow" will be skipped)'
 
     return gdal_header_info
+
+
+@pytest.fixture(autouse=True)
+def use_posix_paths(monkeypatch):
+
+    from pathlib import PureWindowsPath
+
+    oldstr = PureWindowsPath.__str__
+
+    monkeypatch.setattr(
+        PureWindowsPath, "__str__", lambda x: oldstr(x).replace("\\", "/")
+    )
