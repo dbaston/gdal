@@ -395,11 +395,12 @@ def test_gdal_rasterize_7(gdal_rasterize_path, sql_in_file):
     else:
         sql = '"' + sql + '"'
     cmds = (
-        "tmp/test_gdal_rasterize_7.csv "
-        + "tmp/test_gdal_rasterize_7.tif "
-        + "-init 0 -burn 1 "
-        + f"-sql {sql} "
-        + "-dialect sqlite -tr 1 1 -te -1 -1 51 51"
+        """tmp/test_gdal_rasterize_7.csv
+              tmp/test_gdal_rasterize_7.tif
+              -init 0 -burn 1
+              -sql %s
+              -dialect sqlite -tr 1 1 -te -1 -1 51 51"""
+        % sql
     )
 
     gdaltest.runexternal(gdal_rasterize_path + " " + cmds)
