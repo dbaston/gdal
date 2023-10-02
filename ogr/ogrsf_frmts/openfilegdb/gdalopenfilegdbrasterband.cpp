@@ -902,7 +902,7 @@ void OGROpenFileGDBDataSource::GuessJPEGQuality(int nOverviewCount)
                 if (nJPEGSize)
                 {
                     CPLString osTmpFilename;
-                    osTmpFilename.Printf("/vsimem/_openfilegdb/%p.jpg", this);
+                    osTmpFilename.Printf("/vsimem/_openfilegdb_%p.jpg", this);
                     VSIFCloseL(VSIFileFromMemBuffer(
                         osTmpFilename.c_str(),
                         const_cast<GByte *>(pabyData + nJPEGOffset), nJPEGSize,
@@ -1551,7 +1551,7 @@ CPLErr GDALOpenFileGDBRasterBand::IReadBlock(int nBlockXOff, int nBlockYOff,
             VSIFCloseL(fp);
 
             CPLString osTmpFilename;
-            osTmpFilename.Printf("/vsimem/_openfilegdb/%p.jpg", this);
+            osTmpFilename.Printf("/vsimem/_openfilegdb_%p.jpg", this);
             VSIFCloseL(VSIFileFromMemBuffer(
                 osTmpFilename.c_str(),
                 const_cast<GByte *>(pabyData + nJPEGOffset), nJPEGSize, false));
@@ -1674,7 +1674,7 @@ CPLErr GDALOpenFileGDBRasterBand::IReadBlock(int nBlockXOff, int nBlockYOff,
             }
 
             CPLString osTmpFilename;
-            osTmpFilename.Printf("/vsimem/_openfilegdb/%p.j2k", this);
+            osTmpFilename.Printf("/vsimem/_openfilegdb_%p.j2k", this);
             VSIFCloseL(VSIFileFromMemBuffer(
                 osTmpFilename.c_str(),
                 const_cast<GByte *>(pabyData + nJPEGOffset), nJPEGSize, false));
