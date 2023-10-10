@@ -271,6 +271,23 @@ def pytest_report_header(config):
         if loaded_dlls:
             gdal_header_info += "\nLoaded shared objects:\n" + loaded_dlls
 
+    has_benchmark = False
+    for arg in sys.argv:
+        if "benchmark" in arg:
+            has_benchmark = True
+    if has_benchmark and os.path.exists(
+        "/sys/devices/system/cpu/intel_pstate/no_turbo"
+    ):
+        content = open("/sys/devices/system/cpu/intel_pstate/no_turbo", "rb").read()
+        if content[0] == b"0"[0]:
+            gdal_header_info = "\n"
+            gdal_header_info += "WARNING WARNING\n"
+            gdal_header_info += "---------------\n"
+            gdal_header_info += "Intel TurboBoost is enabled. Benchmarking results will not be accurate.\n"
+            gdal_header_info += "Disable TurboBoost with: 'echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo'\n"
+            gdal_header_info += "---------------\n"
+            gdal_header_info += "WARNING WARNING\n"
+
     return gdal_header_info
 
 
@@ -291,3 +308,17 @@ def tmp_vsimem(request):
     yield path
 
     gdal.RmdirRecursive(str(path))
+
+
+# Fixture to run a test function with pytest_benchmark
+@pytest.fixture(scope="function")
+def decorate_with_benchmark(request, benchmark):
+    def run_under_benchmark(f, benchmark):
+        def test_with_benchmark_fixture(*args, **kwargs):
+            @benchmark
+            def do():
+                f(*args, **kwargs)
+
+        return test_with_benchmark_fixture
+
+    request.node.obj = run_under_benchmark(request.node.obj, benchmark)
