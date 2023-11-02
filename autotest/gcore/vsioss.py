@@ -68,10 +68,8 @@ def setup_and_cleanup():
         yield
 
 
-@pytest.fixture(
-    scope="function"
-)  # function scope because not all tests run with the config options set below
-def server():
+@pytest.fixture(scope="module")
+def server_backend():
 
     process, port = webserver.launch(handler=webserver.DispatcherHttpHandler)
     if port == 0:
@@ -81,6 +79,20 @@ def server():
 
     WebServer = collections.namedtuple("WebServer", "process port")
 
+    yield WebServer(process, port)
+
+    # Clearcache needed to close all connections, since the Python server
+    # can only handle one connection at a time
+    gdal.VSICurlClearCache()
+
+    webserver.server_stop(process, port)
+
+
+@pytest.fixture(
+    scope="function"
+)  # function scope because not all tests run with the config options set below
+def server(server_backend):
+
     with gdal.config_options(
         {
             "OSS_SECRET_ACCESS_KEY": "OSS_SECRET_ACCESS_KEY",
@@ -88,17 +100,11 @@ def server():
             "CPL_OSS_TIMESTAMP": "my_timestamp",
             "OSS_HTTPS": "NO",
             "OSS_VIRTUAL_HOSTING": "NO",
-            "OSS_ENDPOINT": "127.0.0.1:%d" % port,
+            "OSS_ENDPOINT": "127.0.0.1:%d" % server_backend.port,
         },
         thread_local=False,
     ):
-        yield WebServer(process, port)
-
-    # Clearcache needed to close all connections, since the Python server
-    # can only handle one connection at a time
-    gdal.VSICurlClearCache()
-
-    webserver.server_stop(process, port)
+        yield server_backend
 
 
 ###############################################################################
