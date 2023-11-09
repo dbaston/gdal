@@ -6553,51 +6553,37 @@ CPLErr netCDFDataset::AddProjectionVars(bool bDefsOnly,
         // Write lat/lon attributes if needed.
         if (bWriteLonLat)
         {
-            int *panLatDims = nullptr;
-            int *panLonDims = nullptr;
-            int nLatDims = -1;
-            int nLonDims = -1;
+            std::vector<int> anLatDims;
+            std::vector<int> anLonDims;
 
             // Get information.
             if (bHasGeoloc)
             {
                 // Geoloc
-                nLatDims = 2;
-                panLatDims =
-                    static_cast<int *>(CPLCalloc(nLatDims, sizeof(int)));
-                panLatDims[0] = nYDimID;
-                panLatDims[1] = nXDimID;
-                nLonDims = 2;
-                panLonDims =
-                    static_cast<int *>(CPLCalloc(nLonDims, sizeof(int)));
-                panLonDims[0] = nYDimID;
-                panLonDims[1] = nXDimID;
+                anLatDims.resize(2);
+                anLatDims[0] = nYDimID;
+                anLatDims[1] = nXDimID;
+                anLonDims.resize(2);
+                anLonDims[0] = nYDimID;
+                anLonDims[1] = nXDimID;
             }
             else if (bIsProjected)
             {
                 // Projected
-                nLatDims = 2;
-                panLatDims =
-                    static_cast<int *>(CPLCalloc(nLatDims, sizeof(int)));
-                panLatDims[0] = nYDimID;
-                panLatDims[1] = nXDimID;
-                nLonDims = 2;
-                panLonDims =
-                    static_cast<int *>(CPLCalloc(nLonDims, sizeof(int)));
-                panLonDims[0] = nYDimID;
-                panLonDims[1] = nXDimID;
+                anLatDims.resize(2);
+                anLatDims[0] = nYDimID;
+                anLatDims[1] = nXDimID;
+                anLonDims.resize(2);
+                anLonDims[0] = nYDimID;
+                anLonDims[1] = nXDimID;
             }
             else
             {
                 // Geographic
-                nLatDims = 1;
-                panLatDims =
-                    static_cast<int *>(CPLCalloc(nLatDims, sizeof(int)));
-                panLatDims[0] = nYDimID;
-                nLonDims = 1;
-                panLonDims =
-                    static_cast<int *>(CPLCalloc(nLonDims, sizeof(int)));
-                panLonDims[0] = nXDimID;
+                anLatDims.resize(1);
+                anLatDims[0] = nYDimID;
+                anLonDims.resize(1);
+                anLonDims[0] = nXDimID;
             }
 
             nc_type eLonLatType = NC_NAT;
@@ -6623,9 +6609,11 @@ CPLErr netCDFDataset::AddProjectionVars(bool bDefsOnly,
                 const char *pszVarName =
                     bIsRotatedPole ? NCDF_DIMNAME_RLAT : CF_LATITUDE_VAR_NAME;
                 int status = nc_def_var(cdfid, pszVarName, eLonLatType,
-                                        nLatDims, panLatDims, &nVarLatID);
-                CPLDebug("GDAL_netCDF", "nc_def_var(%d,%s,%d,%d,-,-) got id %d",
-                         cdfid, pszVarName, eLonLatType, nLatDims, nVarLatID);
+                                        static_cast<int>(anLatDims.size()),
+                                        anLatDims.data(), &nVarLatID);
+                CPLDebug("GDAL_netCDF",
+                         "nc_def_var(%d,%s,%d,%zu,-,-) got id %d", cdfid,
+                         pszVarName, eLonLatType, anLatDims.size(), nVarLatID);
                 NCDF_ERR(status);
                 DefVarDeflate(nVarLatID, false);  // Don't set chunking.
             }
@@ -6634,9 +6622,11 @@ CPLErr netCDFDataset::AddProjectionVars(bool bDefsOnly,
                 const char *pszVarName =
                     bIsRotatedPole ? NCDF_DIMNAME_RLON : CF_LONGITUDE_VAR_NAME;
                 int status = nc_def_var(cdfid, pszVarName, eLonLatType,
-                                        nLonDims, panLonDims, &nVarLonID);
-                CPLDebug("GDAL_netCDF", "nc_def_var(%d,%s,%d,%d,-,-) got id %d",
-                         cdfid, pszVarName, eLonLatType, nLatDims, nVarLonID);
+                                        static_cast<int>(anLonDims.size()),
+                                        anLonDims.data(), &nVarLonID);
+                CPLDebug("GDAL_netCDF",
+                         "nc_def_var(%d,%s,%d,%zu,-,-) got id %d", cdfid,
+                         pszVarName, eLonLatType, anLatDims.size(), nVarLonID);
                 NCDF_ERR(status);
                 DefVarDeflate(nVarLonID, false);  // Don't set chunking.
             }
@@ -6646,9 +6636,6 @@ CPLErr netCDFDataset::AddProjectionVars(bool bDefsOnly,
                                                 nVarLatID);
             else
                 NCDFWriteLonLatVarsAttributes(this->vcdf, nVarLonID, nVarLatID);
-
-            CPLFree(panLatDims);
-            CPLFree(panLonDims);
         }
     }
 
