@@ -110,8 +110,8 @@ OGRCurvePolygon *OGRCurvePolygon::clone() const
 
 void OGRCurvePolygon::empty()
 
-{
-    oCC.empty(this);
+{ oCC.empty(this)
+    ;
 }
 
 /************************************************************************/
