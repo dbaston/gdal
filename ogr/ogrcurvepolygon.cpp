@@ -108,8 +108,8 @@ OGRCurvePolygon *OGRCurvePolygon::clone() const
 /*                               empty()                                */
 /************************************************************************/
 
-void OGRCurvePolygon::empty()
-
+void
+    OGRCurvePolygon::empty()
 { oCC.empty(this)
     ;
 }
