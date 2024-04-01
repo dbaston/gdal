@@ -296,6 +296,10 @@ public:
     return (GDALDriverShadow*) GDALGetDatasetDriver( self );
   }
 
+  const char* GetName() {
+    return GDALGetDescription(self);
+  }
+
   GDALRasterBandShadow* GetRasterBand(int nBand ) {
     return (GDALRasterBandShadow*) GDALGetRasterBand( self, nBand );
   }
@@ -312,6 +316,16 @@ public:
   char const *GetProjectionRef() {
     return GDALGetProjectionRef( self );
   }
+
+#ifdef SWIGPYTHON
+  int GetRefCount() {
+    return OGR_DS_GetRefCount(self);
+  }
+
+  int GetSummaryRefCount() {
+    return OGR_DS_GetSummaryRefCount(self);
+  }
+#endif
 
   %newobject GetSpatialRef;
   OSRSpatialReferenceShadow *GetSpatialRef() {
@@ -449,6 +463,10 @@ public:
 #endif
 
   CPLErr FlushCache() {
+    return GDALFlushCache( self );
+  }
+
+  CPLErr SyncToDisk() {
     return GDALFlushCache( self );
   }
 
@@ -910,7 +928,7 @@ CPLErr AdviseRead(  int xoff, int yoff, int xsize, int ysize,
   }
 
 #ifdef SWIGCSHARP
-  
+
   %newobject GetNextFeature;
   OGRFeatureShadow *GetNextFeature( OGRLayerShadow** ppoBelongingLayer = NULL,
                                     double* pdfProgressPct = NULL,

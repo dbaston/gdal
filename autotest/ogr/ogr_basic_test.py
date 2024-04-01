@@ -46,6 +46,8 @@ def test_ogr_basic_1():
 
     assert ds is not None
 
+    assert isinstance(ds, ogr.DataSource)
+
 
 ###############################################################################
 # Test Feature counting.
@@ -711,6 +713,36 @@ def test_ogr_basic_dataset_slice():
 
     lyrs = [lyr.GetName() for lyr in ds[0:3:2]]
     assert lyrs == ["lyr1", "lyr3"]
+
+
+def test_ogr_basic_dataset_iter():
+
+    ds = ogr.GetDriverByName("Memory").CreateDataSource("")
+    ds.CreateLayer("lyr1")
+    ds.CreateLayer("lyr2")
+    ds.CreateLayer("lyr3")
+
+    layers = []
+
+    assert len(ds) == 3
+
+    for lyr in ds:
+        layers.append(lyr)
+
+    assert len(layers) == 3
+
+
+def test_ogr_basic_dataset_getitem():
+
+    ds = ogr.GetDriverByName("Memory").CreateDataSource("")
+    ds.CreateLayer("lyr1")
+    ds.CreateLayer("lyr2")
+    ds.CreateLayer("lyr3")
+
+    assert ds[2].this == ds.GetLayer(2).this
+
+    with pytest.raises(IndexError):
+        ds[3]
 
 
 def test_ogr_basic_feature_iterator():
