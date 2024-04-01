@@ -20,6 +20,8 @@ cmake ${GDAL_SOURCE_DIR:=..} \
   -DCMAKE_INSTALL_PREFIX=/usr \
   -DIconv_INCLUDE_DIR=/usr/include/gnu-libiconv \
   -DIconv_LIBRARY=/usr/lib/libiconv.so \
+  -DBUILD_JAVA_BINDINGS=ON \
+  -DJAVA_HOME=/usr/lib/jvm/default-jvm \
   -DADD_EXTERNAL_DEFERRED_PLUGIN_FOO=/tmp/foo.cpp \
   -DCMAKE_C_FLAGS=-Werror -DCMAKE_CXX_FLAGS="-std=c++23 -Werror" -DWERROR_DEV_FLAG="-Werror=dev"
 make -j$(nproc)

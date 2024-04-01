@@ -1,6 +1,7 @@
 FROM alpine:edge
 
 RUN apk add \
+    apache-ant \
     apache-arrow-dev \
     armadillo-dev \
     basisu-dev \
@@ -44,6 +45,7 @@ RUN apk add \
     odbc-cpp-wrapper-dev \
     ogdi-dev \
     openexr-dev \
+    openjdk21-jdk \
     openjpeg-dev \
     openssl-dev \
     pcre2-dev \
