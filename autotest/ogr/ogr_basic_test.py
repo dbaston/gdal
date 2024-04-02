@@ -1199,3 +1199,11 @@ def test_geom_use_after_transfer_to_feature(tmp_vsimem, arg_type):
 
     with pytest.raises(Exception):
         point.ExportToWkt()
+
+
+def test_driver_open_nothrow():
+
+    with gdaltest.enable_exceptions():
+        drv = ogr.GetDriverByName("ESRI Shapefile")
+        ds = drv.Open("does_not_exist.shp")
+        assert ds is None  # no exception thrown
