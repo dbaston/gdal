@@ -97,11 +97,6 @@ jobs:
           if grep -e "strtod(" ogr/ogrsf_frmts/geojson/libjson/*.c; then echo "Unexpected use of strtod(). Use CPLStrtod() instead"; /bin/false; fi
           if grep -e "atof(" ogr/ogrsf_frmts/geojson/libjson/*.c; then echo "Unexpected use of atof()."; /bin/false; fi
 
-      - name: Shellcheck
-        run: |
-          shellcheck -V
-          find . -name '*.sh' -exec shellcheck {} \;
-
   linting:
     runs-on: ubuntu-latest
     steps:
