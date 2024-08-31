@@ -2464,22 +2464,10 @@ def SaveArray(src_array, filename, format="GTiff", prototype=None, interleave='b
     return driver.CreateCopy(filename, OpenArray(src_array, prototype, interleave))
 
 def _to_primitive_type(x):
-    """Converts an object with a __int__ or __float__ method to the
+    """Converts a numpy scalar to to the
        corresponding primitive type, or return x."""
-    if x is None:
-        return x
-    if hasattr(x, "__int__"):
-        if hasattr(x, "is_integer") and x.is_integer():
-            return int(x)
-        elif not hasattr(x, "__float__"):
-            return int(x)
-        else:
-            ret = float(x)
-            if ret == int(ret):
-                ret = int(ret)
-            return ret
-    elif hasattr(x, "__float__"):
-        return float(x)
+    if hasattr(x, 'item'):
+        return x.item()
     return x
 
 def DatasetReadAsArray(ds, xoff=0, yoff=0, win_xsize=None, win_ysize=None, buf_obj=None,
