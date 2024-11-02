@@ -1034,7 +1034,7 @@ static bool GDALFootprintProcess(GDALDataset *poSrcDS, OGRLayer *poDstLayer,
         poMemLayer = std::make_unique<OGRMemLayer>("", nullptr, wkbUnknown);
         auto poFeature =
             std::make_unique<OGRFeature>(poMemLayer->GetLayerDefn());
-        poFeature->SetGeometryDirectly(poMP.release());
+        poFeature->SetGeometry(std::move(poMP));
         CPL_IGNORE_RET_VAL(poMemLayer->CreateFeature(poFeature.get()));
     }
 
@@ -1172,7 +1172,7 @@ static bool GDALFootprintProcess(GDALDataset *poSrcDS, OGRLayer *poDstLayer,
             poGeom.reset(
                 OGRGeometryFactory::forceToMultiPolygon(poGeom.release()));
 
-        poDstFeature->SetGeometryDirectly(poGeom.release());
+        poDstFeature->SetGeometry(std::move(poGeom));
 
         if (!psOptions->osLocationFieldName.empty())
         {

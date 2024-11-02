@@ -1006,7 +1006,8 @@ std::unique_ptr<OGRFeature> OGRSplitListFieldLayer::TranslateFeature(
     poFeature->SetFID(poSrcFeature->GetFID());
     for (int i = 0; i < poFeature->GetGeomFieldCount(); i++)
     {
-        poFeature->SetGeomFieldDirectly(i, poSrcFeature->StealGeometry(i));
+        poFeature->SetGeomField(
+            i, std::unique_ptr<OGRGeometry>(poSrcFeature->StealGeometry(i)));
     }
     poFeature->SetStyleString(poFeature->GetStyleString());
 
@@ -6336,8 +6337,7 @@ bool LayerTranslator::Translate(
                 /* ... and now we can attach the stolen geometry */
                 if (poStolenGeometry)
                 {
-                    poDstFeature->SetGeometryDirectly(
-                        poStolenGeometry.release());
+                    poDstFeature->SetGeometry(std::move(poStolenGeometry));
                 }
 
                 if (!psInfo->m_oMapResolved.empty())
@@ -6840,8 +6840,7 @@ bool LayerTranslator::Translate(
                     }
                 }
 
-                poDstFeature->SetGeomFieldDirectly(iGeom,
-                                                   poDstGeometry.release());
+                poDstFeature->SetGeomField(iGeom, std::move(poDstGeometry));
             }
 
             CPLErrorReset();

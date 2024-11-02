@@ -1270,7 +1270,7 @@ GDALDatasetH GDALTileIndex(const char *pszDest, int nSrcCount,
         for (int k = 0; k < 5; k++)
             poRing->addPoint(adfX[k], adfY[k]);
         poPoly->addRing(std::move(poRing));
-        poFeature->SetGeometryDirectly(poPoly.release());
+        poFeature->SetGeometry(std::move(poPoly));
 
         if (poLayer->CreateFeature(poFeature.get()) != OGRERR_NONE)
         {
