@@ -481,11 +481,8 @@ OGRCurve *OGRCompoundCurve::stealCurve(int iCurve)
 OGRErr OGRCompoundCurve::addCurve(const OGRCurve *poCurve,
                                   double dfToleranceEps)
 {
-    OGRCurve *poClonedCurve = poCurve->clone();
-    const OGRErr eErr = addCurveDirectly(poClonedCurve, dfToleranceEps);
-    if (eErr != OGRERR_NONE)
-        delete poClonedCurve;
-    return eErr;
+    std::unique_ptr<OGRCurve> poClonedCurve(poCurve->clone());
+    return addCurve(std::move(poClonedCurve), dfToleranceEps);
 }
 
 /************************************************************************/

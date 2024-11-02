@@ -1465,7 +1465,7 @@ OGRErr OGR_G_AddGeometry(OGRGeometryH hGeom, OGRGeometryH hNewSubGeom)
  * Some subclasses of OGRGeometryCollection restrict the types of geometry
  * that can be added, and may return an error.  Ownership of the passed
  * geometry is taken by the container rather than cloning as addGeometry()
- * does.
+ * does. If the operation does not succeed, ownership remains with the caller.
  *
  * This function is the same as the CPP method
  * OGRGeometryCollection::addGeometryDirectly.

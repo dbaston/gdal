@@ -152,20 +152,14 @@ OGRErr OGRTriangulatedSurface::addGeometry(const OGRGeometry *poNewGeom)
     if (EQUAL(poNewGeom->getGeometryName(), "POLYGON"))
     {
         OGRErr eErr = OGRERR_FAILURE;
-        OGRTriangle *poTriangle =
-            new OGRTriangle(*(poNewGeom->toPolygon()), eErr);
+        auto poTriangle =
+            std::make_unique<OGRTriangle>(*(poNewGeom->toPolygon()), eErr);
         if (poTriangle != nullptr && eErr == OGRERR_NONE)
         {
-            eErr = addGeometryDirectly(poTriangle);
-
-            if (eErr != OGRERR_NONE)
-                delete poTriangle;
-
-            return eErr;
+            return addGeometry(std::move(poTriangle));
         }
         else
         {
-            delete poTriangle;
             return OGRERR_UNSUPPORTED_GEOMETRY_TYPE;
         }
     }

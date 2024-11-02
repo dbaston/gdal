@@ -246,8 +246,8 @@ OGRErr OGRMultiPoint::importFromWkt(const char **ppszInput)
     /* -------------------------------------------------------------------- */
     for (int iGeom = 0; iGeom < nPointCount; iGeom++)
     {
-        OGRPoint *poPoint =
-            new OGRPoint(paoPoints[iGeom].x, paoPoints[iGeom].y);
+        auto poPoint =
+            std::make_unique<OGRPoint>(paoPoints[iGeom].x, paoPoints[iGeom].y);
         if (bHasM)
         {
             if (padfM != nullptr)
@@ -263,13 +263,12 @@ OGRErr OGRMultiPoint::importFromWkt(const char **ppszInput)
                 poPoint->setZ(0.0);
         }
 
-        eErr = addGeometryDirectly(poPoint);
+        eErr = addGeometry(std::move(poPoint));
         if (eErr != OGRERR_NONE)
         {
             CPLFree(paoPoints);
             CPLFree(padfZ);
             CPLFree(padfM);
-            delete poPoint;
             return eErr;
         }
     }
@@ -323,13 +322,12 @@ OGRErr OGRMultiPoint::importFromWkt_Bracketed(const char **ppszInput, int bHasM,
         const char *pszNext = OGRWktReadToken(pszInput, szToken);
         if (EQUAL(szToken, "EMPTY"))
         {
-            OGRPoint *poGeom = new OGRPoint(0.0, 0.0);
+            auto poGeom = std::make_unique<OGRPoint>(0.0, 0.0);
             poGeom->empty();
-            const OGRErr eErr = addGeometryDirectly(poGeom);
+            const OGRErr eErr = addGeometry(std::move(poGeom));
             if (eErr != OGRERR_NONE)
             {
                 CPLFree(paoPoints);
-                delete poGeom;
                 return eErr;
             }
 
@@ -362,7 +360,8 @@ OGRErr OGRMultiPoint::importFromWkt_Bracketed(const char **ppszInput, int bHasM,
             bHasM = TRUE;
         }
 
-        OGRPoint *poPoint = new OGRPoint(paoPoints[0].x, paoPoints[0].y);
+        auto poPoint =
+            std::make_unique<OGRPoint>(paoPoints[0].x, paoPoints[0].y);
         if (bHasM)
         {
             if (padfM != nullptr)
@@ -378,13 +377,12 @@ OGRErr OGRMultiPoint::importFromWkt_Bracketed(const char **ppszInput, int bHasM,
                 poPoint->setZ(0.0);
         }
 
-        const OGRErr eErr = addGeometryDirectly(poPoint);
+        const OGRErr eErr = addGeometry(std::move(poPoint));
         if (eErr != OGRERR_NONE)
         {
             CPLFree(paoPoints);
             CPLFree(padfZ);
             CPLFree(padfM);
-            delete poPoint;
             return eErr;
         }
     }

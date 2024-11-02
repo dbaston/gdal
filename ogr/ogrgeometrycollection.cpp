@@ -307,15 +307,11 @@ const OGRGeometry *OGRGeometryCollection::getGeometryRef(int i) const
 OGRErr OGRGeometryCollection::addGeometry(const OGRGeometry *poNewGeom)
 
 {
-    OGRGeometry *poClone = poNewGeom->clone();
+    std::unique_ptr<OGRGeometry> poClone(poNewGeom->clone());
     if (poClone == nullptr)
         return OGRERR_FAILURE;
 
-    const OGRErr eErr = addGeometryDirectly(poClone);
-    if (eErr != OGRERR_NONE)
-        delete poClone;
-
-    return eErr;
+    return addGeometry(std::move(poClone));
 }
 
 /************************************************************************/
@@ -1488,9 +1484,9 @@ OGRGeometryCollection::getLinearGeometry(double dfMaxAngleStepSizeDegrees,
     poGC->assignSpatialReference(getSpatialReference());
     for (const auto &poSubGeom : *this)
     {
-        OGRGeometry *poSubGeomNew = poSubGeom->getLinearGeometry(
-            dfMaxAngleStepSizeDegrees, papszOptions);
-        if (poGC->addGeometryDirectly(poSubGeomNew) != OGRERR_NONE)
+        std::unique_ptr<OGRGeometry> poSubGeomNew(poSubGeom->getLinearGeometry(
+            dfMaxAngleStepSizeDegrees, papszOptions));
+        if (poGC->addGeometry(std::move(poSubGeomNew)) != OGRERR_NONE)
             return nullptr;
     }
     return poGC.release();
@@ -1512,10 +1508,11 @@ OGRGeometryCollection::getCurveGeometry(const char *const *papszOptions) const
     bool bHasCurveGeometry = false;
     for (const auto &poSubGeom : *this)
     {
-        OGRGeometry *poSubGeomNew = poSubGeom->getCurveGeometry(papszOptions);
+        std::unique_ptr<OGRGeometry> poSubGeomNew(
+            poSubGeom->getCurveGeometry(papszOptions));
         if (poSubGeomNew->hasCurveGeometry())
             bHasCurveGeometry = true;
-        if (poGC->addGeometryDirectly(poSubGeomNew) != OGRERR_NONE)
+        if (poGC->addGeometry(std::move(poSubGeomNew)) != OGRERR_NONE)
             return nullptr;
     }
     if (!bHasCurveGeometry)
