@@ -690,9 +690,10 @@ void OGRLayer::ConvertGeomsIfNecessary(OGRFeature *poFeature)
                 {
                     OGRwkbGeometryType eTargetType =
                         OGR_GT_GetLinear(poGeom->getGeometryType());
-                    poGeom = OGRGeometryFactory::forceTo(
-                        poFeature->StealGeometry(i), eTargetType);
-                    poFeature->SetGeomFieldDirectly(i, poGeom);
+                    std::unique_ptr<OGRGeometry> poLinearGeom(
+                        OGRGeometryFactory::forceTo(poFeature->StealGeometry(i),
+                                                    eTargetType));
+                    poFeature->SetGeomField(i, std::move(poLinearGeom));
                     poGeom = poFeature->GetGeomFieldRef(i);
                 }
 
@@ -705,11 +706,12 @@ void OGRLayer::ConvertGeomsIfNecessary(OGRFeature *poFeature)
                     if (dfXYResolution != OGRGeomCoordinatePrecision::UNKNOWN &&
                         !poGeom->hasCurveGeometry())
                     {
-                        auto poNewGeom = poGeom->SetPrecision(dfXYResolution,
-                                                              /* nFlags = */ 0);
+                        std::unique_ptr<OGRGeometry> poNewGeom(
+                            poGeom->SetPrecision(dfXYResolution,
+                                                 /* nFlags = */ 0));
                         if (poNewGeom)
                         {
-                            poFeature->SetGeomFieldDirectly(i, poNewGeom);
+                            poFeature->SetGeomField(i, std::move(poNewGeom));
                             // If there was potential further processing...
                             // poGeom = poFeature->GetGeomFieldRef(i);
                         }
@@ -2538,15 +2540,19 @@ static OGRGeometry *set_filter_from(OGRLayer *pLayer,
     return geom;
 }
 
-static OGRGeometry *promote_to_multi(OGRGeometry *poGeom)
+static std::unique_ptr<OGRGeometry>
+promote_to_multi(std::unique_ptr<OGRGeometry> poGeom)
 {
     OGRwkbGeometryType eType = wkbFlatten(poGeom->getGeometryType());
     if (eType == wkbPoint)
-        return OGRGeometryFactory::forceToMultiPoint(poGeom);
+        return std::unique_ptr<OGRGeometry>(
+            OGRGeometryFactory::forceToMultiPoint(poGeom.release()));
     else if (eType == wkbPolygon)
-        return OGRGeometryFactory::forceToMultiPolygon(poGeom);
+        return std::unique_ptr<OGRGeometry>(
+            OGRGeometryFactory::forceToMultiPolygon(poGeom.release()));
     else if (eType == wkbLineString)
-        return OGRGeometryFactory::forceToMultiLineString(poGeom);
+        return std::unique_ptr<OGRGeometry>(
+            OGRGeometryFactory::forceToMultiLineString(poGeom.release()));
     else
         return poGeom;
 }
@@ -2770,7 +2776,7 @@ OGRErr OGRLayer::Intersection(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             OGRGeometry *y_geom = y->GetGeometryRef();
             if (!y_geom)
                 continue;
-            OGRGeometryUniquePtr z_geom;
+            std::unique_ptr<OGRGeometry> z_geom;
 
             if (x_prepared_geom)
             {
@@ -2837,8 +2843,8 @@ OGRErr OGRLayer::Intersection(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             z->SetFieldsFrom(x.get(), mapInput);
             z->SetFieldsFrom(y.get(), mapMethod);
             if (bPromoteToMulti)
-                z_geom.reset(promote_to_multi(z_geom.release()));
-            z->SetGeometryDirectly(z_geom.release());
+                z_geom = promote_to_multi(std::move(z_geom));
+            z->SetGeometry(std::move(z_geom));
             ret = pLayerResult->CreateFeature(z.get());
 
             if (ret != OGRERR_NONE)
@@ -3163,7 +3169,7 @@ OGRErr OGRLayer::Union(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             }
         }
 
-        OGRGeometryUniquePtr x_geom_diff(
+        std::unique_ptr<OGRGeometry> x_geom_diff(
             x_geom
                 ->clone());  // this will be the geometry of the result feature
         for (auto &&y : pLayerMethod)
@@ -3199,7 +3205,8 @@ OGRErr OGRLayer::Union(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             }
 
             CPLErrorReset();
-            OGRGeometryUniquePtr poIntersection(x_geom->Intersection(y_geom));
+            std::unique_ptr<OGRGeometry> poIntersection(
+                x_geom->Intersection(y_geom));
             if (CPLGetLastErrorType() != CE_None || poIntersection == nullptr)
             {
                 if (!bSkipFailures)
@@ -3227,14 +3234,14 @@ OGRErr OGRLayer::Union(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
                 z->SetFieldsFrom(x.get(), mapInput);
                 z->SetFieldsFrom(y.get(), mapMethod);
                 if (bPromoteToMulti)
-                    poIntersection.reset(
-                        promote_to_multi(poIntersection.release()));
-                z->SetGeometryDirectly(poIntersection.release());
+                    poIntersection =
+                        promote_to_multi(std::move(poIntersection));
+                z->SetGeometry(std::move(poIntersection));
 
                 if (x_geom_diff)
                 {
                     CPLErrorReset();
-                    OGRGeometryUniquePtr x_geom_diff_new(
+                    std::unique_ptr<OGRGeometry> x_geom_diff_new(
                         x_geom_diff->Difference(y_geom));
                     if (CPLGetLastErrorType() != CE_None ||
                         x_geom_diff_new == nullptr)
@@ -3281,8 +3288,8 @@ OGRErr OGRLayer::Union(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             OGRFeatureUniquePtr z(new OGRFeature(poDefnResult));
             z->SetFieldsFrom(x.get(), mapInput);
             if (bPromoteToMulti)
-                x_geom_diff.reset(promote_to_multi(x_geom_diff.release()));
-            z->SetGeometryDirectly(x_geom_diff.release());
+                x_geom_diff = promote_to_multi(std::move(x_geom_diff));
+            z->SetGeometry(std::move(x_geom_diff));
             ret = pLayerResult->CreateFeature(z.get());
             if (ret != OGRERR_NONE)
             {
@@ -3341,7 +3348,7 @@ OGRErr OGRLayer::Union(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             continue;
         }
 
-        OGRGeometryUniquePtr x_geom_diff(
+        std::unique_ptr<OGRGeometry> x_geom_diff(
             x_geom
                 ->clone());  // this will be the geometry of the result feature
         for (auto &&y : this)
@@ -3355,7 +3362,7 @@ OGRErr OGRLayer::Union(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             if (x_geom_diff)
             {
                 CPLErrorReset();
-                OGRGeometryUniquePtr x_geom_diff_new(
+                std::unique_ptr<OGRGeometry> x_geom_diff_new(
                     x_geom_diff->Difference(y_geom));
                 if (CPLGetLastErrorType() != CE_None ||
                     x_geom_diff_new == nullptr)
@@ -3387,8 +3394,8 @@ OGRErr OGRLayer::Union(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             OGRFeatureUniquePtr z(new OGRFeature(poDefnResult));
             z->SetFieldsFrom(x.get(), mapMethod);
             if (bPromoteToMulti)
-                x_geom_diff.reset(promote_to_multi(x_geom_diff.release()));
-            z->SetGeometryDirectly(x_geom_diff.release());
+                x_geom_diff = promote_to_multi(std::move(x_geom_diff));
+            z->SetGeometry(std::move(x_geom_diff));
             ret = pLayerResult->CreateFeature(z.get());
             if (ret != OGRERR_NONE)
             {
@@ -3675,7 +3682,7 @@ OGRErr OGRLayer::SymDifference(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             continue;
         }
 
-        OGRGeometryUniquePtr geom(
+        std::unique_ptr<OGRGeometry> geom(
             x_geom
                 ->clone());  // this will be the geometry of the result feature
         for (auto &&y : pLayerMethod)
@@ -3688,7 +3695,7 @@ OGRErr OGRLayer::SymDifference(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             if (geom)
             {
                 CPLErrorReset();
-                OGRGeometryUniquePtr geom_new(geom->Difference(y_geom));
+                std::unique_ptr<OGRGeometry> geom_new(geom->Difference(y_geom));
                 if (CPLGetLastErrorType() != CE_None || geom_new == nullptr)
                 {
                     if (!bSkipFailures)
@@ -3716,8 +3723,8 @@ OGRErr OGRLayer::SymDifference(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             OGRFeatureUniquePtr z(new OGRFeature(poDefnResult));
             z->SetFieldsFrom(x.get(), mapInput);
             if (bPromoteToMulti)
-                geom.reset(promote_to_multi(geom.release()));
-            z->SetGeometryDirectly(geom.release());
+                geom = promote_to_multi(std::move(geom));
+            z->SetGeometry(std::move(geom));
             ret = pLayerResult->CreateFeature(z.get());
             if (ret != OGRERR_NONE)
             {
@@ -3776,7 +3783,7 @@ OGRErr OGRLayer::SymDifference(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             continue;
         }
 
-        OGRGeometryUniquePtr geom(
+        std::unique_ptr<OGRGeometry> geom(
             x_geom
                 ->clone());  // this will be the geometry of the result feature
         for (auto &&y : this)
@@ -3787,7 +3794,7 @@ OGRErr OGRLayer::SymDifference(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             if (geom)
             {
                 CPLErrorReset();
-                OGRGeometryUniquePtr geom_new(geom->Difference(y_geom));
+                std::unique_ptr<OGRGeometry> geom_new(geom->Difference(y_geom));
                 if (CPLGetLastErrorType() != CE_None || geom_new == nullptr)
                 {
                     if (!bSkipFailures)
@@ -3815,8 +3822,8 @@ OGRErr OGRLayer::SymDifference(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             OGRFeatureUniquePtr z(new OGRFeature(poDefnResult));
             z->SetFieldsFrom(x.get(), mapMethod);
             if (bPromoteToMulti)
-                geom.reset(promote_to_multi(geom.release()));
-            z->SetGeometryDirectly(geom.release());
+                geom = promote_to_multi(std::move(geom));
+            z->SetGeometry(std::move(geom));
             ret = pLayerResult->CreateFeature(z.get());
             if (ret != OGRERR_NONE)
             {
@@ -4124,7 +4131,7 @@ OGRErr OGRLayer::Identity(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             }
         }
 
-        OGRGeometryUniquePtr x_geom_diff(
+        std::unique_ptr<OGRGeometry> x_geom_diff(
             x_geom
                 ->clone());  // this will be the geometry of the result feature
         for (auto &&y : pLayerMethod)
@@ -4158,7 +4165,8 @@ OGRErr OGRLayer::Identity(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             }
 
             CPLErrorReset();
-            OGRGeometryUniquePtr poIntersection(x_geom->Intersection(y_geom));
+            std::unique_ptr<OGRGeometry> poIntersection(
+                x_geom->Intersection(y_geom));
             if (CPLGetLastErrorType() != CE_None || poIntersection == nullptr)
             {
                 if (!bSkipFailures)
@@ -4186,13 +4194,13 @@ OGRErr OGRLayer::Identity(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
                 z->SetFieldsFrom(x.get(), mapInput);
                 z->SetFieldsFrom(y.get(), mapMethod);
                 if (bPromoteToMulti)
-                    poIntersection.reset(
-                        promote_to_multi(poIntersection.release()));
-                z->SetGeometryDirectly(poIntersection.release());
+                    poIntersection =
+                        promote_to_multi(std::move(poIntersection));
+                z->SetGeometry(std::move(poIntersection));
                 if (x_geom_diff)
                 {
                     CPLErrorReset();
-                    OGRGeometryUniquePtr x_geom_diff_new(
+                    std::unique_ptr<OGRGeometry> x_geom_diff_new(
                         x_geom_diff->Difference(y_geom));
                     if (CPLGetLastErrorType() != CE_None ||
                         x_geom_diff_new == nullptr)
@@ -4239,8 +4247,8 @@ OGRErr OGRLayer::Identity(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             OGRFeatureUniquePtr z(new OGRFeature(poDefnResult));
             z->SetFieldsFrom(x.get(), mapInput);
             if (bPromoteToMulti)
-                x_geom_diff.reset(promote_to_multi(x_geom_diff.release()));
-            z->SetGeometryDirectly(x_geom_diff.release());
+                x_geom_diff = promote_to_multi(std::move(x_geom_diff));
+            z->SetGeometry(std::move(x_geom_diff));
             ret = pLayerResult->CreateFeature(z.get());
             if (ret != OGRERR_NONE)
             {
@@ -4519,7 +4527,7 @@ OGRErr OGRLayer::Update(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             continue;
         }
 
-        OGRGeometryUniquePtr x_geom_diff(
+        std::unique_ptr<OGRGeometry> x_geom_diff(
             x_geom->clone());  // this will be the geometry of a result feature
         for (auto &&y : pLayerMethod)
         {
@@ -4529,7 +4537,7 @@ OGRErr OGRLayer::Update(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             if (x_geom_diff)
             {
                 CPLErrorReset();
-                OGRGeometryUniquePtr x_geom_diff_new(
+                std::unique_ptr<OGRGeometry> x_geom_diff_new(
                     x_geom_diff->Difference(y_geom));
                 if (CPLGetLastErrorType() != CE_None ||
                     x_geom_diff_new == nullptr)
@@ -4561,8 +4569,8 @@ OGRErr OGRLayer::Update(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             OGRFeatureUniquePtr z(new OGRFeature(poDefnResult));
             z->SetFieldsFrom(x.get(), mapInput);
             if (bPromoteToMulti)
-                x_geom_diff.reset(promote_to_multi(x_geom_diff.release()));
-            z->SetGeometryDirectly(x_geom_diff.release());
+                x_geom_diff = promote_to_multi(std::move(x_geom_diff));
+            z->SetGeometry(std::move(x_geom_diff));
             ret = pLayerResult->CreateFeature(z.get());
             if (ret != OGRERR_NONE)
             {
@@ -4599,13 +4607,13 @@ OGRErr OGRLayer::Update(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             progress_counter += 1.0;
         }
 
-        OGRGeometry *y_geom = y->StealGeometry();
+        std::unique_ptr<OGRGeometry> y_geom(y->StealGeometry());
         if (!y_geom)
             continue;
         OGRFeatureUniquePtr z(new OGRFeature(poDefnResult));
         if (mapMethod)
             z->SetFieldsFrom(y.get(), mapMethod);
-        z->SetGeometryDirectly(y_geom);
+        z->SetGeometry(std::move(y_geom));
         ret = pLayerResult->CreateFeature(z.get());
         if (ret != OGRERR_NONE)
         {
@@ -4899,7 +4907,7 @@ OGRErr OGRLayer::Clip(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
         if (geom)
         {
             CPLErrorReset();
-            OGRGeometryUniquePtr poIntersection(
+            std::unique_ptr<OGRGeometry> poIntersection(
                 x_geom->Intersection(geom.get()));
             if (CPLGetLastErrorType() != CE_None || poIntersection == nullptr)
             {
@@ -4919,9 +4927,9 @@ OGRErr OGRLayer::Clip(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
                 OGRFeatureUniquePtr z(new OGRFeature(poDefnResult));
                 z->SetFieldsFrom(x.get(), mapInput);
                 if (bPromoteToMulti)
-                    poIntersection.reset(
-                        promote_to_multi(poIntersection.release()));
-                z->SetGeometryDirectly(poIntersection.release());
+                    poIntersection =
+                        promote_to_multi(std::move(poIntersection));
+                z->SetGeometry(std::move(poIntersection));
                 ret = pLayerResult->CreateFeature(z.get());
                 if (ret != OGRERR_NONE)
                 {
@@ -5169,7 +5177,7 @@ OGRErr OGRLayer::Erase(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             continue;
         }
 
-        OGRGeometryUniquePtr geom(
+        std::unique_ptr<OGRGeometry> geom(
             x_geom
                 ->clone());  // this will be the geometry of the result feature
         // incrementally erase y from geom
@@ -5179,7 +5187,7 @@ OGRErr OGRLayer::Erase(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             if (!y_geom)
                 continue;
             CPLErrorReset();
-            OGRGeometryUniquePtr geom_new(geom->Difference(y_geom));
+            std::unique_ptr<OGRGeometry> geom_new(geom->Difference(y_geom));
             if (CPLGetLastErrorType() != CE_None || geom_new == nullptr)
             {
                 if (!bSkipFailures)
@@ -5209,8 +5217,8 @@ OGRErr OGRLayer::Erase(OGRLayer *pLayerMethod, OGRLayer *pLayerResult,
             OGRFeatureUniquePtr z(new OGRFeature(poDefnResult));
             z->SetFieldsFrom(x.get(), mapInput);
             if (bPromoteToMulti)
-                geom.reset(promote_to_multi(geom.release()));
-            z->SetGeometryDirectly(geom.release());
+                geom = promote_to_multi(std::move(geom));
+            z->SetGeometry(std::move(geom));
             ret = pLayerResult->CreateFeature(z.get());
             if (ret != OGRERR_NONE)
             {
