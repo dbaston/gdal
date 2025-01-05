@@ -707,6 +707,51 @@ static void BandScaleOffsetFree(const char * /*pszFuncName*/,
     delete data;
 }
 
+template <typename F, typename... Args>
+void doIt(GDALDataType d, F &&f, Args... args)
+{
+    switch (d)
+    {
+        case GDT_Byte:
+            f(gdal::GDALDataTypeTraits<GDT_Byte>::type{}, args...);
+            break;
+        case GDT_Int8:
+            f(gdal::GDALDataTypeTraits<GDT_Int8>::type{}, args...);
+            break;
+        case GDT_UInt16:
+            f(gdal::GDALDataTypeTraits<GDT_UInt16>::type{}, args...);
+            break;
+        case GDT_Int16:
+            f(gdal::GDALDataTypeTraits<GDT_Int16>::type{}, args...);
+            break;
+        case GDT_UInt32:
+            f(gdal::GDALDataTypeTraits<GDT_UInt32>::type{}, args...);
+            break;
+        case GDT_Int32:
+            f(gdal::GDALDataTypeTraits<GDT_Int32>::type{}, args...);
+            break;
+        case GDT_UInt64:
+            f(gdal::GDALDataTypeTraits<GDT_UInt64>::type{}, args...);
+            break;
+        case GDT_Int64:
+            f(gdal::GDALDataTypeTraits<GDT_Int64>::type{}, args...);
+            break;
+        case GDT_Float32:
+            f(gdal::GDALDataTypeTraits<GDT_Float32>::type{}, args...);
+            break;
+        case GDT_Float64:
+            f(gdal::GDALDataTypeTraits<GDT_Float64>::type{}, args...);
+            break;
+        case GDT_CFloat32:  //f(gdal::GDALDataTypeTraits<GDT_CFloat32>::type{}, args...); break;
+        case GDT_CFloat64:  //f(gdal::GDALDataTypeTraits<GDT_CFloat64>::type{}, args...); break;
+        case GDT_CInt16:
+        case GDT_CInt32:
+        case GDT_Unknown:
+        case GDT_TypeCount:
+            break;
+    }
+}
+
 static CPLErr BandScaleOffsetProcess(
     const char * /*pszFuncName*/, void * /*pUserData*/,
     VRTPDWorkingDataPtr pWorkingData, CSLConstList /* papszFunctionArgs*/,
@@ -730,6 +775,13 @@ static CPLErr BandScaleOffsetProcess(
     BandScaleOffsetData *data =
         static_cast<BandScaleOffsetData *>(pWorkingData);
 
+    doIt(
+        eInDT,
+        [&data](auto x, auto &&...y)
+        { data->template applyScaleOffset<decltype(x)>(y...); },
+        nElts, pInBuffer, pOutBuffer);
+
+#if 0
     switch (eInDT)
     {
         case GDT_Byte:
@@ -788,6 +840,7 @@ static CPLErr BandScaleOffsetProcess(
             return CE_Failure;
             break;
     }
+#endif
 
     return CE_None;
 }
