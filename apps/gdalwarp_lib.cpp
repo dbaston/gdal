@@ -2946,6 +2946,30 @@ static GDALDatasetH GDALWarpDirect(const char *pszDest, GDALDatasetH hDstDS,
         psWO->hSrcDS = hWrkSrcDS;
         psWO->hDstDS = hDstDS;
 
+        if (const char *pszTieStrategy =
+                psOptions->aosWarpOptions.FetchNameValue("MODE_TIES"))
+        {
+            if (EQUAL(pszTieStrategy, "FIRST"))
+            {
+                psWO->eTieStrategy = GWKTS_First;
+            }
+            else if (EQUAL(pszTieStrategy, "MIN"))
+            {
+                psWO->eTieStrategy = GWKTS_Min;
+            }
+            else if (EQUAL(pszTieStrategy, "MAX"))
+            {
+                psWO->eTieStrategy = GWKTS_Max;
+            }
+            else
+            {
+                CPLError(CE_Failure, CPLE_IllegalArg,
+                         "Unknown value of MODE_TIES: %s", pszTieStrategy);
+                GDALReleaseDataset(hDstDS);
+                return nullptr;
+            }
+        }
+
         if (!bVRT)
         {
             if (psOptions->pfnProgress == GDALDummyProgress)

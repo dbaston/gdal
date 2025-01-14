@@ -1839,6 +1839,7 @@ CPLErr GDALWarpOperation::WarpRegionToBuffer(
 
     oWK.eResample = m_bIsTranslationOnPixelBoundaries ? GRA_NearestNeighbour
                                                       : psOptions->eResampleAlg;
+    oWK.eTieStrategy = psOptions->eTieStrategy;
     oWK.nBands = psOptions->nBandCount;
     oWK.eWorkingDataType = psOptions->eWorkingDataType;
 
