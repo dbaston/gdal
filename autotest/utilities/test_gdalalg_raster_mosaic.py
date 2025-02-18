@@ -156,6 +156,28 @@ def test_gdalalg_raster_mosaic_resolution_lowest():
     assert ds.GetGeoTransform() == pytest.approx((2.0, 1.0, 0.0, 49.0, 0.0, -1.0))
 
 
+def test_gdalalg_raster_mosaic_resolution_common():
+
+    # resolution = 3
+    src1_ds = gdal.GetDriverByName("MEM").Create("", 5, 5)
+    src1_ds.SetGeoTransform([2, 3, 0, 49, 0, -3])
+
+    # resolution = 5
+    src2_ds = gdal.GetDriverByName("MEM").Create("", 3, 3)
+    src2_ds.SetGeoTransform([17, 5, 0, 49, 0, -5])
+
+    alg = get_mosaic_alg()
+    alg["input"] = [src1_ds, src2_ds]
+    alg["output"] = ""
+    alg["resolution"] = "common"
+    assert alg.Run()
+    ds = alg["output"].GetDataset()
+
+    assert ds.RasterXSize == 30
+    assert ds.RasterYSize == 15
+    assert ds.GetGeoTransform() == pytest.approx((2.0, 1.0, 0.0, 49.0, 0.0, -1.0))
+
+
 def test_gdalalg_raster_mosaic_resolution_custom():
 
     src1_ds = gdal.GetDriverByName("MEM").Create("", 1, 1)

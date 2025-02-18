@@ -11,6 +11,7 @@
 # SPDX-License-Identifier: MIT
 ###############################################################################
 
+import math
 import re
 
 import gdaltest
@@ -281,7 +282,7 @@ def test_gdalalg_calc_different_resolutions(calc, tmp_vsimem):
 
     xmax = 60
     ymax = 60
-    resolutions = [10, 20, 60]
+    resolutions = [30, 20, 60]
 
     inputs = [tmp_vsimem / f"in_{i}.tif" for i in range(len(resolutions))]
     outfile = tmp_vsimem / "out.tif"
@@ -305,8 +306,8 @@ def test_gdalalg_calc_different_resolutions(calc, tmp_vsimem):
     assert calc.Run()
 
     with gdal.Open(outfile) as ds:
-        assert ds.RasterXSize == xmax / min(resolutions)
-        assert ds.RasterYSize == ymax / min(resolutions)
+        assert ds.RasterXSize == xmax / math.gcd(*resolutions)
+        assert ds.RasterYSize == ymax / math.gcd(*resolutions)
 
         assert np.all(ds.ReadAsArray() == sum(resolutions))
 
