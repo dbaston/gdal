@@ -541,9 +541,22 @@ bool GDALVectorPipelineAlgorithm::ParseCommandLineArguments(
             return false;
     }
 
+    // Set "read" or "concat" to read vector sources only.
+    auto inputArg = steps.front().alg->GetArg(GDAL_ARG_NAME_INPUT);
+    if (inputArg->GetType() == GAAT_DATASET_LIST)
+    {
+        for (auto &value : inputArg->Get<std::vector<GDALArgDatasetValue>>())
+        {
+            value.SetType(GDAL_OF_VECTOR);
+        }
+    }
+    else
+    {
+        inputArg->Get<GDALArgDatasetValue>().SetType(GDAL_OF_VECTOR);
+    }
+
     // Evaluate "input" argument of "read" step, together with the "output"
     // argument of the "write" step, in case they point to the same dataset.
-    auto inputArg = steps.front().alg->GetArg(GDAL_ARG_NAME_INPUT);
     if (inputArg && inputArg->IsExplicitlySet() &&
         inputArg->GetType() == GAAT_DATASET_LIST &&
         inputArg->Get<std::vector<GDALArgDatasetValue>>().size() == 1)
