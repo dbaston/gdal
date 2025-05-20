@@ -28,6 +28,12 @@ It runs the :cpp:func:`OGRGeometry::segmentize` operation.
 
 It can also be used as a step of :ref:`gdal_vector_pipeline`.
 
+.. only:: html
+
+   .. figure:: ../../images/programs/gdal_vector_geom_segmentize.svg
+
+   Polygon dataset before (left) and after (right) segmentization with :program:`gdal vector geom segmentize`.
+
 Standard options
 ++++++++++++++++
 
