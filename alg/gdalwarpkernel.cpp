@@ -6522,6 +6522,14 @@ static void GWKAverageOrModeThread(void *pData)
     const int nSrcXSize = poWK->nSrcXSize;
     const int nSrcYSize = poWK->nSrcYSize;
 
+#ifdef GDAL_WARP_SPY
+    const char *pszWarpSpyX = CPLGetConfigOption("WARP_SPY_X", nullptr);
+    const char *pszWarpSpyY = CPLGetConfigOption("WARP_SPY_Y", nullptr);
+
+    int iWarpSpyX = pszWarpSpyX ? std::atoi(pszWarpSpyX) - poWK->nDstXOff : -1;
+    int iWarpSpyY = pszWarpSpyY ? std::atoi(pszWarpSpyY) - poWK->nDstYOff : -1;
+#endif
+
     /* -------------------------------------------------------------------- */
     /*      Find out which algorithm to use (small optim.)                  */
     /* -------------------------------------------------------------------- */
@@ -7047,6 +7055,18 @@ static void GWKAverageOrModeThread(void *pData)
                             {
                                 const double dfWeight =
                                     COMPUTE_WEIGHT(iSrcX, dfWeightY);
+
+#ifdef GDAL_WARP_SPY
+                                if (iDstY == iWarpSpyY && iDstX == iWarpSpyX)
+                                {
+                                    CPLDebug("GWKAverage",
+                                             "Average Band %d Src %d %d Value "
+                                             "%g Weight %g",
+                                             iBand, iSrcX + poWK->nSrcXOff,
+                                             iSrcY + poWK->nSrcYOff,
+                                             dfValueRealTmp, dfWeight);
+                                }
+#endif
                                 if (dfWeight > 0)
                                 {
                                     // Weighted incremental algorithm mean
@@ -7063,6 +7083,17 @@ static void GWKAverageOrModeThread(void *pData)
                                     }
                                 }
                             }
+#ifdef GDAL_WARP_SPY
+                            else if (iDstY == iWarpSpyY && iDstX == iWarpSpyX)
+                            {
+                                CPLDebug(
+                                    "GWKAverage",
+                                    "Band %d Src %d %d Value (none) Weight "
+                                    "(none) BandDensity (threshold) %g %g",
+                                    iBand, iSrcX, iSrcY, dfBandDensity,
+                                    BAND_DENSITY_THRESHOLD);
+                            }
+#endif
                         }
                     }
 
@@ -7266,6 +7297,19 @@ static void GWKAverageOrModeThread(void *pData)
                                     const double dfWeight =
                                         COMPUTE_WEIGHT(iSrcX, dfWeightY);
 
+#ifdef GDAL_WARP_SPY
+                                    if (iDstY == iWarpSpyY &&
+                                        iDstX == iWarpSpyX)
+                                    {
+                                        CPLDebug("GWKAverage",
+                                                 "Mode Band %d Src %d %d Value "
+                                                 "%g Weight %g",
+                                                 iBand, iSrcX + poWK->nSrcXOff,
+                                                 iSrcY + poWK->nSrcYOff,
+                                                 dfValueRealTmp, dfWeight);
+                                    }
+#endif
+
                                     // Check array for existing entry.
                                     int i = 0;
                                     for (i = 0; i < nBins; ++i)
@@ -7381,12 +7425,26 @@ static void GWKAverageOrModeThread(void *pData)
                                         &dfValueRealTmp, &dfValueImagTmp) &&
                                     dfBandDensity > BAND_DENSITY_THRESHOLD)
                                 {
+
                                     bHasSourceValues = true;
                                     const int nVal =
                                         static_cast<int>(dfValueRealTmp);
                                     const int iBin = nVal + nBinsOffset;
                                     const double dfWeight =
                                         COMPUTE_WEIGHT(iSrcX, dfWeightY);
+
+#ifdef GDAL_WARP_SPY
+                                    if (iDstY == iWarpSpyY &&
+                                        iDstX == iWarpSpyX)
+                                    {
+                                        CPLDebug("GWKAverage",
+                                                 "Mode (byte, int16) Band %d "
+                                                 "Src %d %d Value %g Weight %g",
+                                                 iBand, iSrcX + poWK->nSrcXOff,
+                                                 iSrcY + poWK->nSrcYOff,
+                                                 dfValueRealTmp, dfWeight);
+                                    }
+#endif
 
                                     // Sum the density.
                                     pafCounts[iBin] +=
