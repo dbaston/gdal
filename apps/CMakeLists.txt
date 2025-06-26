@@ -29,8 +29,9 @@ add_library(
   gdalalg_raster_color_merge.cpp
   gdalalg_raster_convert.cpp
   gdalalg_raster_create.cpp
-  gdalalg_raster_edit.cpp
   gdalalg_raster_contour.cpp
+  gdalalg_raster_edit.cpp
+  gdalalg_raster_extract.cpp
   gdalalg_raster_footprint.cpp
   gdalalg_raster_fill_nodata.cpp
   gdalalg_raster_hillshade.cpp
