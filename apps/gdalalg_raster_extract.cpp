@@ -69,13 +69,14 @@ bool GDALRasterExtractAlgorithm::RunImpl(GDALProgressFunc pfnProgress,
 GDALRasterExtractAlgorithmStandalone::~GDALRasterExtractAlgorithmStandalone() =
     default;
 
-//struct Window
-//{
-//    int nXOff;
-//    int nYOff;
-//    int nX;
-//    int nY;
-//};
+struct Window
+{
+    int nXOff;
+    int nYOff;
+    int nXSize;
+    int nYSize;
+};
+
 //
 //class GDALRasterIterator
 //{
@@ -170,10 +171,10 @@ class GDALRasterExtractLayer : public OGRLayer
     {
         std::unique_ptr<OGRFeature> feature;
 
-        while (m_row < m_chunkSizeY)
+        while (m_row < m_Window.nYSize)
         {
             const double *pSrcVal = static_cast<double *>(
-                m_buf + (m_row * m_chunkSizeX + m_col) *
+                m_buf + (m_row * m_Window.nXSize + m_col) *
                             GDALGetDataTypeSizeBytes(m_bufType));
 
             const bool emitFeature =
@@ -185,8 +186,8 @@ class GDALRasterExtractLayer : public OGRLayer
 
                 feature->SetField("BAND_1", *pSrcVal);
 
-                const size_t line = m_yChunk * m_chunkSizeY + m_row;
-                const size_t pixel = m_xChunk * m_chunkSizeX + m_col;
+                const size_t line = m_Window.nYOff + m_row;
+                const size_t pixel = m_Window.nXOff + m_col;
 
                 if (m_includeRowCol)
                 {
@@ -242,7 +243,7 @@ class GDALRasterExtractLayer : public OGRLayer
             }
 
             m_col += 1;
-            if (m_col >= m_chunkSizeX)
+            if (m_col >= m_Window.nXSize)
             {
                 m_col = 0;
                 m_row++;
@@ -271,17 +272,22 @@ class GDALRasterExtractLayer : public OGRLayer
 
     void NextWindow()
     {
-        int nXOff = 0;
-        int nYOff = 0;
         int nBandCount = 1;
 
         m_buf = VSI_MALLOC3_VERBOSE(m_chunkSizeX, m_chunkSizeY,
                                     GDALGetDataTypeSizeBytes(m_bufType));
 
-        auto eErr =
-            m_ds.RasterIO(GF_Read, nXOff, nYOff, m_chunkSizeX, m_chunkSizeY,
-                          m_buf, m_chunkSizeX, m_chunkSizeY, m_bufType,
-                          nBandCount, nullptr, 0, 0, 0, nullptr);
+        m_Window.nXOff = 0;
+        m_Window.nYOff = 0;
+        m_Window.nXSize =
+            std::min(m_chunkSizeX, m_ds.GetRasterXSize() - m_Window.nXOff);
+        m_Window.nYSize =
+            std::min(m_chunkSizeY, m_ds.GetRasterYSize() - m_Window.nYOff);
+
+        auto eErr = m_ds.RasterIO(GF_Read, m_Window.nXOff, m_Window.nYOff,
+                                  m_Window.nXSize, m_Window.nYSize, m_buf,
+                                  m_chunkSizeX, m_chunkSizeY, m_bufType,
+                                  nBandCount, nullptr, 0, 0, 0, nullptr);
         if (eErr != CE_None)
         {
             // FIXME handle;
@@ -299,8 +305,7 @@ class GDALRasterExtractLayer : public OGRLayer
     int m_chunkSizeX;
     int m_chunkSizeY;
 
-    size_t m_xChunk{0};
-    size_t m_yChunk{0};
+    Window m_Window;
 
     size_t m_row{0};
     size_t m_col{0};
