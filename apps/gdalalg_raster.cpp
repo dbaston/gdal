@@ -22,6 +22,7 @@
 #include "gdalalg_raster_convert.h"
 #include "gdalalg_raster_create.h"
 #include "gdalalg_raster_edit.h"
+#include "gdalalg_raster_extract.h"
 #include "gdalalg_raster_contour.h"
 #include "gdalalg_raster_footprint.h"
 #include "gdalalg_raster_fill_nodata.h"
@@ -87,6 +88,7 @@ class GDALRasterAlgorithm final : public GDALAlgorithm
         RegisterSubAlgorithm<GDALRasterClipAlgorithmStandalone>();
         RegisterSubAlgorithm<GDALRasterCreateAlgorithm>();
         RegisterSubAlgorithm<GDALRasterEditAlgorithmStandalone>();
+        RegisterSubAlgorithm<GDALRasterExtractAlgorithmStandalone>();
         RegisterSubAlgorithm<GDALRasterFootprintAlgorithmStandalone>();
         RegisterSubAlgorithm<GDALRasterHillshadeAlgorithmStandalone>();
         RegisterSubAlgorithm<GDALRasterFillNodataAlgorithmStandalone>();

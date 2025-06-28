@@ -54,8 +54,10 @@ class GDALRasterExtractAlgorithm /* non final */
     bool RunStep(GDALPipelineStepRunContext &ctxt) override;
     bool RunImpl(GDALProgressFunc pfnProgress, void *pProgressData) override;
 
-    OGRwkbGeometryType m_geomType = wkbNone;
+    std::string m_geomTypeName;
     bool m_skipNoData;
+    bool m_includeXY;
+    bool m_includeRowCol;
 };
 
 /************************************************************************/
