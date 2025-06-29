@@ -1788,6 +1788,15 @@ constexpr GDALSuggestedBlockAccessPattern GSBAP_LARGEST_CHUNK_POSSIBLE = 0x100;
 
 class GDALComputedRasterBand;
 
+/** A rectangular subset of pixels within a raster */
+struct GDALRasterWindow
+{
+    int nXOff;
+    int nYOff;
+    int nXSize;
+    int nYSize;
+};
+
 /** A single raster band (or channel). */
 
 class CPL_DLL GDALRasterBand : public GDALMajorObject
@@ -2264,6 +2273,54 @@ class CPL_DLL GDALRasterBand : public GDALMajorObject
                                       GDALRIOResampleAlg eInterpolation,
                                       double *pdfRealValue,
                                       double *pdfImagValue = nullptr) const;
+
+    class WindowIterator
+    {
+      public:
+        using iterator_category = std::input_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+
+        using value_type = GDALRasterWindow;
+        using pointer = value_type *;
+        using reference = value_type &;
+
+        WindowIterator(int nRasterXSize, int nRasterYSize, int nBlockXSize,
+                       int nBlockYSize, int nRow, int nCol);
+
+        bool operator==(const WindowIterator &other) const;
+
+        bool operator!=(const WindowIterator &other) const;
+
+        value_type operator*() const;
+
+        WindowIterator &operator++();
+
+      private:
+        int m_nRasterXSize;
+        int m_nRasterYSize;
+        int m_nBlockXSize;
+        int m_nBlockYSize;
+        int m_row;
+        int m_col;
+    };
+
+    class WindowIteratorWrapper
+    {
+      public:
+        WindowIteratorWrapper(const GDALRasterBand &band);
+
+        WindowIterator begin() const;
+
+        WindowIterator end() const;
+
+      private:
+        int m_nRasterXSize;
+        int m_nRasterYSize;
+        int m_nBlockXSize;
+        int m_nBlockYSize;
+    };
+
+    WindowIteratorWrapper Windows() const;
 
 #ifndef DOXYGEN_XML
     void ReportError(CPLErr eErrClass, CPLErrorNum err_no, const char *fmt,

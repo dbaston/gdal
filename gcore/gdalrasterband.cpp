@@ -9524,6 +9524,88 @@ const char *GDALRasterBand::GetMetadataItem(const char *pszName,
 }
 
 /************************************************************************/
+/*                            WindowIterator                            */
+/************************************************************************/
+
+GDALRasterBand::WindowIterator::WindowIterator(int nRasterXSize,
+                                               int nRasterYSize,
+                                               int nBlockXSize, int nBlockYSize,
+                                               int nRow, int nCol)
+    : m_nRasterXSize(nRasterXSize), m_nRasterYSize(nRasterYSize),
+      m_nBlockXSize(nBlockXSize), m_nBlockYSize(nBlockYSize), m_row(nRow),
+      m_col(nCol)
+{
+}
+
+bool GDALRasterBand::WindowIterator::operator==(
+    const WindowIterator &other) const
+{
+    return m_row == other.m_row && m_col == other.m_col &&
+           m_nRasterXSize == other.m_nRasterXSize &&
+           m_nRasterYSize == other.m_nRasterYSize &&
+           m_nBlockXSize == other.m_nBlockXSize &&
+           m_nBlockYSize == other.m_nBlockYSize;
+}
+
+bool GDALRasterBand::WindowIterator::operator!=(
+    const WindowIterator &other) const
+{
+    return !(*this == other);
+}
+
+GDALRasterBand::WindowIterator::value_type
+GDALRasterBand::WindowIterator::operator*() const
+{
+    GDALRasterWindow ret;
+    ret.nXOff = m_col * m_nBlockXSize;
+    ret.nYOff = m_row * m_nBlockYSize;
+    ret.nXSize = std::min(m_nBlockXSize, m_nRasterXSize - ret.nXOff);
+    ret.nYSize = std::min(m_nBlockYSize, m_nRasterYSize - ret.nYOff);
+
+    return ret;
+}
+
+GDALRasterBand::WindowIterator &GDALRasterBand::WindowIterator::operator++()
+{
+    m_col++;
+    if (m_col * m_nBlockXSize >= m_nRasterXSize)
+    {
+        m_col = 0;
+        m_row++;
+    }
+    return *this;
+}
+
+GDALRasterBand::WindowIteratorWrapper::WindowIteratorWrapper(
+    const GDALRasterBand &band)
+    : m_nRasterXSize(band.GetDataset()->GetRasterXSize()),
+      m_nRasterYSize(band.GetDataset()->GetRasterYSize()), m_nBlockXSize(-1),
+      m_nBlockYSize(-1)
+{
+    band.GetBlockSize(&m_nBlockXSize, &m_nBlockYSize);
+}
+
+GDALRasterBand::WindowIterator
+GDALRasterBand::WindowIteratorWrapper::begin() const
+{
+    return WindowIterator(m_nRasterXSize, m_nRasterYSize, m_nBlockXSize,
+                          m_nBlockYSize, 0, 0);
+}
+
+GDALRasterBand::WindowIterator
+GDALRasterBand::WindowIteratorWrapper::end() const
+{
+    return WindowIterator(m_nRasterXSize, m_nRasterYSize, m_nBlockXSize,
+                          m_nBlockYSize,
+                          DIV_ROUND_UP(m_nRasterYSize, m_nBlockYSize), 0);
+}
+
+GDALRasterBand::WindowIteratorWrapper GDALRasterBand::Windows() const
+{
+    return WindowIteratorWrapper(*this);
+}
+
+/************************************************************************/
 /*                     GDALMDArrayFromRasterBand                        */
 /************************************************************************/
 
