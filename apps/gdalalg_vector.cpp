@@ -33,6 +33,7 @@
 #include "gdalalg_vector_partition.h"
 #include "gdalalg_vector_reproject.h"
 #include "gdalalg_vector_segmentize.h"
+#include "gdalalg_vector_sample.h"
 #include "gdalalg_vector_select.h"
 #include "gdalalg_vector_set_geom_type.h"
 #include "gdalalg_vector_simplify.h"
@@ -88,6 +89,7 @@ class GDALVectorAlgorithm final : public GDALAlgorithm
         RegisterSubAlgorithm<GDALVectorPartitionAlgorithmStandalone>();
         RegisterSubAlgorithm<GDALVectorReprojectAlgorithmStandalone>();
         RegisterSubAlgorithm<GDALVectorSegmentizeAlgorithmStandalone>();
+        RegisterSubAlgorithm<GDALVectorSampleAlgorithmStandalone>();
         RegisterSubAlgorithm<GDALVectorSelectAlgorithmStandalone>();
         RegisterSubAlgorithm<GDALVectorSetGeomTypeAlgorithmStandalone>();
         RegisterSubAlgorithm<GDALVectorSimplifyAlgorithmStandalone>();

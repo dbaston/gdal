@@ -25,10 +25,12 @@
 #include "gdalalg_vector_filter.h"
 #include "gdalalg_vector_geom.h"
 #include "gdalalg_vector_info.h"
+#include "gdalalg_vector_limit.h"
 #include "gdalalg_vector_make_valid.h"
 #include "gdalalg_vector_partition.h"
 #include "gdalalg_vector_reproject.h"
 #include "gdalalg_vector_segmentize.h"
+#include "gdalalg_vector_sample.h"
 #include "gdalalg_vector_select.h"
 #include "gdalalg_vector_set_geom_type.h"
 #include "gdalalg_vector_simplify.h"
@@ -165,10 +167,12 @@ void GDALVectorPipelineAlgorithm::RegisterAlgorithms(
 
     registry.Register<GDALVectorFilterAlgorithm>();
     registry.Register<GDALVectorGeomAlgorithm>();
+    registry.Register<GDALVectorLimitAlgorithm>();
     registry.Register<GDALVectorMakeValidAlgorithm>();
     registry.Register<GDALVectorPartitionAlgorithm>();
     registry.Register<GDALVectorSegmentizeAlgorithm>();
 
+    registry.Register<GDALVectorSampleAlgorithm>();
     registry.Register<GDALVectorSelectAlgorithm>(
         addSuffixIfNeeded(GDALVectorSelectAlgorithm::NAME));
 
@@ -347,13 +351,23 @@ OGRFeature *GDALVectorPipelineOutputLayer::GetNextRawFeature()
             std::unique_ptr<OGRFeature>(m_srcLayer.GetNextFeature());
         if (!poSrcFeature)
             return nullptr;
-        TranslateFeature(std::move(poSrcFeature), m_pendingFeatures);
+        if (!TranslateFeature(std::move(poSrcFeature), m_pendingFeatures))
+            return nullptr;
         if (!m_pendingFeatures.empty())
             break;
     }
     OGRFeature *poFeature = m_pendingFeatures[0].release();
     m_idxInPendingFeatures = 1;
     return poFeature;
+}
+
+/************************************************************************/
+/*                         GDALVectorOutputDataset                      */
+/************************************************************************/
+
+int GDALVectorOutputDataset::TestCapability(const char *) const
+{
+    return 0;
 }
 
 /************************************************************************/
@@ -462,8 +476,14 @@ OGRFeature *GDALVectorPipelineOutputDataset::GetNextFeature(
         if (iterToDstLayer != m_mapSrcLayerToNewLayer.end())
         {
             m_belongingLayer = iterToDstLayer->second;
-            m_belongingLayer->TranslateFeature(std::move(poSrcFeature),
-                                               m_pendingFeatures);
+            bool bContinue = m_belongingLayer->TranslateFeature(
+                std::move(poSrcFeature), m_pendingFeatures);
+
+            if (!bContinue)
+            {
+                return nullptr;
+            }
+
             if (!m_pendingFeatures.empty())
                 break;
         }

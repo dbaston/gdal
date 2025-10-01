@@ -62,7 +62,7 @@ class CPL_DLL OGRWarpedLayer final : public OGRLayerDecorator,
             poReversedCT /* may be NULL, ownership acquired by OGRWarpedLayer */);
     ~OGRWarpedLayer() override;
 
-    void TranslateFeature(
+    bool TranslateFeature(
         std::unique_ptr<OGRFeature> poSrcFeature,
         std::vector<std::unique_ptr<OGRFeature>> &apoOutFeatures) override;
 

@@ -11,6 +11,7 @@
  ****************************************************************************/
 
 #include "gdalalg_raster_as_features.h"
+#include "gdalalg_vector_pipeline.h"
 
 #include "cpl_conv.h"
 #include "gdal_priv.h"
@@ -95,36 +96,6 @@ struct RasterAsFeaturesOptions
     bool skipNoData{false};
     std::vector<int> bands{};
 };
-
-class GDALRasterToVectorPipelineOutputDataset final : public GDALDataset
-{
-
-  public:
-    int GetLayerCount() const override
-    {
-        return static_cast<int>(m_layers.size());
-    }
-
-    const OGRLayer *GetLayer(int idx) const override
-    {
-        return m_layers[idx].get();
-    }
-
-    int TestCapability(const char *) const override;
-
-    void AddLayer(std::unique_ptr<OGRLayer> layer)
-    {
-        m_layers.emplace_back(std::move(layer));
-    }
-
-  private:
-    std::vector<std::unique_ptr<OGRLayer>> m_layers{};
-};
-
-int GDALRasterToVectorPipelineOutputDataset::TestCapability(const char *) const
-{
-    return 0;
-}
 
 class GDALRasterAsFeaturesLayer final : public OGRLayer
 {
@@ -458,8 +429,7 @@ bool GDALRasterAsFeaturesAlgorithm::RunStep(GDALPipelineStepRunContext &)
         }
         else
         {
-            poRetDS =
-                std::make_unique<GDALRasterToVectorPipelineOutputDataset>();
+            poRetDS = std::make_unique<GDALVectorOutputDataset>();
         }
 
         if (!poRetDS)

@@ -78,7 +78,7 @@ class GDALVectorExplodeCollectionsAlgorithmLayer final
 
     CPL_DISALLOW_COPY_ASSIGN(GDALVectorExplodeCollectionsAlgorithmLayer)
 
-    void TranslateFeature(
+    bool TranslateFeature(
         std::unique_ptr<OGRFeature> poSrcFeature,
         std::vector<std::unique_ptr<OGRFeature>> &apoOutFeatures) override;
 
@@ -169,7 +169,7 @@ GDALVectorExplodeCollectionsAlgorithmLayer::
 /*                          TranslateFeature()                          */
 /************************************************************************/
 
-void GDALVectorExplodeCollectionsAlgorithmLayer::TranslateFeature(
+bool GDALVectorExplodeCollectionsAlgorithmLayer::TranslateFeature(
     std::unique_ptr<OGRFeature> poSrcFeature,
     std::vector<std::unique_ptr<OGRFeature>> &apoOutFeatures)
 {
@@ -261,6 +261,8 @@ void GDALVectorExplodeCollectionsAlgorithmLayer::TranslateFeature(
             apoOutFeatures.push_back(std::move(poCurFeature));
         }
     }
+
+    return true;
 }
 
 }  // namespace

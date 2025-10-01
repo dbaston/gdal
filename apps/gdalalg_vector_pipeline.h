@@ -182,6 +182,35 @@ class GDALVectorPipelineOutputLayer /* non final */
 };
 
 /************************************************************************/
+/*                  GDALVectorOutputDataset                             */
+/************************************************************************/
+
+class GDALVectorOutputDataset final : public GDALDataset
+{
+
+  public:
+    int GetLayerCount() const override
+    {
+        return static_cast<int>(m_layers.size());
+    }
+
+    const OGRLayer *GetLayer(int idx) const override
+    {
+        return m_layers[idx].get();
+    }
+
+    int TestCapability(const char *) const override;
+
+    void AddLayer(std::unique_ptr<OGRLayer> layer)
+    {
+        m_layers.emplace_back(std::move(layer));
+    }
+
+  private:
+    std::vector<std::unique_ptr<OGRLayer>> m_layers{};
+};
+
+/************************************************************************/
 /*                  GDALVectorPipelinePassthroughLayer                  */
 /************************************************************************/
 
@@ -204,11 +233,12 @@ class GDALVectorPipelinePassthroughLayer /* non final */
         return m_srcLayer.TestCapability(pszCap);
     }
 
-    void TranslateFeature(
+    bool TranslateFeature(
         std::unique_ptr<OGRFeature> poSrcFeature,
         std::vector<std::unique_ptr<OGRFeature>> &apoOutFeatures) override
     {
         apoOutFeatures.push_back(std::move(poSrcFeature));
+        return true;
     }
 };
 

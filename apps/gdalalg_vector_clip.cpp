@@ -95,7 +95,7 @@ class GDALVectorClipAlgorithmLayer final : public GDALVectorPipelineOutputLayer
         return m_poFeatureDefn;
     }
 
-    void TranslateFeature(
+    bool TranslateFeature(
         std::unique_ptr<OGRFeature> poSrcFeature,
         std::vector<std::unique_ptr<OGRFeature>> &apoOutFeatures) override
     {
@@ -106,7 +106,7 @@ class GDALVectorClipAlgorithmLayer final : public GDALVectorPipelineOutputLayer
             poIntersection.reset(poGeom->Intersection(m_poClipGeom.get()));
         }
         if (!poIntersection)
-            return;
+            return true;
         poIntersection->assignSpatialReference(
             m_poFeatureDefn->GetGeomFieldDefn(0)->GetSpatialRef());
 
@@ -156,6 +156,8 @@ class GDALVectorClipAlgorithmLayer final : public GDALVectorPipelineOutputLayer
             poSrcFeature->SetGeometryDirectly(poIntersection.release());
             apoOutFeatures.push_back(std::move(poSrcFeature));
         }
+
+        return true;
     }
 
     int TestCapability(const char *pszCap) const override

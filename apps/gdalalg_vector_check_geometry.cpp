@@ -108,7 +108,7 @@ class GDALInvalidLocationLayer final : public GDALVectorPipelineOutputLayer
         return poErrorFeature;
     }
 
-    void TranslateFeature(
+    bool TranslateFeature(
         std::unique_ptr<OGRFeature> poSrcFeature,
         std::vector<std::unique_ptr<OGRFeature>> &apoOutputFeatures) override
     {
@@ -247,6 +247,8 @@ class GDALInvalidLocationLayer final : public GDALVectorPipelineOutputLayer
             poErrorFeature->SetFID(poSrcFeature->GetFID());
             apoOutputFeatures.push_back(std::move(poErrorFeature));
         }
+
+        return true;
     }
 
     CPL_DISALLOW_COPY_ASSIGN(GDALInvalidLocationLayer)
