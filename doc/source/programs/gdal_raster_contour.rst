@@ -26,25 +26,12 @@ Since GDAL 3.12, this algorithm can be part of a :ref:`gdal_pipeline`.
 
 The following options are available:
 
-Standard options
-++++++++++++++++
-
-
-.. include:: gdal_options/of_vector.rst
-
-.. include:: gdal_options/co.rst
-
-.. include:: options/lco.rst
-
-.. include:: gdal_options/overwrite.rst
+Program-specific options
+++++++++++++++++++++++++
 
 .. option:: -b, --band <BAND>
 
     Picks a particular band to get the DEM from. Defaults to band 1.
-
-.. option:: --nln, --output-layer <OUTPUT-LAYER>
-
-    Provides a name for the output vector layer. Defaults to "contour".
 
 .. option:: --elevation-name <ELEVATION-NAME>
 
@@ -92,12 +79,24 @@ Standard options
 
     Group n features per transaction (default 100 000).
 
-Advanced options
+Standard options
 ++++++++++++++++
 
-.. include:: gdal_options/oo.rst
+.. include:: gdal_options/pipeline_raster_in.rst
 
-.. include:: gdal_options/if.rst
+.. include:: gdal_options/co.rst
+
+.. include:: gdal_options/lco.rst
+
+.. include:: gdal_options/of_vector.rst
+
+.. include:: gdal_options/output-oo.rst
+
+.. include:: gdal_options/overwrite.rst
+
+.. option:: --nln, --output-layer <OUTPUT-LAYER>
+
+    Provides a name for the output vector layer. Defaults to "contour".
 
 
 .. GDALG output (on-the-fly / streamed dataset)

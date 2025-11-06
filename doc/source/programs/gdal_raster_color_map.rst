@@ -27,14 +27,8 @@ from a DEM.
 
 This subcommand is also available as a potential step of :ref:`gdal_raster_pipeline`
 
-Standard options
-++++++++++++++++
-
-.. include:: gdal_options/of_raster_create_copy.rst
-
-.. include:: gdal_options/co.rst
-
-.. include:: gdal_options/overwrite.rst
+Program-specific options
+++++++++++++++++++++++++
 
 .. option:: -b, --band <BAND>
 
@@ -118,6 +112,16 @@ Standard options
 
         This option is only taken into account when :option:`--color-map`
         is specified.
+
+
+Standard options
+++++++++++++++++
+
+.. include:: gdal_options/of_raster_create_copy.rst
+
+.. include:: gdal_options/co.rst
+
+.. include:: gdal_options/overwrite.rst
 
 .. GDALG output (on-the-fly / streamed dataset)
 .. --------------------------------------------

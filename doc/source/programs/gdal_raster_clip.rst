@@ -31,14 +31,8 @@ resolution is preserved. Bounds are rounded to match whole pixel locations
 
 ``clip`` can also be used as a step of :ref:`gdal_raster_pipeline`.
 
-Standard options
-++++++++++++++++
-
-.. include:: gdal_options/of_raster_create_copy.rst
-
-.. include:: gdal_options/co.rst
-
-.. include:: gdal_options/overwrite.rst
+Program-specific options
+++++++++++++++++++++++++
 
 .. option:: --bbox <xmin>,<ymin>,<xmax>,<ymax>
 
@@ -136,16 +130,23 @@ Standard options
     than the input dataset. Output pixels from areas beyond the input extent will be set to
     zero or the NoData value of the input dataset.
 
-.. option:: --addalpha
+.. option:: --add-alpha
 
     Adds an alpha mask band to the destination when the source raster has none.
 
-Advanced options
+Standard options
 ++++++++++++++++
 
 .. include:: gdal_options/oo.rst
 
 .. include:: gdal_options/if.rst
+
+.. include:: gdal_options/of_raster_create_copy.rst
+
+.. include:: gdal_options/co.rst
+
+.. include:: gdal_options/overwrite.rst
+
 
 Examples
 --------

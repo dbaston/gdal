@@ -34,25 +34,10 @@ step to generate proper mask bands.
 
 Example footprint calculated with default options of :program:`gdal raster footprint`.
 
-The following options are available:
+Program-specific options
+++++++++++++++++++++++++
 
-.. include:: gdal_options/of_vector.rst
-
-.. include:: gdal_options/co.rst
-
-.. include:: gdal_options/lco.rst
-
-.. option:: --output-layer <OUTPUT-LAYER>
-
-    Output layer name. Defaults to ``footprint``.
-
-.. include:: gdal_options/overwrite.rst
-
-.. option:: --append
-
-    Whether appending features to existing layer(s) is allowed
-
-.. option:: -b <band>
+.. option:: -b, --band <band>
 
     Select an input <band> to be processed. Bands are numbered from 1.
     Multiple :option:`-b` switches may be used to select a set of input bands.
@@ -68,7 +53,11 @@ The following options are available:
     ``intersection`` means that a pixel is valid only if it is valid for all
     selected bands.
 
-.. option:: --ovr <index>
+.. option:: --output-layer <OUTPUT-LAYER>
+
+    Output layer name. Defaults to ``footprint``.
+
+.. option:: --overview <index>
 
    To specify which overview level of source file must be used, when overviews
    are available on the source raster. By default the full resolution level is
@@ -158,6 +147,24 @@ The following options are available:
     Enables writing the absolute path of the input dataset. By default, the
     filename is written in the location field exactly as specified on the
     command line.
+
+
+Standard options
+++++++++++++++++
+
+.. include:: gdal_options/pipeline_raster_in.rst
+
+.. include:: gdal_options/of_vector.rst
+
+.. include:: gdal_options/co.rst
+
+.. include:: gdal_options/lco.rst
+
+.. include:: gdal_options/overwrite.rst
+
+.. option:: --append
+
+    Whether appending features to existing layer(s) is allowed
 
 Post-vectorization geometric operations are applied in the following order:
 

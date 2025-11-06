@@ -27,22 +27,8 @@ This is often used to "fix up" lossy compressed air photos so that color pixels 
 treated as transparent when mosaicing. The output format must use lossless compression
 if either alpha band or mask band is not set.
 
-Standard options
-++++++++++++++++
-
-.. include:: gdal_options/of_raster_create.rst
-
-.. include:: gdal_options/co.rst
-
-.. include:: gdal_options/overwrite.rst
-
-.. option:: --update
-
-    If only an input dataset is specified, ask for it to be opened in update mode
-    If an output dataset is specified, ask for it to be opened in update mode
-    (this implies that it already exists).
-    Note that updating an existing dataset may lead to file size increase if
-    the dataset is compressed, and/or quality loss if lossy compression is used.
+Program-specific Options
+++++++++++++++++++++++++
 
 .. option:: --color <c1>,<c2>,<c3>...<cn>|black|white
 
@@ -91,6 +77,24 @@ Standard options
     algorithm and will work with concave areas. It requires creating a temporary
     dataset and is slower than ``twopasses``. When a non-zero value for :option:`--pixel-distance`
     is used, ``twopasses`` is actually called as an initial step of ``floodfill``.
+
+Standard options
+++++++++++++++++
+
+.. include:: gdal_options/of_raster_create.rst
+
+.. include:: gdal_options/co.rst
+
+.. include:: gdal_options/overwrite.rst
+
+.. option:: --update
+
+    If only an input dataset is specified, ask for it to be opened in update mode
+    If an output dataset is specified, ask for it to be opened in update mode
+    (this implies that it already exists).
+    Note that updating an existing dataset may lead to file size increase if
+    the dataset is compressed, and/or quality loss if lossy compression is used.
+
 
 
 Examples

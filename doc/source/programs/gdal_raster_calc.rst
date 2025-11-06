@@ -41,13 +41,8 @@ disabled with :option:`--no-check-srs`.
 
 Since GDAL 3.12, this algorithm can be part of a :ref:`gdal_pipeline` or :ref:`gdal_raster_pipeline`.
 
-The following options are available:
-
-.. include:: gdal_options/of_raster_create_copy.rst
-
-.. include:: gdal_options/co.rst
-
-.. include:: gdal_options/overwrite.rst
+Program-Specific Options
+++++++++++++++++++++++++
 
 .. option:: -i [<name>=]<input>
 
@@ -135,6 +130,15 @@ The following options are available:
     .. versionadded:: 3.12
 
     If set, a NoData value in any input dataset used an in expression will cause the output value to be NoData.
+
+Standard Options
+++++++++++++++++
+
+.. include:: gdal_options/pipeline_raster_in.rst
+
+.. include:: gdal_options/pipeline_raster_out.rst
+
+.. include:: gdal_options/ot.rst   
 
 .. GDALG output (on-the-fly / streamed dataset)
 .. --------------------------------------------

@@ -26,29 +26,16 @@ from valid pixels around the edges of the area.
 This subcommand is also available as a potential step of :ref:`gdal_raster_pipeline`
 (since GDAL 3.12)
 
-Options
--------
 
-The following options are available:
+Program-specific options
+++++++++++++++++++++++++
 
-.. include:: gdal_options/of_raster_create_copy.rst
-
-.. include:: gdal_options/co.rst
-
-.. include:: gdal_options/overwrite.rst
-
-.. option:: --output-layer <OUTPUT-LAYER>
-
-    Output layer name.
-
-.. include:: gdal_options/overwrite.rst
-
-.. option:: -b <BAND>
+.. option:: -b, --band <BAND>
 
     Select an input <BAND> to be processed. Bands are numbered from 1.
     Default is the first band of the input dataset.
 
-.. option:: -max-distance <MAX_DISTANCE>
+.. option:: --max-distance <MAX_DISTANCE>
 
     Specifies the maximum distance (in pixels) that the algorithm will search
     out for values to interpolate. Default is 100 pixels.
@@ -70,6 +57,15 @@ The following options are available:
 
     Use the first band of the specified file as a
     validity mask (zero is invalid, non-zero is valid).
+
+
+Standard options
+++++++++++++++++
+
+.. include:: gdal_options/pipeline_raster_in.rst
+
+.. include:: gdal_options/pipeline_raster_out.rst
+
 
 .. GDALG output (on-the-fly / streamed dataset)
 .. --------------------------------------------

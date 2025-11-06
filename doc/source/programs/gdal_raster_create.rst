@@ -38,46 +38,18 @@ can be useful to create a file of minimum size.`
 :program:`gdal raster create` can be used also in special cases, like creating
 a PDF file from a XML composition file.
 
-Options
-+++++++
-
-.. option:: --like, --like <DATASET>
-
-    Name of GDAL input dataset that serves as a template for default values of
-    options :option:`--size`, :option:`--band-count`, :option:`--datatype`,
-    :option:`--crs`, :option:`--bbox` and :option:`--nodata`.
-    Note that the pixel values will *not* be copied.
-
-.. include:: gdal_options/co.rst
-
-.. include:: gdal_options/overwrite.rst
-
-.. option:: --append
-
-    Append the new raster as a new subdataset to existing output file.
-    Only works with drivers that support adding subdatasets such as
-    :ref:`raster.gtiff` and :ref:`raster.gpkg`
-
-.. option:: --size <xsize>,<ysize>
-
-    Set the size of the output file in pixels. First value is width. Second one
-    is height.
+Program-specific options
+++++++++++++++++++++++++
 
 .. option:: --band-count <count>
 
     Number of bands. Defaults to 1.
 
-.. include:: gdal_options/ot.rst
+.. option:: --bbox <xmin>,<ymin>,<xmax>,ymax>
 
-.. option:: --nodata <value>
-
-    Sets the nodata value.
-
-    ``null`` or ``none`` can be specified to unset the existing nodata value of the
-    :option:`--like` dataset if it is set.
-    ``nan``, ``inf`` or ``-inf`` are also accepted for floating point rasters
-    to respectively mean the special values not-a-number, positive infinity and
-    minus infinity.
+    Sets the spatial bounding box, in CRS units.
+    'x' is longitude values for geographic CRS and easting for projected CRS.
+    'y' is latitude values for geographic CRS and northing for projected CRS.
 
 .. option:: --burn <value>
 
@@ -100,11 +72,12 @@ Options
 
     Note that the spatial extent is also left unchanged.
 
-.. option:: --bbox <xmin>,<ymin>,<xmax>,ymax>
+.. option:: --like, --like <DATASET>
 
-    Sets the spatial bounding box, in CRS units.
-    'x' is longitude values for geographic CRS and easting for projected CRS.
-    'y' is latitude values for geographic CRS and northing for projected CRS.
+    Name of GDAL input dataset that serves as a template for default values of
+    options :option:`--size`, :option:`--band-count`, :option:`--datatype`,
+    :option:`--crs`, :option:`--bbox` and :option:`--nodata`.
+    Note that the pixel values will *not* be copied.
 
 .. option:: --metadata <KEY>=<VALUE>
 
@@ -119,6 +92,38 @@ Options
 
     Create same overview levels as input dataset (but with empty content).
     Requires :option:`--like` to be specified.
+
+.. option:: --nodata <value>
+
+    Sets the nodata value.
+
+    ``null`` or ``none`` can be specified to unset the existing nodata value of the
+    :option:`--like` dataset if it is set.
+    ``nan``, ``inf`` or ``-inf`` are also accepted for floating point rasters
+    to respectively mean the special values not-a-number, positive infinity and
+    minus infinity.
+
+.. option:: --size <xsize>,<ysize>
+
+    Set the size of the output file in pixels. First value is width. Second one
+    is height.
+
+Standard options
+++++++++++++++++
+
+.. include:: gdal_options/co.rst
+
+.. include:: gdal_options/oo.rst
+
+.. include:: gdal_options/if.rst
+
+.. include:: gdal_options/of_raster_create_copy.rst
+
+.. include:: gdal_options/overwrite.rst
+
+.. include:: gdal_options/append_raster.rst
+
+.. include:: gdal_options/ot.rst
 
 
 Examples

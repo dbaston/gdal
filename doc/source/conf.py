@@ -81,6 +81,7 @@ author = "Frank Warmerdam, Even Rouault, and others"
 extensions = [
     "breathe",
     "configoptions",
+    "check_program_options",
     "driverproperties",
     "cli_example",
     "doctestplus_gdal",
@@ -104,6 +105,7 @@ exclude_patterns = [
     "programs/options/*.rst",
     "api/python/modules.rst",
     "gdal_rtd/README.md",
+    "programs/gdal_options/*.rst",
 ]
 
 # Prevents double hyphen (--) to be replaced by Unicode long dash character
