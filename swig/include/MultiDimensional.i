@@ -1714,6 +1714,7 @@ public:
 #if defined(SWIGPYTHON)
 %apply (int object_list_count, GDALMDArrayHS **poObjects) {(int nArrays, GDALMDArrayHS **ahArrays)};
 %apply (int nUsages, GDALRATFieldUsage *paeUsages) {(int nUsages, GDALRATFieldUsage *paeUsages)};
+%feature("kwargs") CreateRasterAttributeTableFromMDArrays;
 %newobject CreateRasterAttributeTableFromMDArrays;
 %inline %{
 GDALRasterAttributeTableShadow* CreateRasterAttributeTableFromMDArrays(

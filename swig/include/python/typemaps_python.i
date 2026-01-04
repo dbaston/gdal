@@ -1455,7 +1455,7 @@ static char **CSLFromPyMapping( PyObject *pyObj, int *pbErr )
         SWIG_fail;
     }
   }
-  else {
+  else if ( $input != Py_None ) {
     PyErr_SetString(PyExc_TypeError,"Argument must be dictionary or sequence of strings");
     SWIG_fail;
   }
@@ -1575,7 +1575,7 @@ static PyObject* CSLToList( char** stringarray, bool *pbErr )
  * is NULL then the function needs to define a default
  * value.
  */
-%define OPTIONAL_POD(type,argstring)
+%define OPTIONAL_POD(type,argstring,checker)
 %typemap(in) (type *optional_##type) ( type val )
 {
   /* %typemap(in) (type *optional_##type) */
@@ -1593,13 +1593,13 @@ static PyObject* CSLToList( char** stringarray, bool *pbErr )
 %typemap(typecheck,precedence=0) (type *optional_##type)
 {
   /* %typemap(typecheck,precedence=0) (type *optionalInt) */
-  $1 = (($input==Py_None) || my_PyCheck_##type($input)) ? 1 : 0;
+  $1 = (($input==Py_None) || ##checker($input)) ? 1 : 0;
 }
 %enddef
 
-OPTIONAL_POD(int,i);
-OPTIONAL_POD(GIntBig,L);
-OPTIONAL_POD(double, d);
+OPTIONAL_POD(int,i,PyLong_Check);
+OPTIONAL_POD(GIntBig,L,PyLong_Check);
+OPTIONAL_POD(double, d,PyFloat_Check);
 
 /*
  * Typedef const char * <- Any object.
@@ -3246,7 +3246,7 @@ OBJECT_LIST_INPUT(GDALEDTComponentHS)
 %typemap(typecheck,precedence=0) (GDALDataType *optional_GDALDataType)
 {
   /* %typemap(typecheck,precedence=0) (GDALDataType *optional_GDALDataType) */
-  $1 = (($input==Py_None) || my_PyCheck_int($input)) ? 1 : 0;
+  $1 = (($input==Py_None) || PyCheck_int($input)) ? 1 : 0;
 }
 
 

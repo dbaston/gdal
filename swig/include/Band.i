@@ -608,6 +608,8 @@ CPLErr SetDefaultHistogram( double min, double max,
 #endif /* #if defined(SWIGPYTHON) */
 
 #if defined(SWIGPYTHON)
+%feature( "kwargs" ) GetDataCoverageStatus;
+
     // Check with other bindings how to return both the integer status and
     // *pdfDataPct
 

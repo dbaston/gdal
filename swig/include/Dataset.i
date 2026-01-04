@@ -293,6 +293,8 @@ public:
 #endif
 
 #ifdef SWIGPYTHON
+%feature("kwargs") _RunCloseWithoutDestroying;
+
   CPLErr _RunCloseWithoutDestroying(GDALProgressFunc callback = NULL, void* callback_data=NULL) {
      CPLErr eErr = GDALDatasetRunCloseWithoutDestroyingEx(self, callback, callback_data);
      if (eErr != CE_None && CPLGetLastErrorType() == CE_None ) {
@@ -606,6 +608,9 @@ public:
 #if defined(SWIGCSHARP)
 %apply int PINNED[] {int *pband_list};
 #else
+#ifdef SWIGPYTHON
+%feature("kwargs") AdviseRead;
+#endif
 %apply (int nList, int *pList ) { (int band_list, int *pband_list ) };
 #endif
 CPLErr AdviseRead(  int xoff, int yoff, int xsize, int ysize,

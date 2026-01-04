@@ -43,9 +43,6 @@ typedef const char StringAsByteArray;
 
 #ifdef SWIGCSHARP
 %include swig_csharp_extensions.i
-#endif
-
-#ifndef SWIGJAVA
 %feature("compactdefaultargs");
 #endif
 
@@ -3750,6 +3747,9 @@ public:
 #ifdef SWIGJAVA
   void GetPoint(int iPoint, double argout[3]) {
 #else
+#ifdef SWIGPYTHON
+%feature ("kwargs") GetPoint;
+#endif
   void GetPoint(int iPoint = 0, double argout[3] = NULL) {
 #endif
     OGR_G_GetPoint( self, iPoint, argout+0, argout+1, argout+2 );
@@ -3758,6 +3758,9 @@ public:
 #ifdef SWIGJAVA
   void GetPointZM(int iPoint, double argout[4]) {
 #else
+#ifdef SWIGPYTHON
+%feature ("kwargs") GetPointZM;
+#endif
   void GetPointZM(int iPoint = 0, double argout[4] = NULL) {
 #endif
       OGR_G_GetPointZM( self, iPoint, argout+0, argout+1, argout+2, argout+3 );
@@ -3766,6 +3769,9 @@ public:
 #ifdef SWIGJAVA
   void GetPoint_2D(int iPoint, double argout[2]) {
 #else
+#ifdef SWIGPYTHON
+%feature ("kwargs") GetPoint_2D;
+#endif
   void GetPoint_2D(int iPoint = 0, double argout[2] = NULL) {
 #endif
     OGR_G_GetPoint( self, iPoint, argout+0, argout+1, NULL );

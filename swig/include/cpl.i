@@ -36,6 +36,9 @@ typedef char retStringAndCPLFree;
 %}
 %clear (const char *message);
 
+#ifdef SWIGPYTHON
+%feature("kwargs") SetErrorHandler;
+#endif
 %inline %{
   CPLErr SetErrorHandler( CPLErrorHandler pfnErrorHandler = NULL, void* user_data = NULL )
   {
@@ -90,6 +93,9 @@ void CPL_STDCALL PyCPLErrorHandler(CPLErr eErrClass, CPLErrorNum err_no, const c
     $action
 }
 
+#ifdef SWIGPYTHON
+%feature("kwargs") PushErrorHandler;
+#endif
 %inline %{
   CPLErr PushErrorHandler( CPLErrorHandler pfnErrorHandler = NULL, void* user_data = NULL )
   {
@@ -710,14 +716,12 @@ bool VSIAbortPendingUploads(const char *utf8_path );
 %rename (CopyFile) wrapper_VSICopyFile;
 #if defined(SWIGPYTHON)
 %apply (const char* utf8_path_or_none) {(const char* pszSource)};
+%feature( "kwargs" ) wrapper_VSICopyFile;
+%feature( "kwargs" ) CopyFileRestartable;
 #else
 %apply (const char* utf8_path) {(const char* pszSource)};
 #endif
 %apply (const char* utf8_path) {(const char* pszTarget)};
-
-#if defined(SWIGPYTHON)
-%feature( "kwargs" ) wrapper_VSICopyFile;
-#endif
 
 %inline {
 int wrapper_VSICopyFile(const char* pszSource,
@@ -859,6 +863,9 @@ int wrapper_VSIStatL( const char * utf8_path, StatBuf *psStatBufOut, int nFlags 
 #endif
 
 %rename (GetFileMetadata) VSIGetFileMetadata;
+#ifdef SWIGPYTHON
+%feature ("compactdefaultargs") VSIGetFileMetadata;
+#endif
 #if defined(SWIGPYTHON) || defined(SWIGCSHARP)
 %apply (char **dictAndCSLDestroy) { char ** };
 #else
@@ -869,6 +876,9 @@ char** VSIGetFileMetadata( const char *utf8_path, const char* domain,
                            char** options = NULL );
 %clear char **;
 
+#ifdef SWIGPYTHON
+%feature("compactdefaultargs") VSISetFileMetadata;
+#endif
 %rename (SetFileMetadata) VSISetFileMetadata;
 %apply (char **dict) { char ** metadata };
 bool VSISetFileMetadata( const char * utf8_path,
@@ -971,6 +981,9 @@ int     VSIFWriteL( const char *, int, int, VSILFILE *fp );
 
 const char* CPLReadLineL(VSILFILE* fp);
 
+#ifdef SWIGPYTHON
+%feature("compactdefaultargs") VSINetworkStatsGetAsSerializedJSON;
+#endif
 void VSINetworkStatsReset();
 retStringAndCPLFree* VSINetworkStatsGetAsSerializedJSON( char** options = NULL );
 
@@ -1017,6 +1030,9 @@ retStringAndCPLFree* MultipartUploadStart(const char *pszFilename, char** option
 
 %apply (size_t nLen, char *pBuf ) { (size_t nDataLength, const char *pData)};
 
+#ifdef SWIGPYTHON
+%feature("kwargs") MultipartUploadAddPart;
+#endif
 %inline {
 retStringAndCPLFree* MultipartUploadAddPart(const char *pszFilename,
                              const char *pszUploadId,
@@ -1034,6 +1050,9 @@ retStringAndCPLFree* MultipartUploadAddPart(const char *pszFilename,
 
 %apply (char **dict) { char ** partIds };
 
+#ifdef SWIGPYTHON
+%feature("kwargs") MultipartUploadEnd;
+#endif
 %inline {
 bool MultipartUploadEnd(const char *pszFilename,
                         const char *pszUploadId,

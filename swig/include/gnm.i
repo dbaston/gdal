@@ -27,9 +27,6 @@
 
 #ifdef SWIGCSHARP
 %include swig_csharp_extensions.i
-#endif
-
-#ifndef SWIGJAVA
 %feature ("compactdefaultargs");
 #endif
 

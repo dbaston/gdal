@@ -26,9 +26,6 @@
 
 #ifdef SWIGCSHARP
 %include swig_csharp_extensions.i
-#endif
-
-#ifndef SWIGJAVA
 %feature("compactdefaultargs");
 #endif
 
@@ -563,6 +560,8 @@ public:
   }
 
 #ifdef SWIGPYTHON
+%feature( "kwargs" ) FindMatches;
+
   void FindMatches( char** options = NULL, OSRSpatialReferenceShadow*** matches = NULL, int* nvalues = NULL, int** confidence_values = NULL )
   {
         *matches = OSRFindMatches(self, options, nvalues, confidence_values);

@@ -360,6 +360,10 @@ public:
     return GDALAlgorithmGetActualAlgorithm(self);
   }
 
+#ifdef SWIGPYTHON
+%feature( "kwargs" ) Run;
+#endif
+
   bool Run(GDALProgressFunc callback=NULL, void* callback_data=NULL) {
     return GDALAlgorithmRun(self, callback, callback_data);
   }
@@ -373,6 +377,9 @@ public:
     return GDALAlgorithmFinalize(self);
   }
 
+#ifdef SWIGPYTHON
+%feature( "kwargs" ) ParseRunAndFinalize;
+#endif
 %apply (char **options) { char ** args };
   bool ParseRunAndFinalize(char** args, GDALProgressFunc callback=NULL, void* callback_data=NULL) {
     return GDALAlgorithmParseCommandLineArguments(self, args) &&
