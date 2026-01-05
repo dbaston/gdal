@@ -371,7 +371,7 @@ int  SieveFilter( GDALRasterBandShadow *srcBand,
 /************************************************************************/
 
 #ifndef SWIGJAVA
-%feature( "kwargs" ) RegenerateOverviews;
+%feature( "compactdefaultargs" ) RegenerateOverviews;
 #endif /* SWIGJAVA */
 #ifndef SWIGCSHARP
 %apply (int object_list_count, GDALRasterBandShadow **poObjects) {(int overviewBandCount, GDALRasterBandShadow **overviewBands)};

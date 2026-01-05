@@ -12,6 +12,7 @@
 # SPDX-License-Identifier: MIT
 ###############################################################################
 
+import inspect
 import os
 import subprocess
 import sys
@@ -114,7 +115,7 @@ def test_basic_test_5():
 
 
 def test_basic_test_5bis():
-    with pytest.raises(RuntimeError, match="not a string"):
+    with pytest.raises(Exception, match="not a string or os.PathLike"):
         gdal.Open(12345)
 
 
@@ -1191,3 +1192,39 @@ def test_basic_GetDataTypeByName():
 
     # For now, to avoid breaking backwards compatibility
     assert gdal.GetDataTypeName(gdal.GDT_UInt8) == "Byte"
+
+
+def test_basic_argument_names_exposed():
+
+    functions_without_named_arguments = []
+
+    def check_arg_names(obj_coll, name_parts=list()):
+
+        for obj_name, obj in inspect.getmembers(obj_coll):
+            if obj_name.startswith("_"):
+                continue
+
+            obj_name_parts = name_parts + [obj_name]
+
+            if inspect.isfunction(obj):
+                argnames = [
+                    arg
+                    for arg in inspect.signature(obj).parameters.keys()
+                    if arg != "self"
+                ]
+
+                if argnames == ["args", "kwargs"] or argnames == ["args"]:
+                    functions_without_named_arguments.append(".".join(obj_name_parts))
+            elif inspect.isclass(obj):
+                check_arg_names(obj, obj_name_parts)
+
+    check_arg_names(gdal)
+
+    assert functions_without_named_arguments == [
+        "MDArray.ComputeStatistics",
+        "MDArray.GetStatistics",
+        "MDArray.SetOffset",
+        "MDArray.SetScale",
+        "RegenerateOverview",
+        "ReprojectImage",
+    ]

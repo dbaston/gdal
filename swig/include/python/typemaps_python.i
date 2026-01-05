@@ -1277,7 +1277,7 @@ GetCSLStringAsPyDict( char **stringarray, bool bFreeCSL ) {
   /* Note: we exclude explicitly strings, because they can be considered as a sequence of characters, */
   /* which is not desirable since it makes it impossible to define bindings such as SetMetadata(string) and SetMetadata(array_of_string) */
   /* (see #4816) */
-  $1 = ((PyMapping_Check($input) || PySequence_Check($input) ) && !SWIG_CheckState(SWIG_AsCharPtrAndSize($input, 0, NULL, 0)) ) ? 1 : 0;
+  $1 = ($input == Py_None) || ((PyMapping_Check($input) || PySequence_Check($input) ) && !SWIG_CheckState(SWIG_AsCharPtrAndSize($input, 0, NULL, 0)) ) ? 1 : 0;
 }
 
 
@@ -1873,6 +1873,17 @@ static PyObject *XMLTreeToPyList( CPLXMLNode *psTree )
     int alloc = 0;
     char* pszCallbackName = NULL;
     $2 = NULL;
+
+    /* In some cases 0 is passed instead of None. */
+    /* See https://github.com/OSGeo/gdal/pull/219 */
+    if ( PyLong_Check($input) || PyInt_Check($input) )
+    {
+        if( PyLong_AsLong($input) == 0 )
+        {
+            $input = Py_None;
+        }
+    }
+
     if( SWIG_IsOK(SWIG_AsCharPtrAndSize($input, &pszCallbackName, NULL, &alloc)) )
     {
         if( pszCallbackName == NULL || EQUAL(pszCallbackName,"CPLQuietErrorHandler") )

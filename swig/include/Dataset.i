@@ -447,7 +447,7 @@ public:
   // becomes the kwarg name for it.
 #ifndef SWIGCSHARP
 #ifndef SWIGJAVA
-%feature("kwargs") BuildOverviews;
+%feature("compactdefaultargs") BuildOverviews;
 #endif
 %apply (int nList, int* pList) { (int overviewlist, int *pOverviews) };
 #else
@@ -914,10 +914,10 @@ CPLErr AdviseRead(  int xoff, int yoff, int xsize, int ysize,
 
 #if defined(SWIGPYTHON) || defined(SWIGJAVA)
 
-  /* Note that datasources own their layers */
 #ifndef SWIGJAVA
-  %feature( "kwargs" ) CreateLayer;
+%feature ("kwargs") CreateLayer;
 #endif
+  /* Note that datasources own their layers */
   OGRLayerShadow *CreateLayer(const char* name,
               OSRSpatialReferenceShadow* srs=NULL,
               OGRwkbGeometryType geom_type=wkbUnknown,
@@ -931,9 +931,6 @@ CPLErr AdviseRead(  int xoff, int yoff, int xsize, int ysize,
   }
 
   /* Note that datasources own their layers */
-#ifndef SWIGJAVA
-  %feature( "kwargs" ) CreateLayer;
-#endif
   OGRLayerShadow *CreateLayerFromGeomFieldDefn(const char* name,
               OGRGeomFieldDefnShadow* geom_field,
               char** options=0) {
@@ -1077,9 +1074,6 @@ OGRErr AbortSQL() {
     return GDALDatasetAbortSQL(self);
 }
 
-#ifndef SWIGJAVA
-  %feature( "kwargs" ) StartTransaction;
-#endif
   OGRErr StartTransaction(int force = FALSE)
   {
     return GDALDatasetStartTransaction(self, force);

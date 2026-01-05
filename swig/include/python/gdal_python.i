@@ -620,36 +620,36 @@ void wrapper_VSIGetMemFileBuffer(const char *utf8_path, GByte **out, vsi_l_offse
 
 
 %pythonappend VSIFCloseL %{
-    args[0].this = None
+    fp.this = None
 %}
 
 %pythonprepend VSIFCloseL %{
-    if args[0].this is None:
+    if fp.this is None:
         raise ValueError("I/O operation on closed file.")
 %}
 
 %pythonprepend VSIFEofL %{
-    if args[0].this is None:
+    if fp.this is None:
         raise ValueError("I/O operation on closed file.")
 %}
 
 %pythonprepend VSIFFlushL %{
-    if args[0].this is None:
+    if fp.this is None:
         raise ValueError("I/O operation on closed file.")
 %}
 
 %pythonprepend wrapper_VSIFSeekL %{
-    if args[0].this is None:
+    if fp.this is None:
         raise ValueError("I/O operation on closed file.")
 %}
 
 %pythonprepend VSIFTellL %{
-    if args[0].this is None:
+    if fp.this is None:
         raise ValueError("I/O operation on closed file.")
 %}
 
 %pythonprepend VSIFTruncateL %{
-    if args[0].this is None:
+    if fp.this is None:
         raise ValueError("I/O operation on closed file.")
 %}
 
@@ -659,13 +659,13 @@ void wrapper_VSIGetMemFileBuffer(const char *utf8_path, GByte **out, vsi_l_offse
 %}
 
 %feature("pythonprepend") CPLSetThreadLocalConfigOption %{
-    if type(args[1]) in (bool, int, float):
-        args = (args[0], str(args[1]))
+    if type(pszValue) in (bool, int, float):
+        pszValue = str(pszValue)
 %}
 
 %feature("pythonprepend") CPLSetConfigOption %{
-    if type(args[1]) in (bool, int, float):
-        args = (args[0], str(args[1]))
+    if type(pszValue) in (bool, int, float):
+        pszValue = str(pszValue)
 %}
 
 /* -------------------------------------------------------------------- */
@@ -705,7 +705,7 @@ void wrapper_VSIGetMemFileBuffer(const char *utf8_path, GByte **out, vsi_l_offse
 %apply ( int *optional_int ) {(int*)};
 %apply ( GDALDataType *optional_GDALDataType ) {(GDALDataType*)};
 %apply ( GIntBig *optional_GIntBig ) {(GIntBig*)};
-%feature( "kwargs" ) ReadRaster1;
+%feature("compactdefaultargs") ReadRaster1;
   CPLErr ReadRaster1( double xoff, double yoff, double xsize, double ysize,
                      void **buf,
                      int *buf_xsize = 0,
@@ -1334,7 +1334,7 @@ void wrapper_VSIGetMemFileBuffer(const char *utf8_path, GByte **out, vsi_l_offse
 %}
 
 %feature("shadow") ComputeStatistics %{
-def ComputeStatistics(self, *args, **kwargs):
+def ComputeStatistics(self, approx_ok, callback=None, callback_data=None):
     """ComputeStatistics(Band self, bool approx_ok, callback=None, callback_data=None)
 
     Compute image statistics.
@@ -1366,20 +1366,10 @@ def ComputeStatistics(self, *args, **kwargs):
     :py:meth:`SetStatistics`
     """
 
-    if len(args) == 1:
-        kwargs["approx_ok"] = args[0]
-        args = ()
+    if approx_ok not in (0, 1, True, False):
+        raise Exception("approx_ok value should be 0/1/False/True")
 
-    if "approx_ok" in kwargs:
-        # Compatibility with older signature that used int for approx_ok
-        if kwargs["approx_ok"] == 0:
-            kwargs["approx_ok"] = False
-        elif kwargs["approx_ok"] == 1:
-            kwargs["approx_ok"] = True
-        elif isinstance(kwargs["approx_ok"], int):
-            raise Exception("approx_ok value should be 0/1/False/True")
-
-    return $action(self, *args, **kwargs)
+    return $action(self, bool(approx_ok), callback, callback_data)
 %}
 
 %feature("shadow") GetNoDataValue %{
@@ -1436,7 +1426,7 @@ def SetNoDataValue(self, value):
 %}
 
 %feature("shadow") ComputeRasterMinMax %{
-def ComputeRasterMinMax(self, *args, **kwargs):
+def ComputeRasterMinMax(self, approx_ok=False, can_return_none=False, **kwargs):
     """ComputeRasterMinMax(Band self, bool approx_ok=False, bool can_return_none=False) -> (min, max) or None
 
     Computes the minimum and maximum values for this Band.
@@ -1465,37 +1455,26 @@ def ComputeRasterMinMax(self, *args, **kwargs):
     :py:meth:`SetStatistics`
     """
 
-    if len(args) == 1:
-        kwargs["approx_ok"] = args[0]
-        args = ()
-
-    if "approx_ok" in kwargs:
-        # Compatibility with older signature that used int for approx_ok
-        if kwargs["approx_ok"] == 0:
-            kwargs["approx_ok"] = False
-        elif kwargs["approx_ok"] == 1:
-            kwargs["approx_ok"] = True
-        elif isinstance(kwargs["approx_ok"], int):
-            raise Exception("approx_ok value should be 0/1/False/True")
+    if approx_ok not in (True, False, 0, 1):
+        raise Exception("approx_ok value should be 0/1/False/True")
 
     # can_return_null is used in other methods
     if "can_return_null" in kwargs:
-        kwargs["can_return_none"] = kwargs["can_return_null"];
-        del kwargs["can_return_null"]
+        can_return_none = kwargs["can_return_null"];
 
-    if "can_return_none" in kwargs and kwargs["can_return_none"]:
+    if can_return_none:
         try:
-            return $action(self, *args, **kwargs)
+            return $action(self, bool(approx_ok))
         except Exception:
             return None
     else:
-        return $action(self, *args, **kwargs)
+        return $action(self, bool(approx_ok))
 %}
 
 }
 
 %extend GDALDatasetShadow {
-%feature("kwargs") ReadRaster1;
+%feature("compactdefaultargs") ReadRaster1;
 %apply ( void *inPythonObject ) { (void* inputOutputBuf) };
 %apply ( GDALDataType *optional_GDALDataType ) {(GDALDataType*)};
 %apply (int nList, int *pList ) { (int band_list, int *pband_list ) };
@@ -3153,12 +3132,8 @@ def _WarnIfUserHasNotSpecifiedIfUsingOgrExceptions():
 %pythonprepend CreateCopy %{
     _WarnIfUserHasNotSpecifiedIfUsingExceptions()
 
-    if len(args) >= 2 and isinstance(args[1], Band):
-        ds = args[1].GetDataset()
-        if ds:
-            args = [arg for arg in args]
-            args[1] = ds
-            args = tuple(args)
+    if isinstance(src, Band):
+        src = src.GetDataset()
 
 %}
 
@@ -6006,20 +5981,20 @@ def ConfigurePythonLogging(logger_name='gdal', enable_debug=False):
     SetErrorHandler(_pylog_handler)
 
 
-def EscapeString(*args, **kwargs):
+def EscapeString(string_or_bytes, scheme = CPLES_SQL):
     """EscapeString(string_or_bytes, scheme = gdal.CPLES_SQL)"""
-    if isinstance(args[0], bytes):
-        return _gdal.EscapeBinary(*args, **kwargs)
+    if isinstance(string_or_bytes, bytes):
+        return _gdal.EscapeBinary(string_or_bytes, scheme)
     else:
-        return _gdal.wrapper_EscapeString(*args, **kwargs)
+        return _gdal.wrapper_EscapeString(string_or_bytes, scheme)
 
 
-def ApplyVerticalShiftGrid(*args, **kwargs):
+def ApplyVerticalShiftGrid(src_ds, grid_ds, inverse=False, srcUnitToMeter=1.0, dstUnitToMeter=1.0, options=None):
     """ApplyVerticalShiftGrid(Dataset src_ds, Dataset grid_ds, bool inverse=False, double srcUnitToMeter=1.0, double dstUnitToMeter=1.0, char ** options=None) -> Dataset"""
 
     from warnings import warn
     warn('ApplyVerticalShiftGrid() will be removed in GDAL 4.0', DeprecationWarning)
-    return _ApplyVerticalShiftGrid(*args, **kwargs)
+    return _ApplyVerticalShiftGrid(src_ds, grid_ds, inverse, srcUnitToMeter, dstUnitToMeter, options)
 
 
 import contextlib
@@ -6239,7 +6214,7 @@ def Run(*alg, arguments={}, progress=None, **kwargs):
 %}
 
 %feature("shadow") InterpolateAtPoint %{
-def InterpolateAtPoint(self, *args, **kwargs):
+def InterpolateAtPoint(self, pixel, line, interpolation):
     """Return the interpolated value at pixel and line raster coordinates.
        See :cpp:func:`GDALRasterBand::InterpolateAtPoint`.
 
@@ -6261,7 +6236,7 @@ def InterpolateAtPoint(self, *args, **kwargs):
            Interpolated value, or ``None`` if it has any error.
     """
 
-    ret = $action(self, *args, **kwargs)
+    ret = $action(self, pixel, line, interpolation)
     if ret[0] != CE_None:
         return None
 
@@ -6273,7 +6248,7 @@ def InterpolateAtPoint(self, *args, **kwargs):
 %}
 
 %feature("shadow") InterpolateAtGeolocation %{
-def InterpolateAtGeolocation(self, *args, **kwargs):
+def InterpolateAtGeolocation(self, geolocX, geolocY, srs, interpolation):
     """Return the interpolated value at georeferenced coordinates.
        See :cpp:func:`GDALRasterBand::InterpolateAtGeolocation`.
 
@@ -6337,7 +6312,7 @@ def InterpolateAtGeolocation(self, *args, **kwargs):
        135.62  # interpolated value, rtol: 1e-3
     """
 
-    ret = $action(self, *args, **kwargs)
+    ret = $action(self, geolocX, geolocY, srs, interpolation)
     if ret[0] != CE_None:
         return None
 
@@ -6349,7 +6324,7 @@ def InterpolateAtGeolocation(self, *args, **kwargs):
 %}
 
 %feature("shadow") ComputeMinMaxLocation %{
-def ComputeMinMaxLocation(self, *args, **kwargs):
+def ComputeMinMaxLocation(self):
     """Compute the min/max values for a band, and their location.
 
        Pixels whose value matches the nodata value or are masked by the mask
@@ -6371,7 +6346,7 @@ def ComputeMinMaxLocation(self, *args, **kwargs):
            in case of error or no valid pixel.
     """
 
-    ret = $action(self, *args, **kwargs)
+    ret = $action(self)
     if ret[0] != CE_None:
         return None
 

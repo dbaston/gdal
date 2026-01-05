@@ -950,7 +950,7 @@ public:
   }
 
   /* Note that datasources own their layers */
-#ifndef SWIGJAVA
+#ifdef SWIGCSHARP
   %feature( "kwargs" ) CreateLayer;
 #endif
   OGRLayerShadow *CreateLayer(const char* name,

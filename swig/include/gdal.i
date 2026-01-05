@@ -182,10 +182,10 @@ typedef enum
 
 /*! Flag indicating read/write, or read-only access to data. */
 %rename (Access) GDALAccess;
-typedef enum {
+enum GDALAccess {
     /*! Read only (no update) access */ GA_ReadOnly = 0,
     /*! Read/write access. */           GA_Update = 1
-} GDALAccess;
+};
 
 /*! Read/Write flag for RasterIO() method */
 %rename (RWFlag) GDALRWFlag;
@@ -939,9 +939,10 @@ GDALDatasetShadow* Open( char const* name ) {
 %}
 
 #else
+%feature("kwargs") Open;
 %newobject Open;
 %inline %{
-GDALDatasetShadow* Open( char const* utf8_path, GDALAccess eAccess = GA_ReadOnly ) {
+GDALDatasetShadow* Open( char const* utf8_path, GDALAccess eAccess = GA_ReadOnly) {
   CPLErrorReset();
   GDALDatasetShadow *ds = GDALOpen( utf8_path, eAccess );
 #ifndef SWIGPYTHON
@@ -991,6 +992,7 @@ GDALDatasetShadow* OpenEx( char const* utf8_path, unsigned int nOpenFlags = 0,
 %clear char** open_options;
 %clear char** sibling_files;
 
+%feature("kwargs") OpenShared;
 %newobject OpenShared;
 %inline %{
 GDALDatasetShadow* OpenShared( char const* utf8_path, GDALAccess eAccess = GA_ReadOnly ) {

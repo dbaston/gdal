@@ -365,6 +365,9 @@ void CPLFinderClean();
 
 const char * CPLFindFile( const char *pszClass, const char *utf8_path );
 
+#ifdef SWIGPYTHON
+%feature ("compactdefaultargs") wrapper_VSIReadDirEx;
+#endif
 %apply (char **CSL) {char **};
 %inline {
 char **wrapper_VSIReadDirEx( const char * utf8_path, int nMaxFiles = 0 )
@@ -845,6 +848,9 @@ struct StatBuf
 } /* extend */
 } /* StatBuf */ ;
 
+#ifdef SWIGPYTHON
+%feature("compactdefaultargs") wrapper_VSIStatL;
+#endif
 %rename (VSIStatL) wrapper_VSIStatL;
 %inline {
 int wrapper_VSIStatL( const char * utf8_path, StatBuf *psStatBufOut, int nFlags = 0 )
