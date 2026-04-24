@@ -45,6 +45,7 @@
 #include "gdalalg_vector_sort.h"
 #include "gdalalg_vector_sql.h"
 #include "gdalalg_vector_swap_xy.h"
+#include "gdalalg_vector_unnest.h"
 #include "gdalalg_vector_update.h"
 #include "gdalalg_vector_write.h"
 #include "gdalalg_tee.h"
@@ -205,6 +206,7 @@ void GDALVectorPipelineAlgorithm::RegisterAlgorithms(
     registry.Register<GDALVectorSimplifyCoverageAlgorithm>();
     registry.Register<GDALVectorSortAlgorithm>();
     registry.Register<GDALVectorSQLAlgorithm>();
+    registry.Register<GDALVectorUnnestAlgorithm>();
     registry.Register<GDALVectorUpdateAlgorithm>(
         addSuffixIfNeeded(GDALVectorUpdateAlgorithm::NAME));
     registry.Register<GDALVectorSwapXYAlgorithm>();

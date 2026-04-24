@@ -49,6 +49,7 @@
 #include "gdalalg_vector_simplify_coverage.h"
 #include "gdalalg_vector_sort.h"
 #include "gdalalg_vector_sql.h"
+#include "gdalalg_vector_unnest.h"
 #include "gdalalg_vector_update.h"
 #include "gdalalg_vector_swap_xy.h"
 
@@ -106,6 +107,7 @@ GDALVectorAlgorithm::GDALVectorAlgorithm()
     RegisterSubAlgorithm<GDALVectorSimplifyCoverageAlgorithmStandalone>();
     RegisterSubAlgorithm<GDALVectorSortAlgorithmStandalone>();
     RegisterSubAlgorithm<GDALVectorSQLAlgorithmStandalone>();
+    RegisterSubAlgorithm<GDALVectorUnnestAlgorithmStandalone>();
     RegisterSubAlgorithm<GDALVectorUpdateAlgorithmStandalone>();
     RegisterSubAlgorithm<GDALVectorSwapXYAlgorithmStandalone>();
 }
