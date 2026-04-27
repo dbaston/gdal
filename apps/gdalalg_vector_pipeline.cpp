@@ -417,8 +417,7 @@ OGRFeature *GDALVectorPipelineOutputLayer::GetNextRawFeature()
             std::unique_ptr<OGRFeature>(m_srcLayer.GetNextFeature());
         if (!poSrcFeature)
             return nullptr;
-        TranslateFeature(std::move(poSrcFeature), m_pendingFeatures);
-        if (m_translateError)
+        if (!TranslateFeature(std::move(poSrcFeature), m_pendingFeatures))
         {
             return nullptr;
         }
@@ -556,8 +555,12 @@ OGRFeature *GDALVectorPipelineOutputDataset::GetNextFeature(
         if (iterToDstLayer != m_mapSrcLayerToNewLayer.end())
         {
             m_belongingLayer = iterToDstLayer->second;
-            m_belongingLayer->TranslateFeature(std::move(poSrcFeature),
-                                               m_pendingFeatures);
+
+            if (!m_belongingLayer->TranslateFeature(std::move(poSrcFeature),
+                                                    m_pendingFeatures))
+            {
+                return nullptr;
+            }
 
             if (!m_pendingFeatures.empty())
                 break;
@@ -583,7 +586,7 @@ const OGRFeatureDefn *GDALVectorPipelinePassthroughLayer::GetLayerDefn() const
 /*          GDALVectorPipelinePassthroughLayer::GetLayerDefn()          */
 /************************************************************************/
 
-void GDALVectorPipelinePassthroughLayer::TranslateFeature(
+bool GDALVectorPipelinePassthroughLayer::TranslateFeature(
     std::unique_ptr<OGRFeature> poSrcFeature,
     std::vector<std::unique_ptr<OGRFeature>> &apoOutFeatures)
 {
@@ -592,6 +595,8 @@ void GDALVectorPipelinePassthroughLayer::TranslateFeature(
     {
         apoOutFeatures.push_back(std::move(poSrcFeature));
     }
+
+    return true;
 }
 
 /************************************************************************/
