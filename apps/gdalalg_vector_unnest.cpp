@@ -341,18 +341,17 @@ class GDALVectorUnnestLayer final : public GDALVectorPipelineOutputLayer
             for (int iGeomField = 0;
                  iGeomField < poSrcFeature->GetGeomFieldCount(); iGeomField++)
             {
-                // FIXME remove clone
-                std::unique_ptr<OGRGeometry> poSrcGeom(
-                    poSrcFeature->GetGeomFieldRef(iGeomField)->clone());
-
                 if (m_geomFieldUnnested[iGeomField])
                 {
+                    // FIXME remove clone
+                    OGRGeometry *poSrcGeom(
+                        poSrcFeature->GetGeomFieldRef(iGeomField));
                     OGRGeometryCollection *poColl =
                         poSrcGeom->toGeometryCollection();
 
                     auto nGeoms = poColl->getNumGeometries();
 
-                    if (nGeoms <= iDstFeature)
+                    if (nGeoms == 0)
                     {
                         CPLError(
                             CE_Failure, CPLE_AppDefined,
@@ -362,18 +361,33 @@ class GDALVectorUnnestLayer final : public GDALVectorPipelineOutputLayer
                                 ->GetGeomFieldDefn(iGeomField)
                                 ->GetNameRef(),
                             static_cast<int64_t>(poSrcFeature->GetFID()),
-                            nGeoms, nDstFeatures);
+                            nGeoms + iDstFeature, nDstFeatures);
                         return false;
                     }
+
                     nDstFeatures = std::max(nDstFeatures, nGeoms);
 
                     std::unique_ptr<OGRGeometry> poDstGeom =
-                        poColl->stealGeometry(iDstFeature);
+                        poColl->stealGeometry(0);
                     poDstFeature->SetGeomField(iGeomField,
                                                std::move(poDstGeom));
                 }
                 else
                 {
+                    std::unique_ptr<OGRGeometry> poSrcGeom;
+
+                    if (iDstFeature == 0)
+                    {
+                        poSrcGeom.reset(
+                            poSrcFeature->StealGeometry(iGeomField));
+                    }
+                    else
+                    {
+                        poSrcGeom.reset(apoOutFeatures.front()
+                                            ->GetGeomFieldRef(iGeomField)
+                                            ->clone());
+                    }
+
                     poDstFeature->SetGeomField(iGeomField,
                                                std::move(poSrcGeom));
                 }
