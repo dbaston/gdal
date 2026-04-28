@@ -37,8 +37,7 @@ class GDALVectorUnnestAlgorithm /* non final */
 
   private:
     std::vector<std::string> m_fields{};
-    std::string m_indexFieldName{"idx"};
-    bool m_addIndexField = false;
+    std::string m_indexFieldName{};
 };
 
 /************************************************************************/

@@ -145,6 +145,152 @@ def test_gdalalg_vector_unnest_arrays_unequal_length(alg, field_type):
         alg.Run()
 
 
+def test_gdalalg_vector_unnest_invalid_field(alg):
+
+    alg["input"] = "../ogr/data/poly.shp"
+    alg["field"] = "does_not_exist"
+    alg["output-format"] = "MEM"
+
+    with pytest.raises(Exception, match="Field 'does_not_exist' not found"):
+        alg.Run()
+
+
+def test_gdalalg_vector_unnest_geometry(alg):
+
+    src_ds = gdal.GetDriverByName("MEM").CreateVector("")
+    src_lyr = src_ds.CreateLayer(
+        "test", geom_type=ogr.wkbMultiPoint, srs=osr.SpatialReference(epsg=4326)
+    )
+
+    f = ogr.Feature(src_lyr.GetLayerDefn())
+    f.SetGeometry(ogr.CreateGeometryFromWkt("MULTIPOINT (3 2, 4 7, 1 9)"))
+    src_lyr.CreateFeature(f)
+
+    f.SetGeometry(ogr.CreateGeometryFromWkt("MULTIPOINT (2 4, 6 1, 0 6)"))
+    src_lyr.CreateFeature(f)
+
+    alg["input"] = src_ds
+    alg["field"] = "_ogr_geometry_"
+    alg["output-format"] = "MEM"
+
+    assert alg.Run()
+
+    dst_ds = alg.Output()
+    dst_lyr = dst_ds.GetLayer(0)
+
+    assert dst_lyr.GetFeatureCount() == 6
+
+    assert dst_lyr.GetNextFeature().GetGeometryRef().ExportToWkt() == "POINT (3 2)"
+    assert dst_lyr.GetNextFeature().GetGeometryRef().ExportToWkt() == "POINT (4 7)"
+    assert dst_lyr.GetNextFeature().GetGeometryRef().ExportToWkt() == "POINT (1 9)"
+    assert dst_lyr.GetNextFeature().GetGeometryRef().ExportToWkt() == "POINT (2 4)"
+    assert dst_lyr.GetNextFeature().GetGeometryRef().ExportToWkt() == "POINT (6 1)"
+    assert dst_lyr.GetNextFeature().GetGeometryRef().ExportToWkt() == "POINT (0 6)"
+
+
+def test_gdalalg_vector_unnest_field_and_geometry(alg):
+
+    src_ds = gdal.GetDriverByName("MEM").CreateVector("")
+    src_lyr = src_ds.CreateLayer(
+        "test", geom_type=ogr.wkbMultiPoint, srs=osr.SpatialReference(epsg=4326)
+    )
+    src_lyr.CreateField(ogr.FieldDefn("ints", ogr.OFTIntegerList))
+
+    f = ogr.Feature(src_lyr.GetLayerDefn())
+    f.SetGeometry(ogr.CreateGeometryFromWkt("MULTIPOINT (3 2, 4 7, 1 9)"))
+    f["ints"] = [6, 3, 2]
+    src_lyr.CreateFeature(f)
+
+    alg["input"] = src_ds
+    alg["field"] = ["_ogr_geometry_", "ints"]
+    alg["output-format"] = "MEM"
+
+    assert alg.Run()
+
+    dst_ds = alg.Output()
+    dst_lyr = dst_ds.GetLayer(0)
+
+    assert dst_lyr.GetFeatureCount() == 3
+
+    features = [f for f in dst_lyr]
+
+    assert features[0].GetGeometryRef().ExportToWkt() == "POINT (3 2)"
+    assert features[0]["ints"] == 6
+
+    assert features[1].GetGeometryRef().ExportToWkt() == "POINT (4 7)"
+    assert features[1]["ints"] == 3
+
+    assert features[2].GetGeometryRef().ExportToWkt() == "POINT (1 9)"
+    assert features[2]["ints"] == 2
+
+
+def test_gdalalg_vector_unnest_geometry_multiple(alg):
+
+    src_ds = gdal.GetDriverByName("MEM").CreateVector("")
+    src_lyr = src_ds.CreateLayer(
+        "test", geom_type=ogr.wkbMultiPoint, srs=osr.SpatialReference(epsg=4326)
+    )
+    src_lyr.CreateGeomField(ogr.GeomFieldDefn("geom2", ogr.wkbGeometryCollection))
+
+    f = ogr.Feature(src_lyr.GetLayerDefn())
+    f.SetGeomField(0, ogr.CreateGeometryFromWkt("MULTIPOINT (3 2, 4 7, 1 9)"))
+    f.SetGeomField(
+        1,
+        ogr.CreateGeometryFromWkt(
+            "GEOMETRYCOLLECTION (POINT (6 6), MULTIPOINT (2 1, 2 8), LINESTRING (3 3, 7 6))"
+        ),
+    )
+
+    src_lyr.CreateFeature(f)
+
+    alg["input"] = src_ds
+    alg["field"] = ["_ogr_geometry_", "geom2"]
+    alg["output-format"] = "MEM"
+
+    assert alg.Run()
+
+    dst_ds = alg.Output()
+    dst_lyr = dst_ds.GetLayer(0)
+
+    assert dst_lyr.GetFeatureCount() == 3
+
+    features = [f for f in dst_lyr]
+
+    assert features[0].GetGeomFieldRef(0).ExportToWkt() == "POINT (3 2)"
+    assert features[0].GetGeomFieldRef(1).ExportToWkt() == "POINT (6 6)"
+
+    assert features[1].GetGeomFieldRef(0).ExportToWkt() == "POINT (4 7)"
+    assert features[1].GetGeomFieldRef(1).ExportToWkt() == "MULTIPOINT (2 1,2 8)"
+
+    assert features[2].GetGeomFieldRef(0).ExportToWkt() == "POINT (1 9)"
+    assert features[2].GetGeomFieldRef(1).ExportToWkt() == "LINESTRING (3 3,7 6)"
+
+
+def test_gdalalg_vector_unnest_geometry_multiple_unmatched(alg):
+
+    src_ds = gdal.GetDriverByName("MEM").CreateVector("")
+    src_lyr = src_ds.CreateLayer(
+        "test", geom_type=ogr.wkbMultiPoint, srs=osr.SpatialReference(epsg=4326)
+    )
+    src_lyr.CreateGeomField(ogr.GeomFieldDefn("geom2", ogr.wkbGeometryCollection))
+
+    f = ogr.Feature(src_lyr.GetLayerDefn())
+    f.SetGeomField(0, ogr.CreateGeometryFromWkt("MULTIPOINT (3 2, 4 7, 1 9)"))
+    f.SetGeomField(
+        1,
+        ogr.CreateGeometryFromWkt("MULTIPOINT (4 3, 2 2)"),
+    )
+
+    src_lyr.CreateFeature(f)
+
+    alg["input"] = src_ds
+    alg["field"] = ["_ogr_geometry_", "geom2"]
+    alg["output-format"] = "MEM"
+
+    with pytest.raises(Exception, match="Geometry field 'geom2' .* has 2 elements"):
+        alg.Run()
+
+
 @pytest.mark.require_driver("GeoJSON")
 def test_gdalalg_vector_unnest_ogrsf(alg, source_with_arrays, tmp_path):
 
