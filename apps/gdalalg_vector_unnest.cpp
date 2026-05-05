@@ -18,6 +18,7 @@
 #include "ogrsf_frmts.h"
 
 #include <cinttypes>
+#include <list>
 #include <memory>
 #include <numeric>
 #include <vector>
@@ -36,10 +37,11 @@ GDALVectorUnnestAlgorithm::GDALVectorUnnestAlgorithm(bool standaloneStep)
     : GDALVectorPipelineStepAlgorithm(NAME, DESCRIPTION, HELP_URL,
                                       standaloneStep)
 {
-    AddArg("field", 0, _("Field(s) to include in the output"), &m_fields)
-        .SetRequired()
-        .SetMinCount(1)
+    AddArg("field", 0, _("Attribute fields(s) to explode"), &m_fields)
         .SetMetaVar("FIELD");
+
+    AddArg("geom-field", 0, _("Geometry field(s) to explode"), &m_geomFields)
+        .SetMetaVar("GEOM_FIELD");
 
     AddArg("index-field", 0, _("Name of the output index field"),
            &m_indexFieldName)
@@ -52,14 +54,17 @@ GDALVectorUnnestAlgorithmStandalone::~GDALVectorUnnestAlgorithmStandalone() =
 namespace
 {
 
-class GDALVectorUnnestLayer final : public GDALVectorPipelineOutputLayer
+class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
 {
   public:
-    GDALVectorUnnestLayer(OGRLayer &srcLayer,
-                          const std::vector<std::string> &fieldsToUnnest,
-                          const std::string &indexFieldName)
+    GDALVectorExplodeZipLayer(
+        OGRLayer &srcLayer, const std::vector<std::string> &fieldsToUnnest,
+        const std::vector<std::string> &geomFieldsToUnnest,
+        const std::string &indexFieldName)
         : GDALVectorPipelineOutputLayer(srcLayer),
-          m_fieldsToUnnest(fieldsToUnnest), m_indexFieldName(indexFieldName)
+          m_fieldsToUnnest(fieldsToUnnest),
+          m_geomFieldsToUnnest(geomFieldsToUnnest),
+          m_indexFieldName(indexFieldName)
     {
         if (!PrepareFeatureDefn())
         {
@@ -100,47 +105,61 @@ class GDALVectorUnnestLayer final : public GDALVectorPipelineOutputLayer
             const int iSrcField = poSrcDefn->GetFieldIndex(fieldName.c_str());
             if (iSrcField < 0)
             {
-                // Is it a geometry field?
-                int iSrcGeomField =
-                    poSrcDefn->GetGeomFieldIndex(fieldName.c_str());
-                if (iSrcGeomField < 0)
-                {
-                    if (poSrcDefn->GetGeomFieldCount() > 0 &&
-                        EQUAL(poSrcDefn->GetGeomFieldDefn(0)->GetNameRef(),
-                              "") &&
-                        EQUAL(fieldName.c_str(), "_OGR_GEOMETRY_"))
-                    {
-                        iSrcGeomField = 0;
-                    }
-                    else
-                    {
-                        CPLError(CE_Failure, CPLE_AppDefined,
-                                 "Field '%s' not found in source layer.",
-                                 fieldName.c_str());
-                        return false;
-                    }
-                }
+                CPLError(CE_Failure, CPLE_AppDefined,
+                         "Field '%s' not found in source layer.",
+                         fieldName.c_str());
+                return false;
+            }
 
-                m_geomFieldUnnested[iSrcGeomField] = true;
-            }
-            else
+            const OGRFieldDefn *poSrcFieldDefn =
+                poSrcDefn->GetFieldDefn(iSrcField);
+            const auto eSrcType = poSrcFieldDefn->GetType();
+            if (OGR_GetFieldTypeIsList(eSrcType))
             {
-                const OGRFieldDefn *poSrcFieldDefn =
-                    poSrcDefn->GetFieldDefn(iSrcField);
-                const auto eSrcType = poSrcFieldDefn->GetType();
-                if (OGR_GetFieldTypeIsList(eSrcType))
+                m_passThroughFieldSrcToDstMap[iSrcField] = -1;
+                m_unnestedFieldSrcToDstMap[iSrcField] =
+                    iSrcField + addIndexField;
+            }
+        }
+
+        for (const auto &fieldName : m_geomFieldsToUnnest)
+        {
+            // Is it a geometry field?
+            int iSrcGeomField = poSrcDefn->GetGeomFieldIndex(fieldName.c_str());
+
+            // Field name is an empty string? Use the default geometry field if available.
+            if (iSrcGeomField < 0)
+            {
+                if (poSrcDefn->GetGeomFieldCount() > 0 &&
+                    EQUAL(poSrcDefn->GetGeomFieldDefn(0)->GetNameRef(), "") &&
+                    EQUAL(fieldName.c_str(), "_OGR_GEOMETRY_"))
                 {
-                    m_passThroughFieldSrcToDstMap[iSrcField] = -1;
-                    m_unnestedFieldSrcToDstMap[iSrcField] =
-                        iSrcField + addIndexField;
-                }
-                else
-                {
-                    CPLError(CE_Warning, CPLE_AppDefined,
-                             "Field '%s' is not a list type.",
-                             poSrcFieldDefn->GetNameRef());
+                    iSrcGeomField = 0;
                 }
             }
+
+            // Didn't find anything by name. Check by index.
+            if (iSrcGeomField < 0 &&
+                std::all_of(fieldName.begin(), fieldName.end(), isdigit))
+            {
+                const int iGeomField = std::atoi(fieldName.c_str());
+
+                if (iGeomField < poSrcDefn->GetGeomFieldCount())
+                {
+                    iSrcGeomField = iGeomField;
+                }
+            }
+
+            if (iSrcGeomField < 0)
+            {
+                CPLError(
+                    CE_Failure, CPLE_AppDefined,
+                    "Could not find geometry field '%s' in source layer '%s'",
+                    fieldName.c_str(), m_srcLayer.GetName());
+                return false;
+            }
+
+            m_geomFieldUnnested[iSrcGeomField] = true;
         }
 
         // Create attribute fields
@@ -343,32 +362,58 @@ class GDALVectorUnnestLayer final : public GDALVectorPipelineOutputLayer
             {
                 if (m_geomFieldUnnested[iGeomField])
                 {
-                    // FIXME remove clone
+                    std::unique_ptr<OGRGeometry> poDstGeom;
+
                     OGRGeometry *poSrcGeom(
                         poSrcFeature->GetGeomFieldRef(iGeomField));
-                    OGRGeometryCollection *poColl =
-                        poSrcGeom->toGeometryCollection();
 
-                    auto nGeoms = poColl->getNumGeometries();
+                    const auto eSrcGeomType =
+                        wkbFlatten(poSrcGeom->getGeometryType());
 
-                    if (nGeoms == 0)
+                    if (OGR_GT_IsSubClassOf(eSrcGeomType,
+                                            wkbGeometryCollection))
                     {
-                        CPLError(
-                            CE_Failure, CPLE_AppDefined,
-                            "Geometry field '%s' of source feature %" PRId64
-                            " has %d elements (expected %d)",
-                            poSrcFeature->GetDefnRef()
-                                ->GetGeomFieldDefn(iGeomField)
-                                ->GetNameRef(),
-                            static_cast<int64_t>(poSrcFeature->GetFID()),
-                            nGeoms + iDstFeature, nDstFeatures);
-                        return false;
+                        OGRGeometryCollection *poColl =
+                            poSrcGeom->toGeometryCollection();
+
+                        auto nGeoms = poColl->getNumGeometries();
+                        nDstFeatures = std::max(nDstFeatures, nGeoms);
+
+                        if (nGeoms == 0)
+                        {
+                            CPLError(
+                                CE_Failure, CPLE_AppDefined,
+                                "Geometry field '%s' of source feature %" PRId64
+                                " has %d elements (expected %d)",
+                                poSrcFeature->GetDefnRef()
+                                    ->GetGeomFieldDefn(iGeomField)
+                                    ->GetNameRef(),
+                                static_cast<int64_t>(poSrcFeature->GetFID()),
+                                nGeoms + iDstFeature, nDstFeatures);
+                            return false;
+                        }
+
+                        poDstGeom = poColl->stealGeometry(0);
+                    }
+                    else
+                    {
+                        if (iDstFeature > 1)
+                        {
+                            CPLError(
+                                CE_Failure, CPLE_AppDefined,
+                                "Geometry field '%s' of source feature %" PRId64
+                                " is not a collection.",
+                                poSrcFeature->GetDefnRef()
+                                    ->GetGeomFieldDefn(iGeomField)
+                                    ->GetNameRef(),
+                                static_cast<int64_t>(poSrcFeature->GetFID()));
+                            return false;
+                        }
+
+                        poDstGeom.reset(
+                            poSrcFeature->StealGeometry(iGeomField));
                     }
 
-                    nDstFeatures = std::max(nDstFeatures, nGeoms);
-
-                    std::unique_ptr<OGRGeometry> poDstGeom =
-                        poColl->stealGeometry(0);
                     poDstFeature->SetGeomField(iGeomField,
                                                std::move(poDstGeom));
                 }
@@ -418,12 +463,13 @@ class GDALVectorUnnestLayer final : public GDALVectorPipelineOutputLayer
     std::vector<int> m_unnestedFieldSrcToDstMap{};
     std::vector<bool> m_geomFieldUnnested{};
     std::vector<std::string> m_fieldsToUnnest{};
+    std::vector<std::string> m_geomFieldsToUnnest{};
     std::string m_indexFieldName{};
     bool m_setupError{false};
     OGRFeatureDefnRefCountedPtr m_poFeatureDefn{nullptr};
     GIntBig m_nextFID{1};
 
-    CPL_DISALLOW_COPY_ASSIGN(GDALVectorUnnestLayer)
+    CPL_DISALLOW_COPY_ASSIGN(GDALVectorExplodeZipLayer)
 };
 
 }  // namespace
@@ -439,16 +485,53 @@ bool GDALVectorUnnestAlgorithm::RunStep(GDALPipelineStepRunContext &)
 
     auto poOutDS = std::make_unique<GDALVectorPipelineOutputDataset>(*poSrcDS);
 
-    const int nLayerCount = poSrcDS->GetLayerCount();
-    for (int i = 0; i < nLayerCount; ++i)
+    if (m_fields.empty() && m_geomFields.empty())
     {
-        auto poLayer = poSrcDS->GetLayer(i);
+        ReportError(CE_Failure, CPLE_IllegalArg,
+                    "At least one field or geometry field must be specified");
+        return false;
+    }
+
+    const int nLayerCount = poSrcDS->GetLayerCount();
+    for (int iLayer = 0; iLayer < nLayerCount; iLayer++)
+    {
+        auto poLayer = poSrcDS->GetLayer(iLayer);
         if (!poLayer)
             continue;
 
-        auto poOutLayer = std::make_unique<GDALVectorUnnestLayer>(
-            *poLayer, m_fields, m_indexFieldName);
-        poOutDS->AddLayer(*poLayer, std::move(poOutLayer));
+        const auto *poLayerDefn = poLayer->GetLayerDefn();
+
+        auto fieldsForLayer = m_fields;
+        auto geomFieldsForLayer = m_geomFields;
+
+        if (geomFieldsForLayer.size() == 1 && geomFieldsForLayer[0] == "ALL")
+        {
+            geomFieldsForLayer.clear();
+            for (int iGeomField = 0;
+                 iGeomField < poLayerDefn->GetGeomFieldCount(); iGeomField++)
+            {
+                geomFieldsForLayer.emplace_back(
+                    poLayerDefn->GetGeomFieldDefn(iGeomField)->GetNameRef());
+            }
+        }
+
+        if (fieldsForLayer.size() == 1 && fieldsForLayer[0] == "ALL")
+        {
+            fieldsForLayer.clear();
+            for (int iField = 0; iField < poLayerDefn->GetGeomFieldCount();
+                 iField++)
+            {
+                fieldsForLayer.emplace_back(
+                    poLayerDefn->GetFieldDefn(iField)->GetNameRef());
+            }
+        }
+
+        if (m_method == "zip")
+        {
+            auto poOutLayer = std::make_unique<GDALVectorExplodeZipLayer>(
+                *poLayer, fieldsForLayer, geomFieldsForLayer, m_indexFieldName);
+            poOutDS->AddLayer(*poLayer, std::move(poOutLayer));
+        }
     }
 
     m_outputDataset.Set(std::move(poOutDS));
