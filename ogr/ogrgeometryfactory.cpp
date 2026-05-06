@@ -330,7 +330,10 @@ OGRErr CPL_DLL OGR_G_CreateFromWkbEx(const void *pabyData,
  *    OGRErr err = OGR_G_CreateFromWkt(&pszWkt, ref, &new_geom);
  * \endcode
  *
- *
+ * Since GDAL 3.14, PostGIS-style "extended" WKT inputs of the format
+ * SRID=<EPSG_CODE>;<WKT> are supported. If ppszData points to an EWKT
+ * input and poSR is also specified, the value of poSR will override
+ * the SRS specified in the EWKT.
  *
  * @return OGRERR_NONE if all goes well, otherwise any of
  * OGRERR_NOT_ENOUGH_DATA, OGRERR_UNSUPPORTED_GEOMETRY_TYPE, or
@@ -344,6 +347,47 @@ OGRErr OGRGeometryFactory::createFromWkt(const char **ppszData,
 {
     const char *pszInput = *ppszData;
     *ppoReturn = nullptr;
+
+    OGRSpatialReferenceRefCountedPtr poEwktSR;
+
+    /* -------------------------------------------------------------------- */
+    /*      Check for a SRID (PostGIS EWKT)                                 */
+    /* -------------------------------------------------------------------- */
+    if (STARTS_WITH_CI(pszInput, "SRID="))
+    {
+        const char *pszSRID = pszInput + 5;
+        char *pszEnd;
+
+        auto nSRID = std::strtol(pszSRID, &pszEnd, 10);
+
+        if (static_cast<int>(nSRID) != nSRID || !isdigit(*pszSRID))
+        {
+            return OGRERR_CORRUPT_DATA;
+        }
+
+        while (pszSRID != pszEnd)
+        {
+            if (!isdigit(*pszSRID))
+            {
+                return OGRERR_CORRUPT_DATA;
+            }
+            pszSRID++;
+        }
+
+        if (*pszEnd != ';')
+        {
+            return OGRERR_CORRUPT_DATA;
+        }
+
+        pszInput = pszEnd + 1;
+
+        if (poSR == nullptr)
+        {
+            poEwktSR = OGRSpatialReferenceRefCountedPtr::makeInstance();
+            poEwktSR->importFromEPSG(static_cast<int>(nSRID));
+            poSR = poEwktSR.get();
+        }
+    }
 
     /* -------------------------------------------------------------------- */
     /*      Get the first token, which should be the geometry type.         */
