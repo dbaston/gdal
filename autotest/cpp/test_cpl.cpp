@@ -47,6 +47,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <charconv>
 #include <cmath>
 #include <limits>
 #include <fstream>
@@ -5935,6 +5936,126 @@ TEST_F(test_cpl, CPLLaunderForFilenameSafe)
     EXPECT_STREQ(CPLLaunderForFilenameSafe("CON", '\0', nullptr).c_str(),
                  "CON_");
     EXPECT_STREQ(CPLLaunderForFilenameSafe("CON", ';').c_str(), "CON;");
+}
+
+std::string_view trim(std::string_view str)
+{
+    size_t start = 0;
+    while (isspace(str[start]) && start < str.size())
+    {
+        start++;
+    }
+
+    size_t stop = str.size() - 1;
+    while (isspace(str[stop]) && stop > 0)
+    {
+        stop--;
+    }
+
+    return str.substr(start, stop - start + 1);
+}
+
+namespace cpl
+{
+
+template <typename T> std::optional<T> strict_parse(std::string_view str)
+{
+    str = trim(str);
+
+    T result;
+    const auto begin = str.data();
+    const auto end = str.data() + str.size();
+
+    auto [ptr, ec] = std::from_chars(begin, end, result);
+
+    if (ec != std::errc())
+        return std::nullopt;
+
+    if (ptr != end)
+    {
+        // For integer types, allow decimal and trailing zeros
+        if constexpr (std::is_integral_v<T>)
+        {
+            if (*ptr++ == '.')
+            {
+                while (ptr != end)
+                {
+                    if (*ptr++ != '0')
+                    {
+                        return std::nullopt;
+                    }
+                }
+            }
+        }
+        else
+        {
+            return std::nullopt;
+        }
+    }
+
+    return result;
+}
+
+template <> std::optional<bool> strict_parse<bool>(std::string_view str)
+{
+    str = trim(str);
+
+    if (str == "YES" || str == "ON" || str == "TRUE" || str == "1")
+        return true;
+
+    if (str == "NO" || str == "OFF" || str == "FALSE" || str == "0")
+        return false;
+
+    if (str == "yes" || str == "on" || str == "true")
+        return true;
+
+    if (str == "no" || str == "off" || str == "false")
+        return false;
+
+    return std::nullopt;
+}
+
+}  // namespace cpl
+
+TEST_F(test_cpl, CPLStrictParseBool)
+{
+    EXPECT_EQ(cpl::strict_parse<bool>("YES"), true);
+    EXPECT_EQ(cpl::strict_parse<bool>("1 "), true);
+    EXPECT_EQ(cpl::strict_parse<bool>(" ON "), true);
+    EXPECT_EQ(cpl::strict_parse<bool>("\tyes "), true);
+    EXPECT_EQ(cpl::strict_parse<bool>("TRUEE"), std::nullopt);
+
+    EXPECT_EQ(cpl::strict_parse<bool>("NO"), false);
+    EXPECT_EQ(cpl::strict_parse<bool>("0 "), false);
+    EXPECT_EQ(cpl::strict_parse<bool>(" OFF "), false);
+    EXPECT_EQ(cpl::strict_parse<bool>("\tno "), false);
+    EXPECT_EQ(cpl::strict_parse<bool>("NON"), std::nullopt);
+
+    EXPECT_EQ(cpl::strict_parse<int>("123"), 123);
+    EXPECT_EQ(cpl::strict_parse<int>(" -456"), -456);
+    EXPECT_EQ(cpl::strict_parse<int>(" - 456"), std::nullopt);
+    EXPECT_EQ(cpl::strict_parse<int>("789."), 789);
+    EXPECT_EQ(cpl::strict_parse<int>("789.0"), 789);
+    EXPECT_EQ(cpl::strict_parse<int>("789.0.0"), std::nullopt);
+    EXPECT_EQ(cpl::strict_parse<int>("789.1"), std::nullopt);
+    EXPECT_EQ(cpl::strict_parse<int>("50000000000000000"), std::nullopt);
+
+    EXPECT_EQ(cpl::strict_parse<double>("3.141569"), 3.141569);
+    EXPECT_EQ(cpl::strict_parse<double>("-8.33e-2"), -8.33e-2);
+    EXPECT_EQ(cpl::strict_parse<double>("6.022e23"), 6.022e23);
+    EXPECT_EQ(cpl::strict_parse<double>("6.022E23"), 6.022e23);
+    EXPECT_EQ(cpl::strict_parse<double>("6.022e+23"), 6.022e23);
+    EXPECT_EQ(cpl::strict_parse<double>("6.022e+23"), 6.022e23);
+
+    EXPECT_EQ(cpl::strict_parse<double>("inf"),
+              std::numeric_limits<double>::infinity());
+    EXPECT_EQ(cpl::strict_parse<double>("-inf"),
+              -std::numeric_limits<double>::infinity());
+
+    EXPECT_EQ(std::isnan(cpl::strict_parse<double>("nan").value()), true);
+    EXPECT_EQ(std::isnan(cpl::strict_parse<double>("NaN").value()), true);
+    EXPECT_EQ(std::isnan(cpl::strict_parse<double>("NAN").value()), true);
+    EXPECT_EQ(cpl::strict_parse<double>("NANA"), std::nullopt);
 }
 
 }  // namespace
