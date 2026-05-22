@@ -49,6 +49,7 @@
 #include <atomic>
 #include <cctype>
 #include <cerrno>
+#include <charconv>
 #include <climits>
 #include <clocale>
 #include <cmath>
@@ -4109,3 +4110,24 @@ int CPLGetRemainingFileDescriptorCount()
 }
 
 #endif
+
+namespace cpl
+{
+std::string_view trim(std::string_view str)
+{
+    size_t start = 0;
+    while (isspace(str[start]) && start < str.size())
+    {
+        start++;
+    }
+
+    size_t stop = str.size() - 1;
+    while (isspace(str[stop]) && stop > 0)
+    {
+        stop--;
+    }
+
+    return str.substr(start, stop - start + 1);
+}
+
+}  // namespace cpl

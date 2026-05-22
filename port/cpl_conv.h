@@ -20,7 +20,9 @@
 #include "cpl_error.h"
 
 #if defined(__cplusplus) && !defined(CPL_SUPRESS_CPLUSPLUS)
+#include <charconv>
 #include <cstdint>
+#include <optional>
 #endif
 
 /**
@@ -520,6 +522,114 @@ extern "C++"
         return a / b + (((a % b) == 0) ? 0 : 1);
     }
 
+    std::string_view CPL_DLL trim(std::string_view str);
+
+    template <typename T> std::optional<T> strict_parse(std::string_view str)
+    {
+        str = trim(str);
+
+        T result;
+        const auto begin = str.data();
+        const auto end = str.data() + str.size();
+
+        auto [ptr, ec] = std::from_chars(begin, end, result);
+
+        if (ec != std::errc())
+            return std::nullopt;
+
+        if (ptr != end)
+        {
+            // For integer types, allow decimal and trailing zeros
+            if constexpr (std::is_integral_v<T>)
+            {
+                if (*ptr++ == '.')
+                {
+                    while (ptr != end)
+                    {
+                        if (*ptr++ != '0')
+                        {
+                            return std::nullopt;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                return std::nullopt;
+            }
+        }
+
+        return result;
+    }
+
+    template <>
+    inline std::optional<double> strict_parse<double>(std::string_view str)
+    {
+        str = trim(str);
+
+        if (str.empty())
+        {
+            return std::nullopt;
+        }
+
+        char *end = nullptr;
+        double d = CPLStrtod(str.data(), &end);
+
+        auto i = static_cast<decltype(str.size())>(end - str.data());
+        while (i < str.size() && std::isspace(str[i]))
+        {
+            i++;
+        }
+        if (i < str.size())
+        {
+            return std::nullopt;
+        }
+
+        return d;
+    }
+
+    template <>
+    inline std::optional<float> strict_parse<float>(std::string_view str)
+    {
+        auto d = strict_parse<double>(str);
+        if (!d)
+        {
+            return std::nullopt;
+        }
+        if (d.value() >
+                static_cast<double>(std::numeric_limits<float>::max()) ||
+            d.value() <
+                static_cast<double>(std::numeric_limits<float>::lowest()))
+        {
+            return std::nullopt;
+        }
+        if (std::abs(d.value()) <
+            static_cast<double>(std::numeric_limits<float>::min()))
+        {
+            return std::nullopt;
+        }
+        return static_cast<float>(d.value());
+    }
+
+    template <>
+    inline std::optional<bool> strict_parse<bool>(std::string_view str)
+    {
+        str = trim(str);
+
+        if (str == "YES" || str == "ON" || str == "TRUE" || str == "1")
+            return true;
+
+        if (str == "NO" || str == "OFF" || str == "FALSE" || str == "0")
+            return false;
+
+        if (str == "yes" || str == "on" || str == "true")
+            return true;
+
+        if (str == "no" || str == "off" || str == "false")
+            return false;
+
+        return std::nullopt;
+    }
     }  // namespace cpl
 }  // extern "C++"
 
