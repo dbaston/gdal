@@ -769,7 +769,7 @@ char **CSLTokenizeStringComplex(const char *pszString,
 /**
  * Tokenize a string.
  *
- * This function will split a string into tokens based on specified'
+ * This function will split a string into tokens based on specified
  * delimiter(s) with a variety of options.  The returned result is a
  * string list that should be freed with CSLDestroy() when no longer
  * needed.
@@ -1898,11 +1898,11 @@ CPLErr CPLParseMemorySize(const char *pszValue, GIntBig *pnValue,
  * Parse NAME=VALUE string into name and value components.
  *
  * Note that if ppszKey is non-NULL, the key (or name) portion will be
- * allocated using CPLMalloc(), and returned in that pointer.  It is the
- * applications responsibility to free this string, but the application should
+ * allocated using CPLMalloc() and returned in that pointer.  It is the
+ * application's responsibility to free this string, but the application should
  * not modify or free the returned value portion.
  *
- * This function also support "NAME:VALUE" strings and will strip white
+ * This function also supports "NAME:VALUE" strings and will strip white
  * space from around the delimiter when forming name and value strings.
  *
  * Eventually CSLFetchNameValue() and friends may be modified to use
@@ -1912,7 +1912,7 @@ CPLErr CPLParseMemorySize(const char *pszValue, GIntBig *pnValue,
  * @param ppszKey optional pointer though which to return the name
  * portion.
  *
- * @return the value portion (pointing into original string).
+ * @return the value portion (pointing into the original string).
  */
 
 const char *CPLParseNameValue(const char *pszNameValue, char **ppszKey)
@@ -1944,6 +1944,33 @@ const char *CPLParseNameValue(const char *pszNameValue, char **ppszKey)
 
     return nullptr;
 }
+
+namespace cpl
+{
+std::pair<std::string_view, std::string_view>
+parse_name_value(std::string_view svNameValue)
+{
+    for (size_t i = 0; i < svNameValue.size(); ++i)
+    {
+        if (svNameValue[i] == '=' || svNameValue[i] == ':')
+        {
+            auto parsed = std::make_pair(trim(svNameValue.substr(0, i)),
+                                         trim(svNameValue.substr(i + 1)));
+
+            if (!parsed.first.empty())
+            {
+                return parsed;
+            }
+            else
+            {
+                return std::make_pair(std::string_view(), std::string_view());
+            }
+        }
+    }
+
+    return std::make_pair(std::string_view(), std::string_view());
+}
+}  // namespace cpl
 
 /**********************************************************************
  *                       CPLParseNameValueSep()
@@ -3302,6 +3329,65 @@ bool equals_ci(std::string_view str1, std::string_view str2)
     return str1.size() == str2.size() &&
            std::equal(str1.begin(), str1.end(), str2.begin(),
                       CaseInsensitiveCompare);
+}
+
+std::string_view trim(std::string_view str)
+{
+    if (str.empty())
+    {
+        return str;
+    }
+
+    size_t start = 0;
+    while (start < str.size() && isspace(str[start]))
+    {
+        start++;
+    }
+
+    if (start == str.size())
+    {
+        return str.substr(start, 0);
+    }
+
+    size_t stop = str.size();
+    while (stop > start && isspace(str[stop - 1]))
+    {
+        stop--;
+    }
+
+    return str.substr(start, stop - start);
+}
+
+std::string_view ltrim(std::string_view str)
+{
+    if (str.empty())
+    {
+        return str;
+    }
+
+    size_t start = 0;
+    while (start < str.size() && isspace(str[start]))
+    {
+        start++;
+    }
+
+    return str.substr(start);
+}
+
+std::string_view rtrim(std::string_view str)
+{
+    if (str.empty())
+    {
+        return str;
+    }
+
+    size_t stop = str.size();
+    while (stop > 0 && isspace(str[stop - 1]))
+    {
+        stop--;
+    }
+
+    return str.substr(0, stop);
 }
 
 }  // namespace cpl

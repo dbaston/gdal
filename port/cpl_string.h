@@ -728,6 +728,13 @@ extern "C++"
     bool CPL_DLL equals(std::string_view str1, std::string_view str2);
     bool CPL_DLL equals_ci(std::string_view str1, std::string_view str2);
 
+    std::string_view CPL_DLL trim(std::string_view str);
+    std::string_view CPL_DLL rtrim(std::string_view str);
+    std::string_view CPL_DLL ltrim(std::string_view str);
+
+    std::pair<std::string_view, std::string_view>
+        CPL_DLL parse_name_value(std::string_view svNameValue);
+
     /** Iterator for a CSLConstList */
     struct CPL_DLL CSLIterator
     {

@@ -5997,4 +5997,109 @@ TEST_F(test_cpl, cpl_equals)
     EXPECT_FALSE(cpl::equals_ci(str, ""));
 }
 
+TEST_F(test_cpl, trim)
+{
+    {
+        const char *str = "";
+        const auto trimmed = cpl::trim(str);
+        EXPECT_EQ(trimmed, "");
+        EXPECT_EQ(trimmed.data(), str);  // trimmed points within str
+
+        const auto ltrimmed = cpl::ltrim(str);
+        EXPECT_EQ(ltrimmed, "");
+        EXPECT_EQ(ltrimmed.data(), str);
+
+        const auto rtrimmed = cpl::rtrim(str);
+        EXPECT_EQ(rtrimmed, "");
+        EXPECT_EQ(rtrimmed.data(), str);
+    }
+
+    {
+        const std::string str = "\r\n\t    \r\n\t";
+        const auto trimmed = cpl::trim(str);
+
+        EXPECT_EQ(trimmed, "");
+        EXPECT_EQ(trimmed.data(), str.data() + str.size());
+
+        const auto ltrimmed = cpl::ltrim(str);
+
+        EXPECT_EQ(ltrimmed, "");
+        EXPECT_EQ(ltrimmed.data(), str.data() + str.size());
+
+        const auto rtrimmed = cpl::rtrim(str);
+
+        EXPECT_EQ(rtrimmed, "");
+        EXPECT_EQ(rtrimmed.data(), str.data());
+    }
+
+    {
+        const std::string_view str = "  abc\t  ";
+        const auto trimmed = cpl::trim(str);
+
+        EXPECT_EQ(trimmed, "abc");
+        EXPECT_EQ(trimmed.data(), str.data() + 2);  // trimmed points within str
+
+        const auto ltrimmed = cpl::ltrim(str);
+
+        EXPECT_EQ(ltrimmed, "abc\t  ");
+        EXPECT_EQ(ltrimmed.data(), str.data() + 2);
+
+        const auto rtrimmed = cpl::rtrim(str);
+
+        EXPECT_EQ(rtrimmed, "  abc");
+        EXPECT_EQ(rtrimmed.data(), str.data());
+    }
+}
+
+TEST_F(test_cpl, parse_name_value)
+{
+    {
+        std::string input = "OPT_NAME=VALUE";
+        auto [name, value] = cpl::parse_name_value(input);
+
+        EXPECT_EQ(name, "OPT_NAME");
+        EXPECT_EQ(value, "VALUE");
+    }
+
+    {
+        std::string input = "  OPT_NAME =   VALUE WITH SPACE ";
+        auto [name, value] = cpl::parse_name_value(input);
+
+        EXPECT_EQ(name, "OPT_NAME");
+        EXPECT_EQ(value, "VALUE WITH SPACE");
+    }
+
+    {
+        std::string input = "OPT_NAME=";
+        auto [name, value] = cpl::parse_name_value(input);
+
+        EXPECT_EQ(name, "OPT_NAME");
+        EXPECT_EQ(value, "");
+    }
+
+    {
+        std::string input = "=VALUE";
+        auto [name, value] = cpl::parse_name_value(input);
+
+        EXPECT_EQ(name, "");
+        EXPECT_EQ(value, "");
+    }
+
+    {
+        std::string input = "INVALID";
+        auto [name, value] = cpl::parse_name_value(input);
+
+        EXPECT_EQ(name, "");
+        EXPECT_EQ(value, "");
+    }
+
+    {
+        const char *input = "";
+        auto [name, value] = cpl::parse_name_value(input);
+
+        EXPECT_EQ(name, "");
+        EXPECT_EQ(value, "");
+    }
+}
+
 }  // namespace
