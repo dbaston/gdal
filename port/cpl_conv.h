@@ -117,6 +117,17 @@ double CPL_DLL CPLStrtodDelim(const char *, char **, char);
 float CPL_DLL CPLStrtof(const char *, char **);
 float CPL_DLL CPLStrtofDelim(const char *, char **, char);
 
+#if defined(__cplusplus) && !defined(CPL_SUPRESS_CPLUSPLUS)
+#include <string_view>
+extern "C++"
+{
+    namespace cpl
+    {
+    double CPL_DLL strtod_delim(std::string_view, char **, char);
+    }
+}
+#endif
+
 /* -------------------------------------------------------------------- */
 /*      Convert number to string.  This function is locale agnostic     */
 /*      (i.e. it will support "," or "." regardless of current locale)  */
