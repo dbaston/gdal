@@ -34,6 +34,7 @@
 #include "cpl_port.h"
 #include "cpl_string.h"
 
+#include <algorithm>
 #include <cctype>
 #include <climits>
 #include <cmath>
@@ -3254,3 +3255,53 @@ std::string CPLRemoveSQLComments(const std::string &osInput)
     }
     return osSQL;
 }
+
+namespace cpl
+{
+
+static bool CaseInsensitiveCompare(char c1, char c2)
+{
+    return toupper(c1) == toupper(c2);
+}
+
+bool starts_with(std::string_view str, std::string_view prefix)
+{
+    return str.size() >= prefix.size() &&
+           str.compare(0, prefix.size(), prefix) == 0;
+}
+
+bool starts_with_ci(std::string_view str, std::string_view prefix)
+{
+    return str.size() >= prefix.size() &&
+           std::search(str.begin(), str.end(), prefix.begin(), prefix.end(),
+                       CaseInsensitiveCompare) != str.end();
+}
+
+bool ends_with(std::string_view str, std::string_view suffix)
+{
+    return str.size() >= suffix.size() &&
+           (suffix.empty() || str.compare(str.size() - suffix.size(),
+                                          suffix.size(), suffix) == 0);
+}
+
+bool ends_with_ci(std::string_view str, std::string_view suffix)
+{
+    return str.size() >= suffix.size() &&
+           (suffix.empty() ||
+            std::search(str.end() - suffix.size(), str.end(), suffix.begin(),
+                        suffix.end(), CaseInsensitiveCompare) != str.end());
+}
+
+bool equals(std::string_view str1, std::string_view str2)
+{
+    return str1 == str2;
+}
+
+bool equals_ci(std::string_view str1, std::string_view str2)
+{
+    return str1.size() == str2.size() &&
+           std::equal(str1.begin(), str1.end(), str2.begin(),
+                      CaseInsensitiveCompare);
+}
+
+}  // namespace cpl

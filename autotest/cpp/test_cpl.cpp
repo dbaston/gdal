@@ -5937,4 +5937,64 @@ TEST_F(test_cpl, CPLLaunderForFilenameSafe)
     EXPECT_STREQ(CPLLaunderForFilenameSafe("CON", ';').c_str(), "CON;");
 }
 
+TEST_F(test_cpl, cpl_starts_with)
+{
+    std::string str = "abc";
+    const char *cstr = "abc";
+    std::string_view sv = std::string_view(str).substr(0, 2);
+
+    EXPECT_TRUE(cpl::starts_with(str, "ab"));
+    EXPECT_TRUE(cpl::starts_with(cstr, "ab"));
+    EXPECT_TRUE(cpl::starts_with(sv, "ab"));
+    EXPECT_TRUE(cpl::starts_with(sv, ""));
+
+    EXPECT_TRUE(cpl::starts_with_ci(str, "ab"));
+    EXPECT_TRUE(cpl::starts_with_ci(str, "aB"));
+    EXPECT_TRUE(cpl::starts_with_ci(str, ""));
+
+    EXPECT_FALSE(cpl::starts_with(str, "ac"));
+    EXPECT_FALSE(cpl::starts_with(str, "abcd"));
+    EXPECT_FALSE(cpl::starts_with(str, "aB"));
+    EXPECT_FALSE(cpl::starts_with(std::string_view(str).substr(0, 1), "ab"));
+}
+
+TEST_F(test_cpl, cpl_ends_with)
+{
+    std::string str = "abc";
+    const char *cstr = "abc";
+    std::string_view sv = std::string_view(str).substr(0, 3);
+
+    EXPECT_TRUE(cpl::ends_with(str, "bc"));
+    EXPECT_TRUE(cpl::ends_with(cstr, "bc"));
+    EXPECT_TRUE(cpl::ends_with(sv, "bc"));
+    EXPECT_TRUE(cpl::ends_with(sv, ""));
+
+    EXPECT_TRUE(cpl::ends_with_ci(str, "bc"));
+    EXPECT_TRUE(cpl::ends_with_ci(str, "bC"));
+    EXPECT_TRUE(cpl::ends_with_ci(str, ""));
+
+    EXPECT_FALSE(cpl::ends_with(str, "ac"));
+    EXPECT_FALSE(cpl::ends_with(str, "abcd"));
+    EXPECT_FALSE(cpl::ends_with(str, "Bc"));
+    EXPECT_FALSE(cpl::ends_with(std::string_view(str).substr(0, 2), "bc"));
+}
+
+TEST_F(test_cpl, cpl_equals)
+{
+    std::string str = "abc";
+    const char *cstr = "abc";
+    std::string_view sv = str;
+
+    EXPECT_TRUE(cpl::equals(str, cstr));
+    EXPECT_TRUE(cpl::equals(cstr, sv));
+    EXPECT_TRUE(cpl::equals(sv, str));
+
+    EXPECT_FALSE(cpl::equals(str, ""));
+    EXPECT_FALSE(cpl::equals(str, std::string_view(str).substr(0, 2)));
+
+    EXPECT_FALSE(cpl::equals(str, "abC"));
+    EXPECT_TRUE(cpl::equals_ci(str, "abC"));
+    EXPECT_FALSE(cpl::equals_ci(str, ""));
+}
+
 }  // namespace
