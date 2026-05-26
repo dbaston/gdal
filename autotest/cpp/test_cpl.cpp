@@ -4964,10 +4964,37 @@ TEST_F(test_cpl, CPLStrtod)
     }
 
     {
-        const char *pszVal = "5 foo";
+        const char *pszVal = "-5 foo";
         char *pszEnd = nullptr;
-        EXPECT_EQ(CPLStrtod(pszVal, &pszEnd), 5.0);
-        EXPECT_EQ(pszEnd, pszVal + 1);
+        EXPECT_EQ(CPLStrtod(pszVal, &pszEnd), -5.0);
+        EXPECT_EQ(pszEnd, pszVal + 2);
+    }
+
+    {
+        const char *pszVal = "3.1415";
+        char *pszEnd = nullptr;
+        EXPECT_EQ(CPLStrtod(pszVal, &pszEnd), 3.1415);
+        EXPECT_EQ(pszEnd, pszVal + strlen(pszVal));
+    }
+
+    {
+        const char *pszVal = "6.022e23";
+        char *pszEnd = nullptr;
+        EXPECT_EQ(CPLStrtod(pszVal, &pszEnd), 6.022e23);
+        EXPECT_EQ(pszEnd, pszVal + strlen(pszVal));
+    }
+
+    {
+        const char *pszVal = "  +6.022E+23";
+        char *pszEnd = nullptr;
+        EXPECT_EQ(CPLStrtod(pszVal, &pszEnd), 6.022e23);
+        EXPECT_EQ(pszEnd, pszVal + strlen(pszVal));
+    }
+    {
+        const char *pszVal = "1.e-23";
+        char *pszEnd = nullptr;
+        EXPECT_EQ(CPLStrtod(pszVal, &pszEnd), 1.0e-23);
+        EXPECT_EQ(pszEnd, pszVal + strlen(pszVal));
     }
 
     {
