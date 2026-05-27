@@ -823,6 +823,15 @@ char **CSLTokenizeString2(const char *pszString, const char *pszDelimiters,
     if (pszString == nullptr)
         return static_cast<char **>(CPLCalloc(sizeof(char *), 1));
 
+    return cpl::tokenize_string(pszString, pszDelimiters, nCSLTFlags)
+        .StealList();
+}
+
+namespace cpl
+{
+CPLStringList tokenize_string(std::string_view str, std::string_view delimiters,
+                              int nCSLTFlags)
+{
     CPLStringList oRetList;
     const bool bHonourStrings = (nCSLTFlags & CSLT_HONOURSTRINGS) != 0;
     const bool bHonourStringsSingleQuotes =
@@ -831,70 +840,49 @@ char **CSLTokenizeString2(const char *pszString, const char *pszDelimiters,
     const bool bStripLeadSpaces = (nCSLTFlags & CSLT_STRIPLEADSPACES) != 0;
     const bool bStripEndSpaces = (nCSLTFlags & CSLT_STRIPENDSPACES) != 0;
 
-    char *pszToken = static_cast<char *>(CPLCalloc(10, 1));
-    size_t nTokenMax = 10;
-
-    while (*pszString != '\0')
+    size_t pos = 0;
+    std::string token;
+    while (pos < str.size())
     {
+        token.clear();
         bool bInString = false;
         bool bInStringSingleQuote = false;
-        bool bStartString = true;
-        size_t nTokenLen = 0;
 
         // Try to find the next delimiter, marking end of token.
-        for (; *pszString != '\0'; ++pszString)
+        while (pos < str.size())
         {
-            // Extend token buffer if we are running close to its end.
-            if (nTokenLen >= nTokenMax - 3)
-            {
-                if (nTokenMax > std::numeric_limits<size_t>::max() / 2)
-                {
-                    CPLFree(pszToken);
-                    return static_cast<char **>(CPLCalloc(sizeof(char *), 1));
-                }
-                nTokenMax = nTokenMax * 2;
-                char *pszNewToken = static_cast<char *>(
-                    VSI_REALLOC_VERBOSE(pszToken, nTokenMax));
-                if (pszNewToken == nullptr)
-                {
-                    CPLFree(pszToken);
-                    return static_cast<char **>(CPLCalloc(sizeof(char *), 1));
-                }
-                pszToken = pszNewToken;
-            }
-
             // End if this is a delimiter skip it and break.
             if (!bInString && !bInStringSingleQuote &&
-                strchr(pszDelimiters, *pszString) != nullptr)
+                delimiters.find(str[pos]) != std::string_view::npos)
             {
-                ++pszString;
+                pos++;
                 break;
             }
 
             // If this is a quote, and we are honouring constant
             // strings, then process the constant strings, with out delim
             // but don't copy over the quotes.
-            if (bHonourStrings && !bInStringSingleQuote && *pszString == '"')
+            if (bHonourStrings && !bInStringSingleQuote && str[pos] == '"')
             {
                 if (nCSLTFlags & CSLT_PRESERVEQUOTES)
                 {
-                    pszToken[nTokenLen] = *pszString;
-                    ++nTokenLen;
+                    token.push_back(str[pos]);
                 }
 
                 bInString = !bInString;
+                pos++;
                 continue;
             }
             else if (bHonourStringsSingleQuotes && !bHonourStrings &&
-                     *pszString == '\'')
+                     str[pos] == '\'')
             {
                 if (nCSLTFlags & CSLT_PRESERVEQUOTES)
                 {
-                    pszToken[nTokenLen] = *pszString;
-                    ++nTokenLen;
+                    token.push_back(str[pos]);
                 }
 
                 bInStringSingleQuote = !bInStringSingleQuote;
+                pos++;
                 continue;
             }
 
@@ -903,70 +891,62 @@ char **CSLTokenizeString2(const char *pszString, const char *pszDelimiters,
              * processing them we will unescape the quotes and \\ sequence
              * reduces to \
              */
-            if (bInString && pszString[0] == '\\')
+            if (bInString && str[pos] == '\\')
             {
-                if (pszString[1] == '"' || pszString[1] == '\\')
+                if (pos + 1 < str.size() &&
+                    (str[pos + 1] == '"' || str[pos + 1] == '\\'))
                 {
                     if (nCSLTFlags & CSLT_PRESERVEESCAPES)
                     {
-                        pszToken[nTokenLen] = *pszString;
-                        ++nTokenLen;
+                        token.push_back(str[pos]);
                     }
 
-                    ++pszString;
+                    ++pos;
                 }
             }
-            else if (bInStringSingleQuote && pszString[0] == '\\')
+            else if (bInStringSingleQuote && str[pos] == '\\')
             {
-                if (pszString[1] == '\'' || pszString[1] == '\\')
+                if (pos + 1 < str.size() &&
+                    (str[pos + 1] == '\'' || str[pos + 1] == '\\'))
                 {
                     if (nCSLTFlags & CSLT_PRESERVEESCAPES)
                     {
-                        pszToken[nTokenLen] = *pszString;
-                        ++nTokenLen;
+                        token.push_back(str[pos]);
                     }
 
-                    ++pszString;
+                    ++pos;
                 }
             }
 
-            // Strip spaces at the token start if requested.
-            if (!bInString && !bInStringSingleQuote && bStripLeadSpaces &&
-                bStartString && isspace(static_cast<unsigned char>(*pszString)))
-                continue;
-
-            bStartString = false;
-
-            pszToken[nTokenLen] = *pszString;
-            ++nTokenLen;
+            token.push_back(str[pos]);
+            pos++;
         }
-
-        // Strip spaces at the token end if requested.
-        if (!bInString && !bInStringSingleQuote && bStripEndSpaces)
-        {
-            while (nTokenLen &&
-                   isspace(static_cast<unsigned char>(pszToken[nTokenLen - 1])))
-                nTokenLen--;
-        }
-
-        pszToken[nTokenLen] = '\0';
 
         // Add the token.
-        if (pszToken[0] != '\0' || bAllowEmptyTokens)
-            oRetList.AddString(pszToken);
+        std::string_view token_view(token);
+        if (bStripLeadSpaces)
+        {
+            token_view = ltrim(token_view);
+        }
+        if (bStripEndSpaces)
+        {
+            token_view = rtrim(token_view);
+        }
+
+        if (!token_view.empty() || bAllowEmptyTokens)
+            oRetList.AddString(token_view);
     }
 
     /*
      * If the last token was empty, then we need to capture
      * it now, as the loop would skip it.
      */
-    if (*pszString == '\0' && bAllowEmptyTokens && oRetList.Count() > 0 &&
-        strchr(pszDelimiters, *(pszString - 1)) != nullptr)
+    if (!str.empty() && pos == str.size() && bAllowEmptyTokens &&
+        oRetList.Count() > 0 &&
+        delimiters.find(str[pos - 1]) != std::string_view::npos)
     {
         oRetList.AddString("");
     }
-
-    CPLFree(pszToken);
 
     if (oRetList.List() == nullptr)
     {
@@ -975,8 +955,10 @@ char **CSLTokenizeString2(const char *pszString, const char *pszDelimiters,
         oRetList.Assign(static_cast<char **>(CPLCalloc(sizeof(char *), 1)));
     }
 
-    return oRetList.StealList();
+    return CPLStringList(oRetList.StealList());
 }
+
+}  // namespace cpl
 
 /**********************************************************************
  *                       CPLSPrintf()

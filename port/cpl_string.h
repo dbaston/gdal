@@ -522,6 +522,7 @@ extern "C++"
 
         CPLStringList &AddString(const char *pszNewString);
         CPLStringList &AddString(const std::string &newString);
+        CPLStringList &AddString(std::string_view newString);
         CPLStringList &AddStringDirectly(char *pszNewString);
 
         /** Add a string to the list */
@@ -734,6 +735,9 @@ extern "C++"
 
     std::pair<std::string_view, std::string_view>
         CPL_DLL parse_name_value(std::string_view svNameValue);
+
+    CPLStringList tokenize_string(std::string_view str,
+                                  std::string_view delimiters, int nCSLTFlags);
 
     /** Iterator for a CSLConstList */
     struct CPL_DLL CSLIterator
