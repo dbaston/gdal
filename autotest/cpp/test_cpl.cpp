@@ -286,7 +286,7 @@ TEST_F(test_cpl, CSLTokenizeString2)
     }
     {
         CPLStringList aosStringList(
-            CSLTokenizeString2("one two, three;four,five; six", " ;,", 0));
+            CSLTokenizeString2(",one two, three;four,five; six,", " ;,", 0));
         ASSERT_EQ(aosStringList.size(), 6);
         EXPECT_STREQ(aosStringList[0], "one");
         EXPECT_STREQ(aosStringList[1], "two");
@@ -298,14 +298,16 @@ TEST_F(test_cpl, CSLTokenizeString2)
 
     {
         CPLStringList aosStringList(CSLTokenizeString2(
-            "one two,,,five,six", " ,", CSLT_ALLOWEMPTYTOKENS));
-        ASSERT_EQ(aosStringList.size(), 6);
-        EXPECT_STREQ(aosStringList[0], "one");
-        EXPECT_STREQ(aosStringList[1], "two");
-        EXPECT_STREQ(aosStringList[2], "");
+            ",one two,,,five,six,", " ,", CSLT_ALLOWEMPTYTOKENS));
+        ASSERT_EQ(aosStringList.size(), 8);
+        EXPECT_STREQ(aosStringList[0], "");
+        EXPECT_STREQ(aosStringList[1], "one");
+        EXPECT_STREQ(aosStringList[2], "two");
         EXPECT_STREQ(aosStringList[3], "");
-        EXPECT_STREQ(aosStringList[4], "five");
-        EXPECT_STREQ(aosStringList[5], "six");
+        EXPECT_STREQ(aosStringList[4], "");
+        EXPECT_STREQ(aosStringList[5], "five");
+        EXPECT_STREQ(aosStringList[6], "six");
+        EXPECT_STREQ(aosStringList[7], "");
     }
 
     {
