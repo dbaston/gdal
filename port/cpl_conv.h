@@ -20,7 +20,11 @@
 #include "cpl_error.h"
 
 #if defined(__cplusplus) && !defined(CPL_SUPRESS_CPLUSPLUS)
+#include <charconv>
 #include <cstdint>
+#include <limits>
+#include <optional>
+#include <string_view>
 #endif
 
 /**
@@ -118,7 +122,6 @@ float CPL_DLL CPLStrtof(const char *, char **);
 float CPL_DLL CPLStrtofDelim(const char *, char **, char);
 
 #if defined(__cplusplus) && !defined(CPL_SUPRESS_CPLUSPLUS)
-#include <string_view>
 extern "C++"
 {
     namespace cpl
@@ -530,6 +533,11 @@ extern "C++"
     {
         return a / b + (((a % b) == 0) ? 0 : 1);
     }
+
+    extern CPL_DLL std::string_view trim(std::string_view str);
+
+    template <typename T>
+    std::optional<T> CPL_DLL strict_parse(std::string_view str);
 
     }  // namespace cpl
 }  // extern "C++"
