@@ -2,10 +2,10 @@ PROGRAM = test_cpp
 OBJECTS = test_cpp.o
 
 ifdef GDAL_CONFIG
-override CXXFLAGS += -std=c++11 -g -Wall -Werror $(shell $(GDAL_CONFIG) --cflags)
+override CXXFLAGS += -std=c++17 -g -Wall -Werror $(shell $(GDAL_CONFIG) --cflags)
 override LDFLAGS += $(shell $(GDAL_CONFIG) --libs)
 else
-override CXXFLAGS += -std=c++11 -g -Wall -Werror $(shell pkg-config gdal --cflags)
+override CXXFLAGS += -std=c++17 -g -Wall -Werror $(shell pkg-config gdal --cflags)
 override LDFLAGS += $(shell pkg-config gdal --libs)
 endif
 
