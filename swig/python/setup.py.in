@@ -100,12 +100,12 @@ def fetch_config(option, gdal_config='gdal-config'):
     return r
 
 
-def supports_cxx11(compiler, compiler_flag=None):
+def supports_cxx17(compiler, compiler_flag=None):
     ret = False
-    with open('gdal_python_cxx11_test.cpp', 'wt') as f:
+    with open('gdal_python_cxx17_test.cpp', 'wt') as f:
         f.write("""
-#if __cplusplus < 201103L
-#error "C++11 required"
+#if __cplusplus < 201703L
+#error "C++17 required"
 #endif
 int main () { return 0; }""")
         f.close()
@@ -132,9 +132,9 @@ int main () { return 0; }""")
                 ret = True
             except Exception:
                 pass
-    os.unlink('gdal_python_cxx11_test.cpp')
-    if os.path.exists('gdal_python_cxx11_test.o'):
-        os.unlink('gdal_python_cxx11_test.o')
+    os.unlink('gdal_python_cxx17_test.cpp')
+    if os.path.exists('gdal_python_cxx17_test.o'):
+        os.unlink('gdal_python_cxx17_test.o')
     return ret
 
 ###Based on: https://stackoverflow.com/questions/28641408/how-to-tell-which-compiler-will-be-invoked-for-a-python-c-extension-in-setuptool
@@ -252,17 +252,17 @@ class gdal_ext(build_ext):
 
     def build_extensions(self):
 
-        # Add a -std=c++11 or similar flag if needed
+        # Add a -std=c++17 or similar flag if needed
         ct = self.compiler.compiler_type
-        if ct == 'unix' and not supports_cxx11(self.compiler):
-            cxx11_flag = None
-            if supports_cxx11(self.compiler, '-std=c++11'):
-                cxx11_flag = '-std=c++11'
-            if cxx11_flag:
+        if ct == 'unix' and not supports_cxx17(self.compiler):
+            cxx17_flag = None
+            if supports_cxx17(self.compiler, '-std=c++17'):
+                cxx17_flag = '-std=c++17'
+            if cxx17_flag:
                 for ext in self.extensions:
                     # gdalconst builds as a .c file
                     if ext.name != 'osgeo._gdalconst':
-                        ext.extra_compile_args += [cxx11_flag]
+                        ext.extra_compile_args += [cxx17_flag]
 
                     # Adding arch flags here if OS X and compiler is clang
                     if sys.platform == 'darwin' and [int(x) for x in os.uname()[2].split('.')] >= [11, 0, 0]:
@@ -275,6 +275,11 @@ class gdal_ext(build_ext):
                             clang_flag = '-Wno-error=unused-command-line-argument'
                             if has_flag(self.compiler, clang_flag):
                                 ext.extra_compile_args += [clang_flag]
+
+        elif ct == 'msvc':
+            for ext in self.extensions:
+                ext.extra_compile_args.append('/std:c++17')
+
 
         if "GDAL_PYTHON_CXXFLAGS" in os.environ:
             for ext in self.extensions:
