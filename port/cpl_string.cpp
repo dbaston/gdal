@@ -3273,12 +3273,30 @@ static bool CaseInsensitiveCompare(char c1, char c2)
     return toupper(c1) == toupper(c2);
 }
 
+/** Check whether the start of one string is equivalent to another string,
+ *  considering case.
+ *
+ * @param str string to test
+ * @param prefix expected prefix
+ * @return true if the string starts with the prefix
+ *
+ * @since GDAL 3.11
+ */
 bool starts_with(std::string_view str, std::string_view prefix)
 {
     return str.size() >= prefix.size() &&
            str.compare(0, prefix.size(), prefix) == 0;
 }
 
+/** Check whether the start of one string is equivalent to another string,
+ *  not considering case.
+ *
+ * @param str string to test
+ * @param prefix expected prefix
+ * @return true if the string starts with the prefix
+ *
+ * @since GDAL 3.14
+ */
 bool starts_with_ci(std::string_view str, std::string_view prefix)
 {
     return str.size() >= prefix.size() &&
@@ -3286,6 +3304,15 @@ bool starts_with_ci(std::string_view str, std::string_view prefix)
                        CaseInsensitiveCompare) != str.end();
 }
 
+/** Check whether the end of one string is equivalent to another string,
+ *  considering case.
+ *
+ * @param str string to test
+ * @param suffix expected suffix
+ * @return true if the string ends with the suffix
+ *
+ * @since GDAL 3.11
+ */
 bool ends_with(std::string_view str, std::string_view suffix)
 {
     return str.size() >= suffix.size() &&
@@ -3293,6 +3320,15 @@ bool ends_with(std::string_view str, std::string_view suffix)
                                           suffix.size(), suffix) == 0);
 }
 
+/** Check whether the end of one string is equivalent to another string,
+ *  not considering case.
+ *
+ * @param str string to test
+ * @param suffix expected suffix
+ * @return true if the string ends with the suffix
+ *
+ * @since GDAL 3.14
+ */
 bool ends_with_ci(std::string_view str, std::string_view suffix)
 {
     return str.size() >= suffix.size() &&
@@ -3301,11 +3337,27 @@ bool ends_with_ci(std::string_view str, std::string_view suffix)
                         suffix.end(), CaseInsensitiveCompare) != str.end());
 }
 
+/** Check whether two strings are equal, considering case.
+ *
+ * @param str1 first string to test
+ * @param str2 second string to test
+ * @return true if the strings are considered equal
+ *
+ * @since GDAL 3.14
+ */
 bool equals(std::string_view str1, std::string_view str2)
 {
     return str1 == str2;
 }
 
+/** Check whether two strings are equal, not considering case.
+ *
+ * @param str1 first string to test
+ * @param str2 second string to test
+ * @return true if the strings are considered equal
+ *
+ * @since GDAL 3.14
+ */
 bool equals_ci(std::string_view str1, std::string_view str2)
 {
     return str1.size() == str2.size() &&
@@ -3313,6 +3365,14 @@ bool equals_ci(std::string_view str1, std::string_view str2)
                       CaseInsensitiveCompare);
 }
 
+/** Remove leading and trailing whitespace from a string.
+ *  The returned string view will be a reference into the input.
+ *
+ * @param str string to trim
+ * @return trimmed string
+ *
+ * @since GDAL 3.14
+ */
 std::string_view trim(std::string_view str)
 {
     if (str.empty())
@@ -3340,6 +3400,14 @@ std::string_view trim(std::string_view str)
     return str.substr(start, stop - start);
 }
 
+/** Remove leading whitespace from a string.
+ *  The returned string view will be a reference into the input.
+ *
+ * @param str string to trim
+ * @return trimmed string
+ *
+ * @since GDAL 3.14
+ */
 std::string_view ltrim(std::string_view str)
 {
     if (str.empty())
@@ -3356,6 +3424,14 @@ std::string_view ltrim(std::string_view str)
     return str.substr(start);
 }
 
+/** Remove trailing whitespace from a string.
+ *  The returned string view will be a reference into the input.
+ *
+ * @param str string to trim
+ * @return trimmed string
+ *
+ * @since GDAL 3.14
+ */
 std::string_view rtrim(std::string_view str)
 {
     if (str.empty())

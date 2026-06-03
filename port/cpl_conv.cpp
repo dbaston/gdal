@@ -4113,6 +4113,15 @@ int CPLGetRemainingFileDescriptorCount()
 namespace cpl
 {
 
+/** Attempt to parse a number of the designated type from a string. The string
+ *  must contain no characters other than a single number and surrounding
+ *  whitespace, and the parsed number must fit into the designated type.
+ *  If these conditions are not met, std::nullopt will be returned.
+ *
+ * @param str the string to parse
+ * @return a std::optional<T> containing the parsed value, or std::nullopt
+ *         in case of failure.
+ */
 template <typename T>
 std::optional<T> CPL_DLL strict_parse(std::string_view str)
 {
