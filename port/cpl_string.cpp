@@ -3268,7 +3268,7 @@ std::string CPLRemoveSQLComments(const std::string &osInput)
 namespace cpl
 {
 
-static bool CaseInsensitiveCompare(char c1, char c2)
+static bool CaseInsensitiveCompare(unsigned char c1, unsigned char c2)
 {
     return toupper(c1) == toupper(c2);
 }
@@ -3381,7 +3381,8 @@ std::string_view trim(std::string_view str)
     }
 
     size_t start = 0;
-    while (start < str.size() && isspace(str[start]))
+    while (start < str.size() &&
+           isspace(static_cast<unsigned char>(str[start])))
     {
         start++;
     }
@@ -3392,7 +3393,7 @@ std::string_view trim(std::string_view str)
     }
 
     size_t stop = str.size();
-    while (stop > start && isspace(str[stop - 1]))
+    while (stop > start && isspace(static_cast<unsigned char>(str[stop - 1])))
     {
         stop--;
     }
@@ -3416,7 +3417,8 @@ std::string_view ltrim(std::string_view str)
     }
 
     size_t start = 0;
-    while (start < str.size() && isspace(str[start]))
+    while (start < str.size() &&
+           isspace(static_cast<unsigned char>(str[start])))
     {
         start++;
     }
@@ -3440,7 +3442,7 @@ std::string_view rtrim(std::string_view str)
     }
 
     size_t stop = str.size();
-    while (stop > 0 && isspace(str[stop - 1]))
+    while (stop > 0 && isspace(static_cast<unsigned char>(str[stop - 1])))
     {
         stop--;
     }
