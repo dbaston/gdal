@@ -49,7 +49,7 @@ Program-Specific Options
 
    Name of attribute field(s) to explode. To expand all attribute fields, the special value ``ALL`` is understood.
 
-.. option:: --geom-field <GEOM-FIELD>
+.. option:: --geometry-field <GEOMETRY-FIELD>
 
    Name or position (0-indexed) of geometry field(s) to explode.
 
@@ -107,4 +107,4 @@ Examples
 
    .. code-block:: bash
 
-        $ gdal vector pipeline read in.gpkg ! explode --geom-field 0 ! set-geom-type --geometry-type=POINT --skip ! write points.shp --overwrite
+        $ gdal vector pipeline read in.gpkg ! explode --geometry-field 0 ! set-geom-type --geometry-type=POINT --skip ! write points.shp --overwrite

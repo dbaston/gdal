@@ -43,8 +43,9 @@ GDALVectorExplodeAlgorithm::GDALVectorExplodeAlgorithm(bool standaloneStep)
     AddArg("field", 0, _("Attribute fields(s) to explode"), &m_fields)
         .SetMetaVar("FIELD");
 
-    AddArg("geom-field", 0, _("Geometry field(s) to explode"), &m_geomFields)
-        .SetMetaVar("GEOM_FIELD");
+    AddArg("geometry-field", 0, _("Geometry field(s) to explode"),
+           &m_geomFields)
+        .SetMetaVar("GEOMETRY-FIELD");
 
     AddArg("index-field", 0, _("Name of the output index field"),
            &m_indexFieldName)
