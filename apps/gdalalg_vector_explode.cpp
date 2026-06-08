@@ -528,7 +528,7 @@ bool GDALVectorExplodeAlgorithm::RunStep(GDALPipelineStepRunContext &)
         if (fieldsForLayer.size() == 1 && fieldsForLayer[0] == "ALL")
         {
             fieldsForLayer.clear();
-            for (int iField = 0; iField < poLayerDefn->GetGeomFieldCount();
+            for (int iField = 0; iField < poLayerDefn->GetFieldCount();
                  iField++)
             {
                 fieldsForLayer.emplace_back(
