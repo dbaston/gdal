@@ -37,6 +37,8 @@ GDALVectorUnnestAlgorithm::GDALVectorUnnestAlgorithm(bool standaloneStep)
     : GDALVectorPipelineStepAlgorithm(NAME, DESCRIPTION, HELP_URL,
                                       standaloneStep)
 {
+    AddActiveLayerArg(&m_activeLayer);
+
     AddArg("field", 0, _("Attribute fields(s) to explode"), &m_fields)
         .SetMetaVar("FIELD");
 
@@ -492,14 +494,21 @@ bool GDALVectorUnnestAlgorithm::RunStep(GDALPipelineStepRunContext &)
         return false;
     }
 
-    const int nLayerCount = poSrcDS->GetLayerCount();
-    for (int iLayer = 0; iLayer < nLayerCount; iLayer++)
+    for (OGRLayer *poSrcLayer : poSrcDS->GetLayers())
     {
-        auto poLayer = poSrcDS->GetLayer(iLayer);
-        if (!poLayer)
+        if (!poSrcLayer)
             continue;
 
-        const auto *poLayerDefn = poLayer->GetLayerDefn();
+        if (!m_activeLayer.empty() &&
+            poSrcLayer->GetDescription() != m_activeLayer)
+        {
+            poOutDS->AddLayer(
+                *poSrcLayer,
+                std::make_unique<GDALVectorPipelinePassthroughLayer>(
+                    *poSrcLayer));
+        }
+
+        const auto *poLayerDefn = poSrcLayer->GetLayerDefn();
 
         auto fieldsForLayer = m_fields;
         auto geomFieldsForLayer = m_geomFields;
@@ -529,8 +538,9 @@ bool GDALVectorUnnestAlgorithm::RunStep(GDALPipelineStepRunContext &)
         if (m_method == "zip")
         {
             auto poOutLayer = std::make_unique<GDALVectorExplodeZipLayer>(
-                *poLayer, fieldsForLayer, geomFieldsForLayer, m_indexFieldName);
-            poOutDS->AddLayer(*poLayer, std::move(poOutLayer));
+                *poSrcLayer, fieldsForLayer, geomFieldsForLayer,
+                m_indexFieldName);
+            poOutDS->AddLayer(*poSrcLayer, std::move(poOutLayer));
         }
     }
 

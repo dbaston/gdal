@@ -36,6 +36,7 @@ class GDALVectorUnnestAlgorithm /* non final */
     bool RunStep(GDALPipelineStepRunContext &ctxt) override;
 
   private:
+    std::string m_activeLayer{};
     std::vector<std::string> m_fields{};
     std::vector<std::string> m_geomFields{};
     std::string m_indexFieldName{};

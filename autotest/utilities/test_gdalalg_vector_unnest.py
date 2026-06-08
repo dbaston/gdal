@@ -15,6 +15,7 @@ import string
 import sys
 
 import gdaltest
+import ogrtest
 import pytest
 
 from osgeo import gdal, ogr, osr
@@ -417,6 +418,49 @@ def test_gdalalg_vector_unnest_geometry_with_singlepart(alg):
 
     assert f["int_array"] == 5
     assert f.GetGeometryRef().ExportToWkt() == "POINT (8 2)"
+
+
+def test_gdalalg_vector_unnest_active_layer(alg):
+
+    src_ds = gdal.GetDriverByName("MEM").Create("", 0, 0, 0, gdal.GDT_Unknown)
+
+    src_lyr = src_ds.CreateLayer("the_layer", geom_type=ogr.wkbMultiPoint)
+    f = ogr.Feature(src_lyr.GetLayerDefn())
+    f.SetGeomField(0, ogr.CreateGeometryFromWkt("MULTIPOINT (1 2,3 4)"))
+    src_lyr.CreateFeature(f)
+
+    src_lyr = src_ds.CreateLayer("other_layer", geom_type=ogr.wkbUnknown)
+    f = ogr.Feature(src_lyr.GetLayerDefn())
+    f.SetGeomField(0, ogr.CreateGeometryFromWkt("MULTIPOINT (5 6,7 8)"))
+    src_lyr.CreateFeature(f)
+
+    alg["input"] = src_ds
+    alg["output"] = ""
+    alg["output-format"] = "stream"
+    alg["active-layer"] = "the_layer"
+    alg["geom-field"] = 0
+
+    assert alg.Run()
+
+    out_ds = alg["output"].GetDataset()
+
+    out_lyr = out_ds.GetLayer(0)
+    assert out_lyr.GetLayerDefn().GetGeomFieldDefn(0).GetType() == ogr.wkbPoint
+
+    out_f = out_lyr.GetNextFeature()
+    ogrtest.check_feature_geometry(out_f.GetGeomFieldRef(0), "POINT (1 2)")
+    assert out_f.GetFID() == 1
+
+    out_f = out_lyr.GetNextFeature()
+    ogrtest.check_feature_geometry(out_f.GetGeomFieldRef(0), "POINT (3 4)")
+    assert out_f.GetFID() == 2
+
+    out_lyr = out_ds.GetLayer(1)
+    assert out_lyr.GetLayerDefn().GetGeomFieldDefn(0).GetType() == ogr.wkbUnknown
+
+    out_f = out_lyr.GetNextFeature()
+    ogrtest.check_feature_geometry(out_f.GetGeomFieldRef(0), "MULTIPOINT (5 6,7 8)")
+    assert out_f.GetFID() == 0
 
 
 @pytest.mark.require_driver("GeoJSON")
