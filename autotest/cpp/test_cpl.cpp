@@ -5962,9 +5962,10 @@ auto GetLayerFeaureFIDs(OGRLayer &layer) -> std::vector<GIntBig>
 
 TEST_F(test_cpl, XXOX)
 {
-    GDALDataset *poDS =
-        (GDALDataset *)GDALOpenEx("autotest/ogr/data/mvt/43.pbf",
-                                  GDAL_OF_VECTOR, nullptr, nullptr, nullptr);
+    GDALDataset *poDS = (GDALDataset *)GDALOpenEx(
+        "/vsicurl/https://raw.githubusercontent.com/dbaston/gdal/refs/heads/"
+        "mvt-access/autotest/ogr/data/mvt/43.pbf",
+        GDAL_OF_VECTOR, nullptr, nullptr, nullptr);
     for (int i = 0; i < poDS->GetLayerCount(); i++)
     {
         OGRLayer *poLayer = poDS->GetLayer(i);
