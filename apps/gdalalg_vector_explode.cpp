@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * Project:  GDAL
- * Purpose:  "unnest" step of "vector pipeline"
+ * Purpose:  "explode" step of "vector pipeline"
  * Author:   Daniel Baston
  *
  ******************************************************************************
@@ -10,13 +10,14 @@
  * SPDX-License-Identifier: MIT
  ****************************************************************************/
 
-#include "gdalalg_vector_unnest.h"
+#include "gdalalg_vector_explode.h"
 
 #include "cpl_conv.h"
 #include "cpl_string.h"
 #include "gdal_priv.h"
 #include "ogrsf_frmts.h"
 
+#include <algorithm>
 #include <cinttypes>
 #include <list>
 #include <memory>
@@ -30,10 +31,10 @@
 #endif
 
 /************************************************************************/
-/*        GDALVectorUnnestAlgorithm::GDALVectorUnnestAlgorithm()        */
+/*       GDALVectorExplodeAlgorithm::GDALVectorExplodeAlgorithm()       */
 /************************************************************************/
 
-GDALVectorUnnestAlgorithm::GDALVectorUnnestAlgorithm(bool standaloneStep)
+GDALVectorExplodeAlgorithm::GDALVectorExplodeAlgorithm(bool standaloneStep)
     : GDALVectorPipelineStepAlgorithm(NAME, DESCRIPTION, HELP_URL,
                                       standaloneStep)
 {
@@ -50,7 +51,7 @@ GDALVectorUnnestAlgorithm::GDALVectorUnnestAlgorithm(bool standaloneStep)
         .SetDefault(m_indexFieldName);
 }
 
-GDALVectorUnnestAlgorithmStandalone::~GDALVectorUnnestAlgorithmStandalone() =
+GDALVectorExplodeAlgorithmStandalone::~GDALVectorExplodeAlgorithmStandalone() =
     default;
 
 namespace
@@ -60,12 +61,12 @@ class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
 {
   public:
     GDALVectorExplodeZipLayer(
-        OGRLayer &srcLayer, const std::vector<std::string> &fieldsToUnnest,
-        const std::vector<std::string> &geomFieldsToUnnest,
+        OGRLayer &srcLayer, const std::vector<std::string> &fieldsToExplode,
+        const std::vector<std::string> &geomFieldsToExplode,
         const std::string &indexFieldName)
         : GDALVectorPipelineOutputLayer(srcLayer),
-          m_fieldsToUnnest(fieldsToUnnest),
-          m_geomFieldsToUnnest(geomFieldsToUnnest),
+          m_fieldsToExplode(fieldsToExplode),
+          m_geomFieldsToExplode(geomFieldsToExplode),
           m_indexFieldName(indexFieldName)
     {
         if (!PrepareFeatureDefn())
@@ -100,9 +101,9 @@ class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
         std::iota(m_passThroughFieldSrcToDstMap.begin(),
                   m_passThroughFieldSrcToDstMap.end(), addIndexField ? 1 : 0);
 
-        m_geomFieldUnnested.resize(poSrcDefn->GetGeomFieldCount(), false);
+        m_geomFieldExplodeed.resize(poSrcDefn->GetGeomFieldCount(), false);
 
-        for (const auto &fieldName : m_fieldsToUnnest)
+        for (const auto &fieldName : m_fieldsToExplode)
         {
             const int iSrcField = poSrcDefn->GetFieldIndex(fieldName.c_str());
             if (iSrcField < 0)
@@ -124,7 +125,7 @@ class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
             }
         }
 
-        for (const auto &fieldName : m_geomFieldsToUnnest)
+        for (const auto &fieldName : m_geomFieldsToExplode)
         {
             // Is it a geometry field?
             int iSrcGeomField = poSrcDefn->GetGeomFieldIndex(fieldName.c_str());
@@ -161,7 +162,7 @@ class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
                 return false;
             }
 
-            m_geomFieldUnnested[iSrcGeomField] = true;
+            m_geomFieldExplodeed[iSrcGeomField] = true;
         }
 
         // Create attribute fields
@@ -195,7 +196,7 @@ class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
                 poSrcDefn->GetGeomFieldDefn(iSrcGeomField);
             std::unique_ptr<OGRGeomFieldDefn> poDstGeomFieldDefn;
 
-            if (m_geomFieldUnnested[iSrcGeomField])
+            if (m_geomFieldExplodeed[iSrcGeomField])
             {
                 const auto eDstType =
                     OGR_GT_GetSingle(poSrcGeomFieldDefn->GetType());
@@ -362,7 +363,7 @@ class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
             for (int iGeomField = 0;
                  iGeomField < poSrcFeature->GetGeomFieldCount(); iGeomField++)
             {
-                if (m_geomFieldUnnested[iGeomField])
+                if (m_geomFieldExplodeed[iGeomField])
                 {
                     std::unique_ptr<OGRGeometry> poDstGeom;
 
@@ -463,9 +464,9 @@ class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
   private:
     std::vector<int> m_passThroughFieldSrcToDstMap{};
     std::vector<int> m_unnestedFieldSrcToDstMap{};
-    std::vector<bool> m_geomFieldUnnested{};
-    std::vector<std::string> m_fieldsToUnnest{};
-    std::vector<std::string> m_geomFieldsToUnnest{};
+    std::vector<bool> m_geomFieldExplodeed{};
+    std::vector<std::string> m_fieldsToExplode{};
+    std::vector<std::string> m_geomFieldsToExplode{};
     std::string m_indexFieldName{};
     bool m_setupError{false};
     OGRFeatureDefnRefCountedPtr m_poFeatureDefn{nullptr};
@@ -477,10 +478,10 @@ class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
 }  // namespace
 
 /************************************************************************/
-/*                 GDALVectorUnnestAlgorithm::RunStep()                 */
+/*                GDALVectorExplodeAlgorithm::RunStep()                 */
 /************************************************************************/
 
-bool GDALVectorUnnestAlgorithm::RunStep(GDALPipelineStepRunContext &)
+bool GDALVectorExplodeAlgorithm::RunStep(GDALPipelineStepRunContext &)
 {
     auto poSrcDS = m_inputDataset[0].GetDatasetRef();
     CPLAssert(poSrcDS);

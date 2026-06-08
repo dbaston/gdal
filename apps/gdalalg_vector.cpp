@@ -28,6 +28,7 @@
 #include "gdalalg_vector_create.h"
 #include "gdalalg_vector_dissolve.h"
 #include "gdalalg_vector_edit.h"
+#include "gdalalg_vector_explode.h"
 #include "gdalalg_vector_explode_collections.h"
 #include "gdalalg_vector_export_schema.h"
 #include "gdalalg_vector_grid.h"
@@ -49,7 +50,6 @@
 #include "gdalalg_vector_simplify_coverage.h"
 #include "gdalalg_vector_sort.h"
 #include "gdalalg_vector_sql.h"
-#include "gdalalg_vector_unnest.h"
 #include "gdalalg_vector_update.h"
 #include "gdalalg_vector_swap_xy.h"
 
@@ -87,6 +87,7 @@ GDALVectorAlgorithm::GDALVectorAlgorithm()
     RegisterSubAlgorithm<GDALVectorDissolveAlgorithmStandalone>();
     RegisterSubAlgorithm<GDALVectorEditAlgorithmStandalone>();
     RegisterSubAlgorithm<GDALVectorExportSchemaAlgorithmStandalone>();
+    RegisterSubAlgorithm<GDALVectorExplodeAlgorithmStandalone>();
     RegisterSubAlgorithm<GDALVectorExplodeCollectionsAlgorithmStandalone>();
     RegisterSubAlgorithm<GDALVectorGridAlgorithmStandalone>();
     RegisterSubAlgorithm<GDALVectorRasterizeAlgorithmStandalone>();
@@ -107,7 +108,6 @@ GDALVectorAlgorithm::GDALVectorAlgorithm()
     RegisterSubAlgorithm<GDALVectorSimplifyCoverageAlgorithmStandalone>();
     RegisterSubAlgorithm<GDALVectorSortAlgorithmStandalone>();
     RegisterSubAlgorithm<GDALVectorSQLAlgorithmStandalone>();
-    RegisterSubAlgorithm<GDALVectorUnnestAlgorithmStandalone>();
     RegisterSubAlgorithm<GDALVectorUpdateAlgorithmStandalone>();
     RegisterSubAlgorithm<GDALVectorSwapXYAlgorithmStandalone>();
 }

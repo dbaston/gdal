@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * Project:  GDAL
- * Purpose:  "unnest" step of "vector pipeline"
+ * Purpose:  "explode" step of "vector pipeline"
  * Author:   Daniel Baston
  *
  ******************************************************************************
@@ -10,27 +10,28 @@
  * SPDX-License-Identifier: MIT
  ****************************************************************************/
 
-#ifndef GDALALG_VECTOR_UNNEST_INCLUDED
-#define GDALALG_VECTOR_UNNEST_INCLUDED
+#ifndef GDALALG_VECTOR_EXPLODE_INCLUDED
+#define GDALALG_VECTOR_EXPLODE_INCLUDED
 
 #include "gdalalg_vector_pipeline.h"
 
 //! @cond Doxygen_Suppress
 
 /************************************************************************/
-/*                      GDALVectorUnnestAlgorithm                       */
+/*                      GDALVectorExplodeAlgorithm                      */
 /************************************************************************/
 
-class GDALVectorUnnestAlgorithm /* non final */
+class GDALVectorExplodeAlgorithm /* non final */
     : public GDALVectorPipelineStepAlgorithm
 {
   public:
-    static constexpr const char *NAME = "unnest";
+    static constexpr const char *NAME = "explode";
     static constexpr const char *DESCRIPTION =
-        "Unnest array fields of a vector dataset into multiple features.";
-    static constexpr const char *HELP_URL = "/programs/gdal_vector_unnest.html";
+        "Explode array fields of a vector dataset into multiple features.";
+    static constexpr const char *HELP_URL =
+        "/programs/gdal_vector_explode.html";
 
-    explicit GDALVectorUnnestAlgorithm(bool standaloneStep = false);
+    explicit GDALVectorExplodeAlgorithm(bool standaloneStep = false);
 
   protected:
     bool RunStep(GDALPipelineStepRunContext &ctxt) override;
@@ -43,21 +44,21 @@ class GDALVectorUnnestAlgorithm /* non final */
 };
 
 /************************************************************************/
-/*                 GDALVectorUnnestAlgorithmStandalone                  */
+/*                 GDALVectorExplodeAlgorithmStandalone                 */
 /************************************************************************/
 
-class GDALVectorUnnestAlgorithmStandalone final
-    : public GDALVectorUnnestAlgorithm
+class GDALVectorExplodeAlgorithmStandalone final
+    : public GDALVectorExplodeAlgorithm
 {
   public:
-    GDALVectorUnnestAlgorithmStandalone()
-        : GDALVectorUnnestAlgorithm(/* standaloneStep = */ true)
+    GDALVectorExplodeAlgorithmStandalone()
+        : GDALVectorExplodeAlgorithm(/* standaloneStep = */ true)
     {
     }
 
-    ~GDALVectorUnnestAlgorithmStandalone() override;
+    ~GDALVectorExplodeAlgorithmStandalone() override;
 };
 
 //! @endcond
 
-#endif /* GDALALG_VECTOR_UNNEST_INCLUDED */
+#endif /* GDALALG_VECTOR_EXPLODE_INCLUDED */

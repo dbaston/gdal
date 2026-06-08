@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 ###############################################################################
 # Project:  GDAL/OGR Test Suite
-# Purpose:  'gdal vector unnest' testing
+# Purpose:  'gdal vector explode' testing
 # Author:   Dan Baston
 #
 ###############################################################################
@@ -23,7 +23,7 @@ from osgeo import gdal, ogr, osr
 
 @pytest.fixture()
 def alg():
-    return gdal.Algorithm("vector", "unnest")
+    return gdal.Algorithm("vector", "explode")
 
 
 @pytest.fixture()
@@ -60,7 +60,7 @@ def source_with_arrays():
     return src_ds
 
 
-def test_gdalalg_vector_unnest_basic(alg, source_with_arrays):
+def test_gdalalg_vector_explode_basic(alg, source_with_arrays):
 
     alg["input"] = source_with_arrays
     alg["field"] = [
@@ -118,7 +118,7 @@ def test_gdalalg_vector_unnest_basic(alg, source_with_arrays):
     "field_type",
     (ogr.OFTIntegerList, ogr.OFTInteger64List, ogr.OFTRealList, ogr.OFTStringList),
 )
-def test_gdalalg_vector_unnest_arrays_unequal_length(alg, field_type):
+def test_gdalalg_vector_explode_arrays_unequal_length(alg, field_type):
 
     src_ds = gdal.GetDriverByName("MEM").CreateVector("")
     src_lyr = src_ds.CreateLayer("test", geom_type=ogr.wkbNone)
@@ -146,7 +146,7 @@ def test_gdalalg_vector_unnest_arrays_unequal_length(alg, field_type):
         alg.Run()
 
 
-def test_gdalalg_vector_unnest_invalid_field(alg):
+def test_gdalalg_vector_explode_invalid_field(alg):
 
     alg["input"] = "../ogr/data/poly.shp"
     alg["field"] = "does_not_exist"
@@ -156,7 +156,7 @@ def test_gdalalg_vector_unnest_invalid_field(alg):
         alg.Run()
 
 
-def test_gdalalg_vector_unnest_geometry(alg):
+def test_gdalalg_vector_explode_geometry(alg):
 
     src_ds = gdal.GetDriverByName("MEM").CreateVector("")
     src_lyr = src_ds.CreateLayer(
@@ -189,7 +189,7 @@ def test_gdalalg_vector_unnest_geometry(alg):
     assert dst_lyr.GetNextFeature().GetGeometryRef().ExportToWkt() == "POINT (0 6)"
 
 
-def test_gdalalg_vector_unnest_field_and_geometry(alg):
+def test_gdalalg_vector_explode_field_and_geometry(alg):
 
     src_ds = gdal.GetDriverByName("MEM").CreateVector("")
     src_lyr = src_ds.CreateLayer(
@@ -227,7 +227,7 @@ def test_gdalalg_vector_unnest_field_and_geometry(alg):
 
 
 @pytest.mark.require_driver("GeoJSON")
-def test_gdalalg_vector_unnest_geometry_limit_type_with_pipeline(alg, tmp_vsimem):
+def test_gdalalg_vector_explode_geometry_limit_type_with_pipeline(alg, tmp_vsimem):
 
     src_fname = tmp_vsimem / "src.json"
     dst_fname = tmp_vsimem / "dst.json"
@@ -256,7 +256,7 @@ def test_gdalalg_vector_unnest_geometry_limit_type_with_pipeline(alg, tmp_vsimem
         src_lyr.CreateFeature(f)
 
     gdal.alg.vector.pipeline(
-        pipeline=f'read {src_fname} ! unnest --geom-field 0"" ! set-geom-type --geometry-type LINESTRING --skip ! write {dst_fname}'
+        pipeline=f'read {src_fname} ! explode --geom-field 0"" ! set-geom-type --geometry-type LINESTRING --skip ! write {dst_fname}'
     )
 
     with gdal.OpenEx(dst_fname) as dst_ds:
@@ -273,7 +273,7 @@ def test_gdalalg_vector_unnest_geometry_limit_type_with_pipeline(alg, tmp_vsimem
         assert wkt[2] == "LINESTRING (6 0,2 1)"
 
 
-def test_gdalalg_vector_unnest_geometry_multiple(alg):
+def test_gdalalg_vector_explode_geometry_multiple(alg):
 
     src_ds = gdal.GetDriverByName("MEM").CreateVector("")
     src_lyr = src_ds.CreateLayer(
@@ -315,7 +315,7 @@ def test_gdalalg_vector_unnest_geometry_multiple(alg):
     assert features[2].GetGeomFieldRef(1).ExportToWkt() == "LINESTRING (3 3,7 6)"
 
 
-def test_gdalalg_vector_unnest_geometry_multiple_unmatched(alg):
+def test_gdalalg_vector_explode_geometry_multiple_unmatched(alg):
 
     src_ds = gdal.GetDriverByName("MEM").CreateVector("")
     src_lyr = src_ds.CreateLayer(
@@ -341,7 +341,7 @@ def test_gdalalg_vector_unnest_geometry_multiple_unmatched(alg):
 
 
 @pytest.mark.require_driver("GML")
-def test_gdalalg_vector_unnest_geometry_multiple_cartesian_product_using_pipeline(
+def test_gdalalg_vector_explode_geometry_multiple_cartesian_product_using_pipeline(
     alg, tmp_vsimem
 ):
 
@@ -365,7 +365,7 @@ def test_gdalalg_vector_unnest_geometry_multiple_cartesian_product_using_pipelin
         src_lyr.CreateFeature(f)
 
     gdal.alg.vector.pipeline(
-        pipeline=f"read {src_fname} ! unnest --geom-field 0 ! unnest --geom-field 1 ! write {dst_fname} --of GML"
+        pipeline=f"read {src_fname} ! explode --geom-field 0 ! explode --geom-field 1 ! write {dst_fname} --of GML"
     )
 
     with gdal.OpenEx(dst_fname) as dst_ds:
@@ -388,7 +388,7 @@ def test_gdalalg_vector_unnest_geometry_multiple_cartesian_product_using_pipelin
         assert wkt[5] == ("POINT (1 9)", "POINT (2 2)")
 
 
-def test_gdalalg_vector_unnest_geometry_with_singlepart(alg):
+def test_gdalalg_vector_explode_geometry_with_singlepart(alg):
 
     src_ds = gdal.GetDriverByName("MEM").CreateVector("")
     src_lyr = src_ds.CreateLayer(
@@ -420,7 +420,7 @@ def test_gdalalg_vector_unnest_geometry_with_singlepart(alg):
     assert f.GetGeometryRef().ExportToWkt() == "POINT (8 2)"
 
 
-def test_gdalalg_vector_unnest_active_layer(alg):
+def test_gdalalg_vector_explode_active_layer(alg):
 
     src_ds = gdal.GetDriverByName("MEM").Create("", 0, 0, 0, gdal.GDT_Unknown)
 
@@ -464,7 +464,7 @@ def test_gdalalg_vector_unnest_active_layer(alg):
 
 
 @pytest.mark.require_driver("GeoJSON")
-def test_gdalalg_vector_unnest_ogrsf(alg, source_with_arrays, tmp_path):
+def test_gdalalg_vector_explode_ogrsf(alg, source_with_arrays, tmp_path):
 
     src_fname = tmp_path / "in.geojson"
     gdal.VectorTranslate(src_fname, source_with_arrays)
