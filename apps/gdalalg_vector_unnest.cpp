@@ -535,13 +535,9 @@ bool GDALVectorUnnestAlgorithm::RunStep(GDALPipelineStepRunContext &)
             }
         }
 
-        if (m_method == "zip")
-        {
-            auto poOutLayer = std::make_unique<GDALVectorExplodeZipLayer>(
-                *poSrcLayer, fieldsForLayer, geomFieldsForLayer,
-                m_indexFieldName);
-            poOutDS->AddLayer(*poSrcLayer, std::move(poOutLayer));
-        }
+        auto poOutLayer = std::make_unique<GDALVectorExplodeZipLayer>(
+            *poSrcLayer, fieldsForLayer, geomFieldsForLayer, m_indexFieldName);
+        poOutDS->AddLayer(*poSrcLayer, std::move(poOutLayer));
     }
 
     m_outputDataset.Set(std::move(poOutDS));

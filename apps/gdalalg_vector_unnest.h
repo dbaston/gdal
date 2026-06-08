@@ -40,7 +40,6 @@ class GDALVectorUnnestAlgorithm /* non final */
     std::vector<std::string> m_fields{};
     std::vector<std::string> m_geomFields{};
     std::string m_indexFieldName{};
-    std::string m_method{"zip"};
 };
 
 /************************************************************************/
