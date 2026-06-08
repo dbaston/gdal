@@ -13,6 +13,7 @@
  * SPDX-License-Identifier: MIT
  ****************************************************************************/
 
+#include "ogrsf_frmts.h"
 #ifndef GDAL_COMPILATION
 #define GDAL_COMPILATION
 #endif
@@ -5935,6 +5936,42 @@ TEST_F(test_cpl, CPLLaunderForFilenameSafe)
     EXPECT_STREQ(CPLLaunderForFilenameSafe("CON", '\0', nullptr).c_str(),
                  "CON_");
     EXPECT_STREQ(CPLLaunderForFilenameSafe("CON", ';').c_str(), "CON;");
+}
+
+auto GetLayerFeaureFIDs(OGRLayer &layer) -> std::vector<GIntBig>
+{
+    std::cout << "Processing layer '" << layer.GetName() << "'...\n";
+    std::vector<GIntBig> fids;
+
+    OGRFeature *feature = layer.GetNextFeature();
+
+    for (; feature != nullptr; feature = layer.GetNextFeature())
+    {
+        if (nullptr == feature)
+        {
+            std::cout << "Got a null feature from layer '" << layer.GetName()
+                      << "'. Skipping it.\n";
+            continue;
+        }
+
+        fids.push_back(feature->GetFID());
+    }
+
+    return fids;
+}
+
+TEST_F(test_cpl, XXOX)
+{
+    GDALDataset *poDS =
+        (GDALDataset *)GDALOpenEx("autotest/ogr/data/mvt/43.pbf",
+                                  GDAL_OF_VECTOR, nullptr, nullptr, nullptr);
+    for (int i = 0; i < poDS->GetLayerCount(); i++)
+    {
+        OGRLayer *poLayer = poDS->GetLayer(i);
+        std::vector<GIntBig> fids = GetLayerFeaureFIDs(*poLayer);
+        std::cout << "Layer '" << poLayer->GetName() << "' has " << fids.size()
+                  << " features.\n";
+    }
 }
 
 }  // namespace
