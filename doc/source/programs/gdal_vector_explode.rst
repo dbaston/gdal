@@ -53,6 +53,7 @@ Program-Specific Options
 .. option:: --geometry-field <GEOMETRY-FIELD>
 
    Name or position (0-indexed) of geometry field(s) to explode. The special value ``ALL`` can be used to explode all geometry fields.
+   The special value ``_OGR_GEOMETRY_`` can be used to explode the default geometry field. 
 
 .. option:: --index-field <INDEX-FIELD>
 
