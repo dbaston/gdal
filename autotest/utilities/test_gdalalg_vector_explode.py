@@ -256,7 +256,7 @@ def test_gdalalg_vector_explode_geometry_limit_type_with_pipeline(alg, tmp_vsime
         src_lyr.CreateFeature(f)
 
     gdal.alg.vector.pipeline(
-        pipeline=f'read {src_fname} ! explode --geometry-field 0"" ! set-geom-type --geometry-type LINESTRING --skip ! write {dst_fname}'
+        pipeline=f'read {src_fname} ! explode --geometry-field 0"" ! set-geom-type --geometry-type LINESTRING --skip ! write -f GeoJSON {dst_fname}'
     )
 
     with gdal.OpenEx(dst_fname) as dst_ds:
@@ -363,6 +363,75 @@ def test_gdalalg_vector_explode_geometry_multiple_multipart_and_singlepart(alg):
 
     with pytest.raises(Exception, match="geom2.* is not a collection"):
         assert alg.Run()
+
+
+def test_gdalalg_vector_explode_geometry_multiple_multipart_and_null(alg):
+
+    src_ds = gdal.GetDriverByName("MEM").CreateVector("")
+    src_lyr = src_ds.CreateLayer(
+        "test", geom_type=ogr.wkbMultiPoint, srs=osr.SpatialReference(epsg=4326)
+    )
+    src_lyr.CreateGeomField(ogr.GeomFieldDefn("geom2", ogr.wkbMultiLineString))
+
+    f = ogr.Feature(src_lyr.GetLayerDefn())
+    f.SetGeomField(0, ogr.CreateGeometryFromWkt("MULTIPOINT (3 2, 4 7, 1 9)"))
+
+    src_lyr.CreateFeature(f)
+
+    alg["input"] = src_ds
+    alg["geometry-field"] = ["_ogr_geometry_", "geom2"]
+    alg["output-format"] = "MEM"
+
+    assert alg.Run()
+
+    dst_ds = alg.Output()
+    dst_lyr = dst_ds.GetLayer(0)
+
+    assert dst_lyr.GetFeatureCount() == 3
+
+    features = [f for f in dst_lyr]
+
+    assert features[0].GetGeomFieldRef(0).ExportToWkt() == "POINT (3 2)"
+    assert features[0].GetGeomFieldRef(1) is None
+
+    assert features[1].GetGeomFieldRef(0).ExportToWkt() == "POINT (4 7)"
+    assert features[1].GetGeomFieldRef(1) is None
+
+    assert features[2].GetGeomFieldRef(0).ExportToWkt() == "POINT (1 9)"
+    assert features[2].GetGeomFieldRef(1) is None
+
+
+def test_gdalalg_vector_explode_geometry_null(alg):
+
+    src_ds = gdal.GetDriverByName("MEM").CreateVector("")
+    src_lyr = src_ds.CreateLayer(
+        "test", geom_type=ogr.wkbMultiPoint, srs=osr.SpatialReference(epsg=4326)
+    )
+    src_lyr.CreateField(ogr.FieldDefn("int_array", ogr.OFTIntegerList))
+
+    f = ogr.Feature(src_lyr.GetLayerDefn())
+    f["int_array"] = [1, 2]
+    src_lyr.CreateFeature(f)
+
+    alg["input"] = src_ds
+    alg["field"] = "ALL"
+    alg["geometry-field"] = "ALL"
+    alg["output-format"] = "MEM"
+
+    assert alg.Run()
+
+    dst_ds = alg.Output()
+    dst_lyr = dst_ds.GetLayer(0)
+
+    assert dst_lyr.GetFeatureCount() == 2
+
+    features = [f for f in dst_lyr]
+
+    assert features[0]["int_array"] == 1
+    assert features[0].GetGeometryRef() is None
+
+    assert features[1]["int_array"] == 2
+    assert features[1].GetGeometryRef() is None
 
 
 @pytest.mark.require_driver("GML")

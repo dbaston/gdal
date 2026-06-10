@@ -404,7 +404,9 @@ class GDALVectorExplodeLayer final : public GDALVectorPipelineOutputLayer
                     }
                     else
                     {
-                        if (iDstFeature > 1)
+                        if (iDstFeature > 1 &&
+                            apoOutFeatures.front()->GetGeomFieldRef(
+                                iGeomField) != nullptr)
                         {
                             CPLError(
                                 CE_Failure, CPLE_AppDefined,
