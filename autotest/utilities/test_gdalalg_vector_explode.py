@@ -340,6 +340,31 @@ def test_gdalalg_vector_explode_geometry_multiple_unmatched(alg):
         alg.Run()
 
 
+def test_gdalalg_vector_explode_geometry_multiple_multipart_and_singlepart(alg):
+
+    src_ds = gdal.GetDriverByName("MEM").CreateVector("")
+    src_lyr = src_ds.CreateLayer(
+        "test", geom_type=ogr.wkbMultiPoint, srs=osr.SpatialReference(epsg=4326)
+    )
+    src_lyr.CreateGeomField(ogr.GeomFieldDefn("geom2", ogr.wkbLineString))
+
+    f = ogr.Feature(src_lyr.GetLayerDefn())
+    f.SetGeomField(0, ogr.CreateGeometryFromWkt("MULTIPOINT (3 2, 4 7, 1 9)"))
+    f.SetGeomField(
+        1,
+        ogr.CreateGeometryFromWkt("LINESTRING (2 2, 3 3)"),
+    )
+
+    src_lyr.CreateFeature(f)
+
+    alg["input"] = src_ds
+    alg["geometry-field"] = ["_ogr_geometry_", "geom2"]
+    alg["output-format"] = "MEM"
+
+    with pytest.raises(Exception, match="geom2.* is not a collection"):
+        assert alg.Run()
+
+
 @pytest.mark.require_driver("GML")
 def test_gdalalg_vector_explode_geometry_multiple_cartesian_product_using_pipeline(
     alg, tmp_vsimem

@@ -372,11 +372,13 @@ class GDALVectorExplodeLayer final : public GDALVectorPipelineOutputLayer
                     OGRGeometry *poSrcGeom(
                         poSrcFeature->GetGeomFieldRef(iGeomField));
 
-                    const auto eSrcGeomType =
-                        wkbFlatten(poSrcGeom->getGeometryType());
+                    const bool bSrcIsCollection =
+                        poSrcGeom != nullptr &&
+                        OGR_GT_IsSubClassOf(
+                            wkbFlatten(poSrcGeom->getGeometryType()),
+                            wkbGeometryCollection);
 
-                    if (OGR_GT_IsSubClassOf(eSrcGeomType,
-                                            wkbGeometryCollection))
+                    if (bSrcIsCollection)
                     {
                         OGRGeometryCollection *poColl =
                             poSrcGeom->toGeometryCollection();
