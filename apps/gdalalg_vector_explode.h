@@ -27,7 +27,7 @@ class GDALVectorExplodeAlgorithm /* non final */
   public:
     static constexpr const char *NAME = "explode";
     static constexpr const char *DESCRIPTION =
-        "Explode array fields of a vector dataset into multiple features.";
+        "Explode fields or geometries of a vector dataset.";
     static constexpr const char *HELP_URL =
         "/programs/gdal_vector_explode.html";
 
