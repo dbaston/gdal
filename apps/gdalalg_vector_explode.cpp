@@ -58,13 +58,13 @@ GDALVectorExplodeAlgorithmStandalone::~GDALVectorExplodeAlgorithmStandalone() =
 namespace
 {
 
-class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
+class GDALVectorExplodeLayer final : public GDALVectorPipelineOutputLayer
 {
   public:
-    GDALVectorExplodeZipLayer(
-        OGRLayer &srcLayer, const std::vector<std::string> &fieldsToExplode,
-        const std::vector<std::string> &geomFieldsToExplode,
-        const std::string &indexFieldName)
+    GDALVectorExplodeLayer(OGRLayer &srcLayer,
+                           const std::vector<std::string> &fieldsToExplode,
+                           const std::vector<std::string> &geomFieldsToExplode,
+                           const std::string &indexFieldName)
         : GDALVectorPipelineOutputLayer(srcLayer),
           m_fieldsToExplode(fieldsToExplode),
           m_geomFieldsToExplode(geomFieldsToExplode),
@@ -102,7 +102,7 @@ class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
         std::iota(m_passThroughFieldSrcToDstMap.begin(),
                   m_passThroughFieldSrcToDstMap.end(), addIndexField ? 1 : 0);
 
-        m_geomFieldExplodeed.resize(poSrcDefn->GetGeomFieldCount(), false);
+        m_geomFieldExploded.resize(poSrcDefn->GetGeomFieldCount(), false);
 
         for (const auto &fieldName : m_fieldsToExplode)
         {
@@ -163,7 +163,7 @@ class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
                 return false;
             }
 
-            m_geomFieldExplodeed[iSrcGeomField] = true;
+            m_geomFieldExploded[iSrcGeomField] = true;
         }
 
         // Create attribute fields
@@ -197,7 +197,7 @@ class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
                 poSrcDefn->GetGeomFieldDefn(iSrcGeomField);
             std::unique_ptr<OGRGeomFieldDefn> poDstGeomFieldDefn;
 
-            if (m_geomFieldExplodeed[iSrcGeomField])
+            if (m_geomFieldExploded[iSrcGeomField])
             {
                 const auto eDstType =
                     OGR_GT_GetSingle(poSrcGeomFieldDefn->GetType());
@@ -285,7 +285,8 @@ class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
                  static_cast<int>(m_unnestedFieldSrcToDstMap.size());
                  iSrcArrayField++)
             {
-                int iDstField = m_unnestedFieldSrcToDstMap[iSrcArrayField];
+                const int iDstField =
+                    m_unnestedFieldSrcToDstMap[iSrcArrayField];
                 if (iDstField < 0)
                 {
                     continue;
@@ -364,7 +365,7 @@ class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
             for (int iGeomField = 0;
                  iGeomField < poSrcFeature->GetGeomFieldCount(); iGeomField++)
             {
-                if (m_geomFieldExplodeed[iGeomField])
+                if (m_geomFieldExploded[iGeomField])
                 {
                     std::unique_ptr<OGRGeometry> poDstGeom;
 
@@ -465,7 +466,7 @@ class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
   private:
     std::vector<int> m_passThroughFieldSrcToDstMap{};
     std::vector<int> m_unnestedFieldSrcToDstMap{};
-    std::vector<bool> m_geomFieldExplodeed{};
+    std::vector<bool> m_geomFieldExploded{};
     std::vector<std::string> m_fieldsToExplode{};
     std::vector<std::string> m_geomFieldsToExplode{};
     std::string m_indexFieldName{};
@@ -473,7 +474,7 @@ class GDALVectorExplodeZipLayer final : public GDALVectorPipelineOutputLayer
     OGRFeatureDefnRefCountedPtr m_poFeatureDefn{nullptr};
     GIntBig m_nextFID{1};
 
-    CPL_DISALLOW_COPY_ASSIGN(GDALVectorExplodeZipLayer)
+    CPL_DISALLOW_COPY_ASSIGN(GDALVectorExplodeLayer)
 };
 
 }  // namespace
@@ -537,7 +538,7 @@ bool GDALVectorExplodeAlgorithm::RunStep(GDALPipelineStepRunContext &)
             }
         }
 
-        auto poOutLayer = std::make_unique<GDALVectorExplodeZipLayer>(
+        auto poOutLayer = std::make_unique<GDALVectorExplodeLayer>(
             *poSrcLayer, fieldsForLayer, geomFieldsForLayer, m_indexFieldName);
         poOutDS->AddLayer(*poSrcLayer, std::move(poOutLayer));
     }
