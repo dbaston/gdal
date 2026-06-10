@@ -347,7 +347,7 @@ class GDALVectorExplodeLayer final : public GDALVectorPipelineOutputLayer
                 }
                 else if (eSrcType == OFTStringList)
                 {
-                    char **papszArray =
+                    CSLConstList papszArray =
                         poSrcFeature->GetFieldAsStringList(iSrcArrayField);
                     nArrayLength = CSLCount(papszArray);
                     if (iDstFeature >= nArrayLength)
