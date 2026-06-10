@@ -40,12 +40,25 @@ GDALVectorExplodeAlgorithm::GDALVectorExplodeAlgorithm(bool standaloneStep)
 {
     AddActiveLayerArg(&m_activeLayer);
 
-    AddArg("field", 0, _("Attribute fields(s) to explode"), &m_fields)
-        .SetMetaVar("FIELD");
+    {
+        auto &arg =
+            AddArg("field", 0, _("Attribute fields(s) to explode"), &m_fields)
+                .SetMetaVar("FIELD");
 
-    AddArg("geometry-field", 0, _("Geometry field(s) to explode"),
-           &m_geomFields)
-        .SetMetaVar("GEOMETRY-FIELD");
+        SetAutoCompleteFunctionForFieldName(
+            arg, nullptr, true, false, m_inputDataset, {"ALL"},
+            [](const OGRFieldDefn *defn)
+            { return OGR_GetFieldTypeIsList(defn->GetType()); });
+    }
+
+    {
+        auto &arg = AddArg("geometry-field", 0,
+                           _("Geometry field(s) to explode"), &m_geomFields)
+                        .SetMetaVar("GEOMETRY-FIELD");
+        SetAutoCompleteFunctionForFieldName(arg, nullptr, false, true,
+                                            m_inputDataset,
+                                            {"ALL", "_OGR_GEOMETRY_"});
+    }
 
     AddArg("index-field", 0, _("Name of the output index field"),
            &m_indexFieldName)

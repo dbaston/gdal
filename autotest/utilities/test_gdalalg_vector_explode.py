@@ -17,6 +17,7 @@ import sys
 import gdaltest
 import ogrtest
 import pytest
+import test_cli_utilities
 
 from osgeo import gdal, ogr, osr
 
@@ -555,6 +556,33 @@ def test_gdalalg_vector_explode_active_layer(alg):
     out_f = out_lyr.GetNextFeature()
     ogrtest.check_feature_geometry(out_f.GetGeomFieldRef(0), "MULTIPOINT (5 6,7 8)")
     assert out_f.GetFID() == 0
+
+
+@pytest.mark.require_driver("GeoJSON")
+def test_gdalalg_vector_explode_autocomplete(tmp_path):
+
+    gdal_path = test_cli_utilities.get_gdal_path()
+    if gdal_path is None:
+        pytest.skip("gdal binary not available")
+
+    src_fname = tmp_path / "src.geojson"
+
+    with gdal.GetDriverByName("GeoJSON").CreateVector(src_fname) as ds:
+        lyr = ds.CreateLayer("layer")
+        lyr.CreateField(ogr.FieldDefn("field1", ogr.OFTReal))
+        lyr.CreateField(ogr.FieldDefn("field2", ogr.OFTIntegerList))
+
+        f = ogr.Feature(lyr.GetLayerDefn())
+        f["field1"] = 8.02
+        f["field2"] = [8, 0, 2]
+
+        lyr.CreateFeature(f)
+
+    out = gdaltest.run_and_parse_completion_output(
+        f"{gdal_path} completion gdal vector explode {src_fname} --field last_word_is_complete=true"
+    )
+
+    assert out == ["ALL", "field2"]
 
 
 @pytest.mark.require_driver("GeoJSON")
