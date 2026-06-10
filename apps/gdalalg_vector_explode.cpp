@@ -131,11 +131,11 @@ class GDALVectorExplodeLayer final : public GDALVectorPipelineOutputLayer
             // Is it a geometry field?
             int iSrcGeomField = poSrcDefn->GetGeomFieldIndex(fieldName.c_str());
 
-            // Field name is an empty string? Use the default geometry field if available.
+            // Interpret --geometry-field _OGR_GEOMETRY_ as the first geometry
+            // field, regardless of what it is actually named
             if (iSrcGeomField < 0)
             {
                 if (poSrcDefn->GetGeomFieldCount() > 0 &&
-                    EQUAL(poSrcDefn->GetGeomFieldDefn(0)->GetNameRef(), "") &&
                     EQUAL(fieldName.c_str(), "_OGR_GEOMETRY_"))
                 {
                     iSrcGeomField = 0;
@@ -144,7 +144,9 @@ class GDALVectorExplodeLayer final : public GDALVectorPipelineOutputLayer
 
             // Didn't find anything by name. Check by index.
             if (iSrcGeomField < 0 &&
-                std::all_of(fieldName.begin(), fieldName.end(), isdigit))
+                std::all_of(
+                    fieldName.begin(), fieldName.end(), [](char c)
+                    { return std::isdigit(static_cast<unsigned char>(c)); }))
             {
                 const int iGeomField = std::atoi(fieldName.c_str());
 

@@ -23,7 +23,8 @@ Description
 -----------
 
 :program:`gdal vector explode` explodes features with array fields or multipart geometries, producing
-a single feature for each element in the array or geometry. 
+a single feature for each element in the array or geometry. Fields that are not specified with ``--field``
+or ``--geometry-field`` are passed through umodified.
 
 For example, if exploding a geometry field with the value ``MULTIPOINT(1 2,3 4)``, two
 corresponding target features will be generated: one with a geometry
@@ -47,11 +48,11 @@ Program-Specific Options
 
 .. option:: --field <FIELD>
 
-   Name of attribute field(s) to explode. To expand all attribute fields, the special value ``ALL`` is understood.
+   Name of attribute field(s) to explode. The special value ``ALL`` can be used to explode all attribute fields with array types.
 
 .. option:: --geometry-field <GEOMETRY-FIELD>
 
-   Name or position (0-indexed) of geometry field(s) to explode.
+   Name or position (0-indexed) of geometry field(s) to explode. The special value ``ALL`` can be used to explode all geometry fields.
 
 .. option:: --index-field <INDEX-FIELD>
 
