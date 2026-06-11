@@ -40,6 +40,7 @@ class GDALVectorExplodeAlgorithm /* non final */
     std::string m_activeLayer{};
     std::vector<std::string> m_fields{};
     std::vector<std::string> m_geomFields{};
+    bool m_defaultGeom{false};
     std::string m_indexFieldName{};
 };
 

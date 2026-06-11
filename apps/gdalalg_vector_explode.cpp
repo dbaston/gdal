@@ -15,6 +15,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 #include "gdal_priv.h"
+#include "ogr_p.h"
 #include "ogrsf_frmts.h"
 
 #include <algorithm>
@@ -51,13 +52,15 @@ GDALVectorExplodeAlgorithm::GDALVectorExplodeAlgorithm(bool standaloneStep)
             { return OGR_GetFieldTypeIsList(defn->GetType()); });
     }
 
+    AddArg("geometry", 0, _("Explode default geometry field"), &m_defaultGeom);
+
     {
         auto &arg = AddArg("geometry-field", 0,
                            _("Geometry field(s) to explode"), &m_geomFields)
                         .SetMetaVar("GEOMETRY-FIELD");
-        SetAutoCompleteFunctionForFieldName(arg, nullptr, false, true,
-                                            m_inputDataset,
-                                            {"ALL", "_OGR_GEOMETRY_"});
+        SetAutoCompleteFunctionForFieldName(
+            arg, nullptr, false, true, m_inputDataset,
+            {"ALL", OGR_GEOMETRY_DEFAULT_NON_EMPTY_NAME});
     }
 
     AddArg("index-field", 0, _("Name of the output index field"),
@@ -149,7 +152,8 @@ class GDALVectorExplodeLayer final : public GDALVectorPipelineOutputLayer
             if (iSrcGeomField < 0)
             {
                 if (poSrcDefn->GetGeomFieldCount() > 0 &&
-                    EQUAL(fieldName.c_str(), "_OGR_GEOMETRY_"))
+                    EQUAL(fieldName.c_str(),
+                          OGR_GEOMETRY_DEFAULT_NON_EMPTY_NAME))
                 {
                     iSrcGeomField = 0;
                 }
@@ -508,6 +512,11 @@ bool GDALVectorExplodeAlgorithm::RunStep(GDALPipelineStepRunContext &)
     CPLAssert(poSrcDS);
 
     auto poOutDS = std::make_unique<GDALVectorPipelineOutputDataset>(*poSrcDS);
+
+    if (m_defaultGeom)
+    {
+        m_geomFields.emplace_back(OGR_GEOMETRY_DEFAULT_NON_EMPTY_NAME);
+    }
 
     if (m_fields.empty() && m_geomFields.empty())
     {

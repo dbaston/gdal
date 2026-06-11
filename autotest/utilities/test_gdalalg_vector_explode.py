@@ -172,7 +172,7 @@ def test_gdalalg_vector_explode_geometry(alg):
     src_lyr.CreateFeature(f)
 
     alg["input"] = src_ds
-    alg["geometry-field"] = "_ogr_geometry_"
+    alg["geometry"] = True
     alg["output-format"] = "MEM"
 
     assert alg.Run()
@@ -460,7 +460,7 @@ def test_gdalalg_vector_explode_geometry_multiple_cartesian_product_using_pipeli
         src_lyr.CreateFeature(f)
 
     gdal.alg.vector.pipeline(
-        pipeline=f"read {src_fname} ! explode --geometry-field 0 ! explode --geometry-field 1 ! write {dst_fname} --of GML"
+        pipeline=f"read {src_fname} ! explode --geometry ! explode --geometry-field 1 ! write {dst_fname} --of GML"
     )
 
     with gdal.OpenEx(dst_fname) as dst_ds:
@@ -533,7 +533,7 @@ def test_gdalalg_vector_explode_active_layer(alg):
     alg["output"] = ""
     alg["output-format"] = "stream"
     alg["active-layer"] = "the_layer"
-    alg["geometry-field"] = 0
+    alg["geometry"] = True
 
     assert alg.Run()
 
