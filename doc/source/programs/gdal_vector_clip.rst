@@ -154,4 +154,22 @@ Examples
 
    .. code-block:: bash
 
-        $ gdal vector clip --bbox=2,49,3,50 --bbox-crs=EPSG:4326 in.gpkg out.gpkg --overwrite
+        gdal vector clip --bbox=2,49,3,50 --bbox-crs=EPSG:4326 in.gpkg out.gpkg --overwrite
+
+
+.. example::
+   :title: Extract points within 500m of a specified location
+
+   This example uses a pipeline to extract features from an open address point
+   dataset that are within 500 meters of the Vermont state capitol building.
+   The building location is specified in WGS84, so we reproject to a planar
+   coordinate system to compute a buffer in meters.
+
+   .. code-block:: bash
+
+        gdal vector pipeline --config AWS_NO_SIGN_REQUEST=YES ! \
+            read "SRID=4326;POINT (-72.5802 44.2626)" ! \
+            reproject --output-crs "EPSG:32145" ! \
+            buffer 500 ! \
+            clip --like _PIPE_ --input /vsis3/vtopendata-prd/AddressBuildings/vt-e911-address-points.parquet ! \
+            write addresses.gpkg --overwrite  
