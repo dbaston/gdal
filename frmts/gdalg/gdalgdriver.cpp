@@ -69,7 +69,9 @@ class GDALGDataset final : public GDALProxyDataset
         return m_poUnderlyingDS->GetLayer(idx);
     }
 
-    OGRLayer *GetLayerByName(const char *pszName) override
+    using GDALDataset::GetLayerByName;
+
+    const OGRLayer *GetLayerByName(const char *pszName) const override
     {
         return m_poUnderlyingDS->GetLayerByName(pszName);
     }

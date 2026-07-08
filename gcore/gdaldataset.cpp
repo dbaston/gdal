@@ -6645,7 +6645,7 @@ OGRErr GDALDataset::DeleteLayer(CPL_UNUSED int iLayer)
  @return the layer, or NULL if Layer is not found or an error occurs.
 */
 
-OGRLayer *GDALDataset::GetLayerByName(const char *pszName)
+const OGRLayer *GDALDataset::GetLayerByName(const char *pszName) const
 
 {
     CPLMutexHolderD(m_poPrivate ? &(m_poPrivate->hMutex) : nullptr);

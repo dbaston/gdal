@@ -1621,6 +1621,7 @@ TEST_F(test_ogr, DatasetFeature_and_LayerFeature_iterators)
         ASSERT_EQ(poConstDS->GetLayers()[static_cast<size_t>(0)],
                   poConstDS->GetLayer(0));
         ASSERT_EQ(poConstDS->GetLayers()["foo"], poConstDS->GetLayer(0));
+        ASSERT_EQ(poConstDS->GetLayerByName("foo"), poConstDS->GetLayer(0));
         nCountLayers = 0;
         for (auto &&poLayer : poDS->GetLayers())
         {

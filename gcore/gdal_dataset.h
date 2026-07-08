@@ -759,7 +759,16 @@ class CPL_DLL GDALDataset : public GDALMajorObject
 
     ConstLayers GetLayers() const;
 
-    virtual OGRLayer *GetLayerByName(const char *);
+    virtual const OGRLayer *GetLayerByName(const char *) const;
+
+    //! @cond Doxygen_Suppress
+    virtual OGRLayer *GetLayerByName(const char *pszName)
+    {
+        return const_cast<OGRLayer *>(
+            const_cast<const GDALDataset *>(this)->GetLayerByName(pszName));
+    }
+
+    //! @endcond
 
     int GetLayerIndex(const char *pszName) const;
 
