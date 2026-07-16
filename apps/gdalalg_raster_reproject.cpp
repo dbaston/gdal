@@ -41,8 +41,7 @@ GDALRasterReprojectAlgorithm::GDALRasterReprojectAlgorithm(bool standaloneStep)
         .AddHiddenAlias("src-crs");
 
     AddArg("like", 0,
-           _("Dataset to use as a template for target bounds, CRS, size and "
-             "nodata"),
+           _("Dataset to use as a template for target bounds, CRS, and size"),
            &m_likeDataset, GDAL_OF_RASTER)
         .SetMetaVar("DATASET");
 

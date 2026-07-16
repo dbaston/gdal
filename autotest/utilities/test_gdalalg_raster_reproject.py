@@ -369,6 +369,7 @@ def test_like(tmp_vsimem):
     srs.ImportFromEPSG(32632)
     src_ds.SetSpatialRef(srs)
     src_ds.GetRasterBand(1).WriteRaster(0, 0, 4, 4, b"\x00\x01\x02\x03" * 4)
+    src_ds.GetRasterBand(1).SetNoDataValue(200)
 
     # Create the template tif with size 4x2, 1 band, resolution 15m in EPSG:3857
     # Left: 1023163.16E, 5694828.43N
@@ -379,6 +380,7 @@ def test_like(tmp_vsimem):
     srs.ImportFromEPSG(3857)
     template_ds.SetSpatialRef(srs)
     template_ds.GetRasterBand(1).Fill(0)
+    template_ds.GetRasterBand(1).SetNoDataValue(150)
     template_ds.FlushCache()
 
     alg = get_reproject_alg()
@@ -396,6 +398,7 @@ def test_like(tmp_vsimem):
         out_ds.GetRasterBand(1).ReadRaster(0, 0, 4, 2)
         == b"\x00\x01\x01\x02\x00\x01\x01\x02"
     )
+    assert out_ds.GetRasterBand(1).GetNoDataValue() == 200
 
 
 def test_like_rotated(tmp_vsimem):
