@@ -398,7 +398,7 @@ def test_like(tmp_vsimem):
     )
 
 
-def test_rotated(tmp_vsimem):
+def test_like_rotated(tmp_vsimem):
     """Test a rotated raster"""
 
     driver = "GTiff"
@@ -440,17 +440,24 @@ def test_rotated(tmp_vsimem):
 
     # Check that a warning is emitted about the rotation, but that the algorithm
     # doesn't fail.
-    msgs = []
-
-    def error_handler(type, code, msg):
-        msgs.append(msg)
-
-    with gdaltest.error_handler(error_handler):
+    with gdaltest.error_raised(
+        gdal.CE_Warning,
+        "Dataset provided with --like has a geotransform with rotation. Ignoring it",
+    ):
         assert alg.Run()
-        assert (
-            "Dataset provided with --like has a geotransform with rotation. Ignoring it"
-            in msgs[0]
-        )
+
+
+def test_like_no_crs(tmp_vsimem):
+
+    mem_ds = gdal.GetDriverByName("MEM").Create("", 20, 20)
+
+    alg = get_reproject_alg()
+    alg["input"] = "../gcore/data/byte.tif"
+    alg["output-format"] = "MEM"
+    alg["like"] = mem_ds
+
+    with pytest.raises(Exception, match="Dataset .* has no spatial reference system"):
+        alg.Run()
 
 
 def test_gdalalg_raster_reproject_hidden_alias_dst_crs():

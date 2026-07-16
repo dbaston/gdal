@@ -270,6 +270,13 @@ bool GDALRasterReprojectAlgorithm::RunStep(GDALPipelineStepRunContext &ctxt)
                 }
             }
         }
+        else
+        {
+            ReportError(CE_Failure, CPLE_AppDefined,
+                        "Dataset provided with --like has no spatial reference "
+                        "system.");
+            return false;
+        }
     }
 
     if (ctxt.m_poNextUsableStep)
