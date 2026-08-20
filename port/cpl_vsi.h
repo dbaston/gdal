@@ -390,6 +390,127 @@ void CPL_DLL *VSIMalloc3Verbose(size_t nSize1, size_t nSize2, size_t nSize3,
 #define VSI_MALLOC3_VERBOSE(nSize1, nSize2, nSize3)                            \
     VSIMalloc3Verbose(nSize1, nSize2, nSize3, __FILE__, __LINE__)
 
+#if defined(__cplusplus)
+extern "C++"
+{
+
+#if __cplusplus >= 202002L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
+#include <source_location>
+#endif
+
+    template <typename T> class GDALBuffer
+    {
+      public:
+#if __cplusplus >= 202002L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
+        explicit GDALBuffer(
+            size_t nElems,
+            const char *file = std::source_location::current().file_name(),
+            int line = std::source_location::current().line())
+#else
+        explicit GDALBuffer(size_t nElems, const char *file = __builtin_FILE(),
+                            int line = __builtin_LINE())
+#endif
+        {
+            m_buf = static_cast<T *>(
+                VSIMalloc2Verbose(sizeof(T), nElems, file, line));
+        }
+
+#if __cplusplus >= 202002L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
+        explicit GDALBuffer(
+            size_t nElems1, size_t nElems2,
+            const char *file = std::source_location::current().file_name(),
+            int line = std::source_location::current().line())
+#else
+        explicit GDALBuffer(size_t nElems1, size_t nElems2,
+                            const char *file = __builtin_FILE(),
+                            int line = __builtin_LINE())
+#endif
+        {
+            m_buf = static_cast<T *>(
+                VSIMalloc3Verbose(sizeof(T), nElems1, nElems2, file, line));
+        }
+
+        explicit operator const T *() const
+        {
+            return m_buf;
+        }
+
+        explicit operator T *() const
+        {
+            return m_buf;
+        }
+
+        explicit operator bool() const
+        {
+            return m_buf != nullptr;
+        }
+
+        const T &operator[](size_t i) const
+        {
+            return m_buf[i];
+        }
+
+        T &operator[](size_t i)
+        {
+            return m_buf[i];
+        }
+
+        ~GDALBuffer()
+        {
+            VSIFree(m_buf);
+        }
+
+      private:
+        T *m_buf;
+    };
+
+#if __cplusplus >= 202002L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
+    template <typename T>
+    auto
+    VSI_UMALLOC(size_t nElems,
+                const char *file = std::source_location::current().file_name(),
+                int line = std::source_location::current().line())
+    {
+        return std::unique_ptr<T, decltype(&VSIFree)>(
+            static_cast<T *>(VSIMalloc2Verbose(sizeof(T), nElems, file, line)),
+            VSIFree);
+    }
+
+    template <typename T>
+    auto
+    VSI_UMALLOC(size_t nElems, size_t nElems2,
+                const char *file = std::source_location::current().file_name(),
+                int line = std::source_location::current().line())
+    {
+        return std::unique_ptr<T, decltype(&VSIFree)>(
+            static_cast<T *>(
+                VSIMalloc3Verbose(sizeof(T), nElems, nElems2, file, line)),
+            VSIFree);
+    }
+#else
+    template <typename T>
+    auto VSI_UMALLOC(size_t nElems, const char *file = __builtin_FILE(),
+                     int line = __builtin_LINE())
+    {
+        return std::unique_ptr<T, decltype(&VSIFree)>(
+            static_cast<T *>(VSIMalloc2Verbose(sizeof(T), nElems, file, line)),
+            VSIFree);
+    }
+
+    template <typename T>
+    auto VSI_UMALLOC(size_t nElems, size_t nElems2,
+                     const char *file = __builtin_FILE(),
+                     int line = __builtin_LINE())
+    {
+        return std::unique_ptr<T, decltype(&VSIFree)>(
+            static_cast<T *>(
+                VSIMalloc3Verbose(sizeof(T), nElems, nElems2, file, line)),
+            VSIFree);
+    }
+#endif
+}
+#endif
+
 /** VSICallocVerbose */
 void CPL_DLL *VSICallocVerbose(size_t nCount, size_t nSize, const char *pszFile,
                                int nLine) CPL_WARN_UNUSED_RESULT;

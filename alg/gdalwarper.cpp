@@ -451,8 +451,7 @@ CPLErr GDALWarpNoDataMasker(void *pMaskFuncArg, int nBandCount,
             const bool bIsNoDataRealNan = std::isnan(padfNoData[0]);
 
             eErr = CE_Failure;
-            double *padfWrk = static_cast<double *>(
-                VSI_MALLOC2_VERBOSE(nXSize, sizeof(double) * 2));
+            GDALBuffer<double> padfWrk(nXSize, 2);
             if (padfWrk)
             {
                 eErr = CE_None;
@@ -461,8 +460,9 @@ CPLErr GDALWarpNoDataMasker(void *pMaskFuncArg, int nBandCount,
                      iLine++)
                 {
                     GDALCopyWords64((*ppImageData) + nWordSize * iLine * nXSize,
-                                    eType, nWordSize, padfWrk, GDT_CFloat64, 16,
-                                    nXSize);
+                                    eType, nWordSize,
+                                    static_cast<double *>(padfWrk),
+                                    GDT_CFloat64, 16, nXSize);
 
                     const size_t iOffsetLine = iLine * nXSize;
                     for (size_t iPixel = 0;
@@ -482,8 +482,6 @@ CPLErr GDALWarpNoDataMasker(void *pMaskFuncArg, int nBandCount,
                     }
                 }
                 *pbOutAllValid = bAllValid;
-
-                VSIFree(padfWrk);
             }
         }
         break;
