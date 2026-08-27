@@ -23,6 +23,7 @@
 #if defined(__cplusplus) && !defined(CPL_SUPRESS_CPLUSPLUS)
 extern "C++"
 {
+#include <memory>
 #include <string>
 }
 #endif
@@ -394,55 +395,86 @@ void CPL_DLL *VSIMalloc3Verbose(size_t nSize1, size_t nSize2, size_t nSize3,
 extern "C++"
 {
 
-#if __cplusplus >= 202002L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
+#if __cplusplus >= 204002L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
 #include <source_location>
 #endif
 
-    template <typename T> class GDALBuffer
+    template <typename T> class CPLBuffer
     {
       public:
-#if __cplusplus >= 202002L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
-        explicit GDALBuffer(
+        CPLBuffer() : m_buf{nullptr}
+        {
+        }
+
+        explicit CPLBuffer(nullptr_t) : m_buf{nullptr}
+        {
+        }
+
+#if __cplusplus >= 204002L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
+        explicit CPLBuffer(
             size_t nElems,
             const char *file = std::source_location::current().file_name(),
             int line = std::source_location::current().line())
 #else
-        explicit GDALBuffer(size_t nElems, const char *file = __builtin_FILE(),
-                            int line = __builtin_LINE())
+        explicit CPLBuffer(size_t nElems, const char *file = __builtin_FILE(),
+                           int line = __builtin_LINE())
 #endif
         {
             m_buf = static_cast<T *>(
                 VSIMalloc2Verbose(sizeof(T), nElems, file, line));
         }
 
-#if __cplusplus >= 202002L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
-        explicit GDALBuffer(
+#if __cplusplus >= 204002L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
+        explicit CPLBuffer(
             size_t nElems1, size_t nElems2,
             const char *file = std::source_location::current().file_name(),
             int line = std::source_location::current().line())
 #else
-        explicit GDALBuffer(size_t nElems1, size_t nElems2,
-                            const char *file = __builtin_FILE(),
-                            int line = __builtin_LINE())
+        explicit CPLBuffer(size_t nElems1, size_t nElems2,
+                           const char *file = __builtin_FILE(),
+                           int line = __builtin_LINE())
 #endif
         {
             m_buf = static_cast<T *>(
                 VSIMalloc3Verbose(sizeof(T), nElems1, nElems2, file, line));
         }
 
-        explicit operator const T *() const
+        CPLBuffer(T *pBuf) : m_buf{pBuf}
+        {
+        }
+
+        CPLBuffer(const CPLBuffer &) = delete;
+        CPLBuffer &operator=(const CPLBuffer &) = delete;
+
+        CPLBuffer(CPLBuffer &&other) noexcept : m_buf{other.m_buf}
+        {
+            other.m_buf = nullptr;
+        }
+
+        CPLBuffer &operator=(CPLBuffer &&other) noexcept
+        {
+            std::swap(m_buf, other.m_buf);
+            return *this;
+        }
+
+        operator const T *() const
         {
             return m_buf;
         }
 
-        explicit operator T *() const
+        explicit operator T *()
         {
             return m_buf;
         }
 
-        explicit operator bool() const
+        T *data()
         {
-            return m_buf != nullptr;
+            return m_buf;
+        }
+
+        const T *data() const
+        {
+            return m_buf;
         }
 
         const T &operator[](size_t i) const
@@ -455,7 +487,14 @@ extern "C++"
             return m_buf[i];
         }
 
-        ~GDALBuffer()
+        T *release()
+        {
+            T *pRet = m_buf;
+            m_buf = nullptr;
+            return pRet;
+        }
+
+        ~CPLBuffer()
         {
             VSIFree(m_buf);
         }
@@ -464,7 +503,7 @@ extern "C++"
         T *m_buf;
     };
 
-#if __cplusplus >= 202002L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
+#if __cplusplus >= 204002L || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
     template <typename T>
     auto
     VSI_UMALLOC(size_t nElems,
