@@ -646,7 +646,7 @@ jobs:
         mv /opt/homebrew/bin/pkg-config /opt/homebrew/bin/pkg-config.old
         mv /opt/homebrew/share/aclocal/pkg.m4 /opt/homebrew/share/aclocal/pkg.m4.old
         mv /opt/homebrew/share/man/man1/pkg-config.1 /opt/homebrew/share/man/man1/pkg-config.1.old
-        brew install --overwrite python@3.11 python@3.12
+        brew install python3
         brew install postgresql || brew link postgresql
         # Remove postgis as it depends on GDAL which draw libheif which is broken
         brew install gdal || true
