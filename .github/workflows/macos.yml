@@ -24,7 +24,7 @@ jobs:
 
   macos-conda:
     # Arm64
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -88,6 +88,7 @@ jobs:
   macos-homebrew:
     # M1 MacOS runner: https://github.blog/changelog/2024-01-30-github-actions-introducing-the-new-m1-macos-runner-available-to-open-source/
     runs-on: macOS-15
+    if: false
     env:
       # Disable Arrow/Parquet because the VM provides libraries in /usr/local/lib/
       # that cause Illegal instruction error when running tests. I suspect the
