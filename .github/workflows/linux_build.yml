@@ -44,24 +44,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        #   Matrix variables:
-        #
-        #   * name : readable summary of configuration, used for display
-        #   * id : used as a ccache key, and to create a build subdirectory
-        #   * container : build environment container and path to build script
-        #   * use_avx2 : if true, determine arch at runtime and use in ccache key
-        #   * build_script : name of custom build script, if any. Will be executed
-        #                    inside container, from build subdirectory.
-        #   * before_test_script : name of script to run before tests, if any.
-        #                          Will be executed outside container, from
-        #                          workspace root. Can be used to start docker
-        #                          containers as services for testing.
-        #   * test_script : name of custom test script, if any. Will be executed
-        #                   inside container, from build subdirectory.
-        #   * travis_branch : value of TRAVIS_BRANCH environment variable,
-        #                     used for test skipping
 
-          - name: Ubuntu 20.04, gcc
+          - name: Ubuntu 20.04
             id: ubuntu_20.04
             travis_branch: ubuntu_2004
             container: ubuntu_20.04
