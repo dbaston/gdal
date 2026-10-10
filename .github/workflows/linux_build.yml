@@ -149,7 +149,7 @@ jobs:
         if: matrix.use_avx2
         run: |
             docker run --rm ${CONTAINER_NAME_FULL} cc -march=native -### -E - < /dev/null 2> .ccout
-            cat .cout
+            cat .ccout
             export ARCH=$(cat .ccout | sed -ne 's/.*cc1 .*-march=\([^ "]*\)[ "].*/\1/p')
             echo "Architecture: $ARCH"
             echo "arch=$ARCH" >> $GITHUB_OUTPUT
