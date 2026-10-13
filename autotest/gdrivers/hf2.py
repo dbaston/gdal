@@ -35,7 +35,12 @@ def test_hf2_1():
 def test_hf2_2(tmp_path):
 
     tst = gdaltest.GDALTest(
-        "HF2", "byte.tif", 1, 4672, options=["COMPRESS=YES", "BLOCKSIZE=10"]
+        "HF2",
+        "byte.tif",
+        1,
+        4672,
+        options=["COMPRESS=YES", "BLOCKSIZE=10"],
+        tmpdir=tmp_path,
     )
     tst.testCreateCopy(new_filename=str(tmp_path / "hf2_2.hfz"))
     try:
@@ -62,12 +67,3 @@ def test_hf2_4(tmp_path):
 
     tst = gdaltest.GDALTest("HF2", "n43.dt0", 1, 49187, tmpdir=tmp_path)
     tst.testCreateCopy()
-
-
-###############################################################################
-# Cleanup
-
-
-def test_hf2_cleanup():
-
-    pass
