@@ -90,7 +90,7 @@ def test_ilwis_5():
     tst = gdaltest.GDALTest("ilwis", "byte.tif", 1, 4672)
 
     tst.testCreateCopy(
-        check_srs=1, check_gt=1, vsimem=1, new_filename="/vsimem/ilwis/byte.mpr"
+        check_srs=True, check_gt=1, vsimem=1, new_filename="/vsimem/ilwis/byte.mpr"
     )
 
 
