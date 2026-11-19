@@ -23,6 +23,7 @@
 #if defined(__cplusplus) && !defined(CPL_SUPRESS_CPLUSPLUS)
 extern "C++"
 {
+#include <memory>
 #include <string>
 }
 #endif
@@ -332,6 +333,36 @@ extern "C++"
             VSIFree(p);
         }
     };
+
+    namespace cpl
+    {
+    template <typename T, typename Deleter = VSIFreeReleaser>
+    struct CPL_DLL MaybeDeleter
+    {
+        bool m_owned;
+
+        void operator()(T *ptr) const
+        {
+            if (m_owned)
+            {
+                Deleter()(const_cast<std::remove_const_t<T> *>(ptr));
+            }
+        }
+    };
+
+    template <typename T>
+    using MaybeUniquePtr = std::unique_ptr<T, MaybeDeleter<T>>;
+
+    template <typename T> MaybeUniquePtr<T> make_owned(T *ptr)
+    {
+        return MaybeUniquePtr<T>(ptr, MaybeDeleter<T>{true});
+    }
+
+    template <typename T> MaybeUniquePtr<T> make_unowned(T *ptr)
+    {
+        return MaybeUniquePtr<T>(ptr, MaybeDeleter<T>{false});
+    }
+    }  // namespace cpl
 
     /*! @endcond */
 }

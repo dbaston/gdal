@@ -5199,3 +5199,65 @@ def test_ogr_parquet_read_gh_14610():
     lyr = ds.GetLayer(0)
     lyr.SetIgnoredFields(["OGR_GEOMETRY"])
     assert lyr.GetNextFeature()
+
+
+###############################################################################
+# Check that we don't modify input WKB buffer if changing polygon orientation
+# See https://github.com/OSGeo/gdal/issues/15491
+
+
+@gdaltest.enable_exceptions()
+@pytest.mark.parametrize("orientation", ("UNMODIFIED", "COUNTERCLOCKWISE"))
+def test_ogr_parquet_write_gh_15491(tmp_vsimem, orientation):
+
+    pa = pytest.importorskip("pyarrow")
+
+    poly_cw = ogr.CreateGeometryFromWkt("POLYGON ((0 0, 0 10, 10 10, 10 0, 0 0))")
+    poly_ccw = ogr.CreateGeometryFromWkt("POLYGON ((0 0, 10 0, 10 10, 0 10, 0 0))")
+
+    poly_cw_wkb = bytes(poly_cw.ExportToWkb())
+    poly_ccw_wkb = bytes(poly_ccw.ExportToWkb())
+
+    geom_array = pa.array([poly_cw_wkb, poly_ccw_wkb], type=pa.binary())
+    geom_array2 = pa.array([poly_cw_wkb, poly_ccw_wkb], type=pa.binary())
+
+    schema = pa.schema(
+        [
+            pa.field("fid", pa.int64()),
+            pa.field("name", pa.string()),
+            pa.field(
+                "geometry", pa.binary(), metadata={"ARROW:extension:name": "ogc_wkb"}
+            ),
+        ]
+    )
+    table = pa.table(
+        {
+            "fid": pa.array([1, 2], type=pa.int64()),
+            "name": pa.array(["poly_cw", "poly_ccw"], type=pa.string()),
+            "geometry": geom_array,
+        },
+        schema=schema,
+    )
+
+    with gdal.GetDriverByName("Parquet").CreateVector(tmp_vsimem / "out.parquet") as ds:
+        lyr = ds.CreateLayer(
+            "test",
+            geom_type=ogr.wkbPolygon,
+            options={"POLYGON_ORIENTATION": orientation},
+        )
+        lyr.CreateField(ogr.FieldDefn("name", ogr.OFTString))
+
+        assert lyr.WritePyArrow(table, options={"FID": "fid"}) == ogr.OGRERR_NONE
+
+    assert geom_array == geom_array2, "input buffer was modified"
+
+    with gdal.Open(tmp_vsimem / "out.parquet") as ds:
+        lyr = ds.GetLayer(0)
+        f = [fi for fi in lyr]
+
+        if orientation == "COUNTERCLOCKWISE":
+            ogrtest.check_feature_geometry(f[0], poly_ccw, max_error=0)
+            ogrtest.check_feature_geometry(f[1], poly_ccw, max_error=0)
+        else:
+            ogrtest.check_feature_geometry(f[0], poly_cw, max_error=0)
+            ogrtest.check_feature_geometry(f[1], poly_ccw, max_error=0)

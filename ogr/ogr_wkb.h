@@ -39,6 +39,9 @@ bool CPL_DLL OGRWKBIntersectsPessimistic(const GByte *pabyWkb, size_t nWKBSize,
 void CPL_DLL OGRWKBFixupCounterClockWiseExternalRing(GByte *pabyWkb,
                                                      size_t nWKBSize);
 
+bool CPL_DLL OGRWKBIsCounterClockWiseExternalRing(const GByte *pabyWkb,
+                                                  size_t nWKBSize);
+
 /** Modifies a PostGIS-style Extended WKB geometry to a regular WKB one.
  * pabyEWKB will be modified in place.
  * The return value will be either at the beginning of pabyEWKB or 4 bytes

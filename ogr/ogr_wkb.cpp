@@ -953,8 +953,10 @@ static bool OGRWKBIsClockwiseRing(const GByte *data, const uint32_t nPoints,
 /*              OGRWKBFixupCounterClockWiseExternalRing()               */
 /************************************************************************/
 
-static bool OGRWKBFixupCounterClockWiseExternalRingInternal(
-    GByte *data, size_t size, size_t &iOffsetInOut, const int nRec)
+static bool
+OGRWKBFixupCounterClockWiseExternalRingInternal(GByte *data, size_t size,
+                                                size_t &iOffsetInOut,
+                                                const int nRec, bool checkOnly)
 {
     if (size - iOffsetInOut < MIN_WKB_SIZE)
     {
@@ -1001,6 +1003,11 @@ static bool OGRWKBFixupCounterClockWiseExternalRingInternal(
                 if ((bIsClockwiseRing && iRing == 0) ||
                     (!bIsClockwiseRing && iRing > 0))
                 {
+                    if (checkOnly)
+                    {
+                        return true;
+                    }
+
                     GByte abyTmp[4 * sizeof(double)];
                     for (uint32_t i = 0; i < nPoints / 2; ++i)
                     {
@@ -1034,7 +1041,7 @@ static bool OGRWKBFixupCounterClockWiseExternalRingInternal(
         for (uint32_t k = 0; k < nParts; k++)
         {
             if (!OGRWKBFixupCounterClockWiseExternalRingInternal(
-                    data, size, iOffsetInOut, nRec))
+                    data, size, iOffsetInOut, nRec, checkOnly))
             {
                 return false;
             }
@@ -1051,7 +1058,18 @@ void OGRWKBFixupCounterClockWiseExternalRing(GByte *pabyWkb, size_t nWKBSize)
 {
     size_t iOffsetInOut = 0;
     OGRWKBFixupCounterClockWiseExternalRingInternal(
-        pabyWkb, nWKBSize, iOffsetInOut, /* nRec = */ 0);
+        pabyWkb, nWKBSize, iOffsetInOut, /* nRec = */ 0, /* checkOnly */ false);
+}
+
+/** Modifies the geometry such that exterior rings of polygons are
+ * counter-clockwise oriented and inner rings clockwise oriented.
+ */
+bool OGRWKBIsCounterClockWiseExternalRing(const GByte *pabyWkb, size_t nWKBSize)
+{
+    size_t iOffsetInOut = 0;
+    return OGRWKBFixupCounterClockWiseExternalRingInternal(
+        const_cast<GByte *>(pabyWkb), nWKBSize, iOffsetInOut, /* nRec = */ 0,
+        /* checkOnly */ true);
 }
 
 /************************************************************************/

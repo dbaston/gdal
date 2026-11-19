@@ -391,10 +391,22 @@ bool OGRParquetWriterLayer::SetOptions(
     if (pszCoordPrecision)
         m_nWKTCoordinatePrecision = atoi(pszCoordPrecision);
 
-    m_bForceCounterClockwiseOrientation =
-        EQUAL(CSLFetchNameValueDef(papszOptions, "POLYGON_ORIENTATION",
-                                   "COUNTERCLOCKWISE"),
-              "COUNTERCLOCKWISE");
+    const char *pszOrientation = CSLFetchNameValueDef(
+        papszOptions, "POLYGON_ORIENTATION", "COUNTERCLOCKWISE");
+    if (EQUAL(pszOrientation, "COUNTERCLOCKWISE"))
+    {
+        m_bForceCounterClockwiseOrientation = true;
+    }
+    else if (EQUAL(pszOrientation, "UNMODIFIED"))
+    {
+        m_bForceCounterClockwiseOrientation = false;
+    }
+    else
+    {
+        CPLError(CE_Failure, CPLE_AppDefined,
+                 "Invalid value of POLYGON_ORIENTATION: %s", pszOrientation);
+        return false;
+    }
 
     const auto eGType =
         poSrcGeomFieldDefn ? poSrcGeomFieldDefn->GetType() : wkbNone;
@@ -1123,13 +1135,26 @@ bool OGRParquetWriterLayer::FlushGroup()
 /*                   FixupWKBGeometryBeforeWriting()                    */
 /************************************************************************/
 
-void OGRParquetWriterLayer::FixupWKBGeometryBeforeWriting(GByte *pabyWkb,
-                                                          size_t nLen)
+cpl::MaybeUniquePtr<const GByte>
+OGRParquetWriterLayer::FixupWKBGeometryBeforeWriting(const GByte *pabyWkb,
+                                                     size_t nLen) const
 {
-    if (!m_bForceCounterClockwiseOrientation)
-        return;
+    if (!m_bForceCounterClockwiseOrientation ||
+        OGRWKBIsCounterClockWiseExternalRing(pabyWkb, nLen))
+    {
+        return cpl::make_unowned(pabyWkb);
+    }
 
-    OGRWKBFixupCounterClockWiseExternalRing(pabyWkb, nLen);
+    GByte *pabyOrientedWkb = static_cast<GByte *>(VSI_MALLOC_VERBOSE(nLen));
+    if (!pabyOrientedWkb)
+    {
+        return nullptr;
+    }
+    std::memcpy(pabyOrientedWkb, pabyWkb, nLen);
+
+    OGRWKBFixupCounterClockWiseExternalRing(pabyOrientedWkb, nLen);
+
+    return cpl::make_owned<const GByte>(pabyOrientedWkb);
 }
 
 /************************************************************************/

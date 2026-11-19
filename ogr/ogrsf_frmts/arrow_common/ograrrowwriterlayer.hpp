@@ -2978,7 +2978,12 @@ inline bool OGRArrowWriterLayer::WriteArrowBatchInternal(
                                     : static_cast<size_t>(panOffsets64[iRow]));
                 if (m_aeGeomEncoding[i] == OGRArrowGeomEncoding::WKB)
                 {
-                    FixupWKBGeometryBeforeWriting(pabyWkb, nLen);
+                    auto pabyFixedWkb =
+                        FixupWKBGeometryBeforeWriting(pabyWkb, nLen);
+                    if (!pabyFixedWkb)
+                    {
+                        return false;
+                    }
 
                     uint32_t nType = 0;
                     bool bNeedSwap = false;

@@ -516,9 +516,10 @@ class OGRArrowWriterLayer CPL_NON_FINAL : public OGRLayer
                                         const std::shared_ptr<arrow::Array> &)>
                          postProcessArray);
 
-    virtual void FixupWKBGeometryBeforeWriting(GByte * /*pabyWKB*/,
-                                               size_t /*nLen*/)
+    virtual cpl::MaybeUniquePtr<const GByte>
+    FixupWKBGeometryBeforeWriting(const GByte *pabyWkb, size_t /*nLen*/) const
     {
+        return cpl::make_unowned(pabyWkb);
     }
 
     virtual void FixupGeometryBeforeWriting(OGRGeometry * /* poGeom */)

@@ -397,8 +397,9 @@ class OGRParquetWriterLayer final : public OGRArrowWriterLayer
     virtual bool
     IsSupportedGeometryType(OGRwkbGeometryType eGType) const override;
 
-    virtual void FixupWKBGeometryBeforeWriting(GByte *pabyWKB,
-                                               size_t nLen) override;
+    cpl::MaybeUniquePtr<const GByte>
+    FixupWKBGeometryBeforeWriting(const GByte *pabyWKB,
+                                  size_t nLen) const override;
     void FixupGeometryBeforeWriting(OGRGeometry *poGeom) override;
 
     bool IsSRSRequired() const override
