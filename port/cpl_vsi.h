@@ -25,6 +25,7 @@ extern "C++"
 {
 #include <memory>
 #include <string>
+#include <type_traits>
 }
 #endif
 
