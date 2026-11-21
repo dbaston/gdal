@@ -360,12 +360,6 @@ class CPL_DLL GDALWarpKernel
     int nSrcXSize;
     /** Height of the source image */
     int nSrcYSize;
-    /** Extra pixels (included in nSrcXSize) reserved for filter window. Should
-     * be ignored in scale computation */
-    double dfSrcXExtraSize;
-    /** Extra pixels (included in nSrcYSize) reserved for filter window. Should
-     * be ignored in scale computation */
-    double dfSrcYExtraSize;
     /** Array of nBands source images of size nSrcXSize * nSrcYSize. Each
      * subarray must have WARP_EXTRA_ELTS at the end */
     GByte **papabySrcImage;
@@ -578,22 +572,12 @@ class CPL_DLL GDALWarpOperation final
                       int nSrcXOff = 0, int nSrcYOff = 0, int nSrcXSize = 0,
                       int nSrcYSize = 0, double dfProgressBase = 0.0,
                       double dfProgressScale = 1.0);
-    CPLErr WarpRegion(int nDstXOff, int nDstYOff, int nDstXSize, int nDstYSize,
-                      int nSrcXOff, int nSrcYOff, int nSrcXSize, int nSrcYSize,
-                      double dfSrcXExtraSize, double dfSrcYExtraSize,
-                      double dfProgressBase, double dfProgressScale);
     CPLErr WarpRegionToBuffer(int nDstXOff, int nDstYOff, int nDstXSize,
                               int nDstYSize, void *pDataBuf,
                               GDALDataType eBufDataType, int nSrcXOff = 0,
                               int nSrcYOff = 0, int nSrcXSize = 0,
                               int nSrcYSize = 0, double dfProgressBase = 0.0,
                               double dfProgressScale = 1.0);
-    CPLErr WarpRegionToBuffer(int nDstXOff, int nDstYOff, int nDstXSize,
-                              int nDstYSize, void *pDataBuf,
-                              GDALDataType eBufDataType, int nSrcXOff,
-                              int nSrcYOff, int nSrcXSize, int nSrcYSize,
-                              double dfSrcXExtraSize, double dfSrcYExtraSize,
-                              double dfProgressBase, double dfProgressScale);
 
   protected:
     friend class VRTWarpedDataset;
